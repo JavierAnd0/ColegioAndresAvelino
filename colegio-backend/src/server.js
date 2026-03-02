@@ -7,23 +7,24 @@ import connectDB from './config/database.js';
 import eventRoutes from './routes/events.js';
 import blogRoutes from './routes/blog.js';
 import authRoutes from './routes/auth.js';
-import uploadRoutes from './routes/upload.js';  // ← debe estar aquí arriba
+import uploadRoutes from './routes/upload.js';
 
 dotenv.config();
 connectDB();
 
-const app = express();  // ← app se define aquí
+const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middlewares
+// CORS - configuración simplificada para desarrollo
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: true,  // ← permite cualquier origen en desarrollo
   credentials: true,
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rutas  ← todo esto DESPUÉS de definir app
+// Rutas
 app.get('/', (req, res) => {
   res.json({
     message: '✅ API del Colegio funcionando',
@@ -40,7 +41,7 @@ app.get('/', (req, res) => {
 app.use('/api/events', eventRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/upload', uploadRoutes);  // ← DESPUÉS de que app existe
+app.use('/api/upload', uploadRoutes);
 
 // 404
 app.use((req, res) => {
@@ -59,6 +60,6 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-  console.log(`📝 Entorno: ${process.env.NODE_ENV}`);
-  console.log(`🌐 Frontend: ${process.env.FRONTEND_URL}`);
+  console.log(`📝 Entorno: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌐 CORS: permitido para todos los orígenes (desarrollo)`);
 });
