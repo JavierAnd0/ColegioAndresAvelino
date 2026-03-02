@@ -209,6 +209,12 @@ export const updatePost = async (req, res) => {
       delete req.body.slug; // Dejar que el modelo lo regenere
     }
 
+    // Si se publica el post por primera vez, establecer publishedAt
+    // (findByIdAndUpdate no ejecuta pre('save'), hay que hacerlo manualmente)
+    if (req.body.status === 'publicado' && !post.publishedAt) {
+      req.body.publishedAt = new Date();
+    }
+
     // Actualizar el post
     post = await BlogPost.findByIdAndUpdate(
       req.params.id,
@@ -304,7 +310,22 @@ export const deletePost = async (req, res) => {
 // @access  Public
 export const getFeaturedPosts = async (req, res) => {
   try {
-    const posts = await BlogPost.getFeatured();
+    // 1. Intentar posts destacados (isFeatured + publicado + publishedAt)
+    let posts = await BlogPost.getFeatured();
+
+    // 2. Fallback: posts recientes publicados con publishedAt
+    if (posts.length === 0) {
+      posts = await BlogPost.getRecent(3);
+    }
+
+    // 3. Fallback: posts publicados sin importar publishedAt
+    //    (cubre posts que se marcaron como 'publicado' pero no tienen fecha)
+    if (posts.length === 0) {
+      posts = await BlogPost.find({ status: 'publicado' })
+        .sort({ createdAt: -1 })
+        .limit(3)
+        .populate('author', 'name email');
+    }
 
     res.status(200).json({
       success: true,
