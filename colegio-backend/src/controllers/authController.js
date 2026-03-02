@@ -61,10 +61,10 @@ export const register = async (req, res) => {
       });
     }
 
+    console.error('Error al registrar usuario:', error);
     res.status(500).json({
       success: false,
       message: 'Error al registrar usuario',
-      error: error.message,
     });
   }
 };
@@ -132,10 +132,10 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('Error al iniciar sesión:', error);
     res.status(500).json({
       success: false,
       message: 'Error al iniciar sesión',
-      error: error.message,
     });
   }
 };
@@ -154,10 +154,10 @@ export const getMe = async (req, res) => {
       data: user,
     });
   } catch (error) {
+    console.error('Error al obtener perfil:', error);
     res.status(500).json({
       success: false,
       message: 'Error al obtener perfil de usuario',
-      error: error.message,
     });
   }
 };
@@ -213,10 +213,10 @@ export const updateProfile = async (req, res) => {
       });
     }
 
+    console.error('Error al actualizar perfil:', error);
     res.status(500).json({
       success: false,
       message: 'Error al actualizar perfil',
-      error: error.message,
     });
   }
 };
@@ -270,10 +270,10 @@ export const changePassword = async (req, res) => {
       });
     }
 
+    console.error('Error al cambiar contraseña:', error);
     res.status(500).json({
       success: false,
       message: 'Error al cambiar contraseña',
-      error: error.message,
     });
   }
 };
@@ -301,10 +301,10 @@ export const getAllUsers = async (req, res) => {
       data: users,
     });
   } catch (error) {
+    console.error('Error al obtener usuarios:', error);
     res.status(500).json({
       success: false,
       message: 'Error al obtener usuarios',
-      error: error.message,
     });
   }
 };
@@ -345,10 +345,10 @@ export const getUserById = async (req, res) => {
       });
     }
 
+    console.error('Error al obtener usuario:', error);
     res.status(500).json({
       success: false,
       message: 'Error al obtener usuario',
-      error: error.message,
     });
   }
 };
@@ -414,10 +414,10 @@ export const updateUser = async (req, res) => {
       });
     }
 
+    console.error('Error al actualizar usuario:', error);
     res.status(500).json({
       success: false,
       message: 'Error al actualizar usuario',
-      error: error.message,
     });
   }
 };
@@ -467,10 +467,10 @@ export const deleteUser = async (req, res) => {
       });
     }
 
+    console.error('Error al eliminar usuario:', error);
     res.status(500).json({
       success: false,
       message: 'Error al eliminar usuario',
-      error: error.message,
     });
   }
 };
@@ -492,10 +492,10 @@ export const verifyToken = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('Error al verificar token:', error);
     res.status(500).json({
       success: false,
       message: 'Error al verificar token',
-      error: error.message,
     });
   }
 };

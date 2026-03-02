@@ -68,7 +68,6 @@ export const getAllPosts = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al obtener posts',
-      error: error.message,
     });
   }
 };
@@ -131,7 +130,6 @@ export const getPostByIdOrSlug = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al obtener el post',
-      error: error.message,
     });
   }
 };
@@ -175,7 +173,6 @@ export const createPost = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al crear el post',
-      error: error.message,
     });
   }
 };
@@ -254,7 +251,6 @@ export const updatePost = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al actualizar el post',
-      error: error.message,
     });
   }
 };
@@ -299,7 +295,6 @@ export const deletePost = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al eliminar el post',
-      error: error.message,
     });
   }
 };
@@ -320,7 +315,6 @@ export const getFeaturedPosts = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al obtener posts destacados',
-      error: error.message,
     });
   }
 };
@@ -342,7 +336,6 @@ export const getRecentPosts = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al obtener posts recientes',
-      error: error.message,
     });
   }
 };
@@ -379,7 +372,6 @@ export const likePost = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al dar like',
-      error: error.message,
     });
   }
 };
@@ -418,7 +410,6 @@ export const getPostsByCategory = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al obtener posts por categoría',
-      error: error.message,
     });
   }
 };
@@ -449,7 +440,6 @@ export const getPostsByTag = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al obtener posts por tag',
-      error: error.message,
     });
   }
 };
@@ -473,7 +463,6 @@ export const getAllTags = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al obtener tags',
-      error: error.message,
     });
   }
 };

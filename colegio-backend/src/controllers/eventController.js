@@ -50,7 +50,6 @@ export const getAllEvents = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al obtener eventos',
-      error: error.message,
     });
   }
 };
@@ -86,7 +85,6 @@ export const getEventById = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al obtener el evento',
-      error: error.message,
     });
   }
 };
@@ -123,7 +121,6 @@ export const createEvent = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al crear el evento',
-      error: error.message,
     });
   }
 };
@@ -185,7 +182,6 @@ export const updateEvent = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al actualizar el evento',
-      error: error.message,
     });
   }
 };
@@ -230,7 +226,6 @@ export const deleteEvent = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al eliminar el evento',
-      error: error.message,
     });
   }
 };
@@ -261,7 +256,6 @@ export const getUpcomingEvents = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al obtener eventos próximos',
-      error: error.message,
     });
   }
 };
@@ -298,7 +292,6 @@ export const getEventsByCategory = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al obtener eventos por categoría',
-      error: error.message,
     });
   }
 };
@@ -336,7 +329,6 @@ export const getEventsByMonth = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al obtener eventos del mes',
-      error: error.message,
     });
   }
 };
