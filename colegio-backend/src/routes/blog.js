@@ -13,6 +13,7 @@ import {
     getAllTags,
 } from '../controllers/blogController.js';
 import { protect, optionalAuth, authorize } from '../middleware/auth.js';
+import { likeLimiter } from '../middleware/rateLimit.js';
 
 const router = express.Router();
 
@@ -23,7 +24,7 @@ router.get('/recent', getRecentPosts);
 router.get('/tags/all', getAllTags);
 router.get('/category/:category', getPostsByCategory);
 router.get('/tag/:tag', getPostsByTag);
-router.post('/:id/like', likePost);
+router.post('/:id/like', likeLimiter, likePost);
 router.get('/:identifier', optionalAuth, getPostByIdOrSlug);
 
 // Rutas privadas

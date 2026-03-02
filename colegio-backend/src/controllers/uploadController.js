@@ -26,7 +26,6 @@ export const uploadBlogImage = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error al subir la imagen',
-            error: error.message,
         });
     }
 };
@@ -55,7 +54,6 @@ export const uploadAvatar = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error al subir el avatar',
-            error: error.message,
         });
     }
 };
@@ -77,7 +75,6 @@ export const deleteImage = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error al eliminar la imagen',
-            error: error.message,
         });
     }
 };
