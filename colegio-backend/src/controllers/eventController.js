@@ -236,16 +236,26 @@ export const deleteEvent = async (req, res) => {
 export const getUpcomingEvents = async (req, res) => {
   try {
     const now = new Date();
-    const nextWeek = new Date();
-    nextWeek.setDate(nextWeek.getDate() + 7);
+    const nextMonth = new Date();
+    nextMonth.setDate(nextMonth.getDate() + 30);
 
-    const events = await Event.find({
-      startDate: { $gte: now, $lte: nextWeek },
+    let events = await Event.find({
+      startDate: { $gte: now, $lte: nextMonth },
       isPublic: true,
     })
       .populate('createdBy', 'name email')
       .sort({ startDate: 1 })
       .limit(10);
+
+    // Si no hay eventos en los próximos 30 días, mostrar los más recientes
+    if (events.length === 0) {
+      events = await Event.find({
+        isPublic: true,
+      })
+        .populate('createdBy', 'name email')
+        .sort({ startDate: -1 })
+        .limit(4);
+    }
 
     res.status(200).json({
       success: true,
