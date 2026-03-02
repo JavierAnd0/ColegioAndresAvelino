@@ -23,7 +23,6 @@ export default function AdminEventosPage() {
     const [editing, setEditing] = useState(null);
     const [alert, setAlert] = useState(null);
     const [deleting, setDeleting] = useState(null);
-    const [refreshKey, setRefreshKey] = useState(0);  // ← AGREGAR
 
     const fetchEvents = async () => {
         setLoading(true);
@@ -37,13 +36,13 @@ export default function AdminEventosPage() {
         }
     };
 
-    useEffect(() => { fetchEvents(); }, [refreshKey]);  // ← CAMBIAR dependencia
+    useEffect(() => { fetchEvents(); }, []);
 
     const handleCreate = async (formData) => {
         await eventService.create(formData);
         setAlert({ type: 'success', message: 'Evento creado exitosamente.' });
         setShowForm(false);
-        setRefreshKey(prev => prev + 1);  // ← AGREGAR
+        fetchEvents();
     };
 
     const handleUpdate = async (formData) => {
@@ -51,7 +50,7 @@ export default function AdminEventosPage() {
         setAlert({ type: 'success', message: 'Evento actualizado exitosamente.' });
         setEditing(null);
         setShowForm(false);
-        setRefreshKey(prev => prev + 1);  // ← AGREGAR
+        fetchEvents();
     };
 
     const handleDelete = async (id) => {
@@ -60,7 +59,7 @@ export default function AdminEventosPage() {
         try {
             await eventService.delete(id);
             setAlert({ type: 'success', message: 'Evento eliminado.' });
-            setRefreshKey(prev => prev + 1);  // ← AGREGAR
+            fetchEvents();
         } catch {
             setAlert({ type: 'error', message: 'Error al eliminar el evento.' });
         } finally {

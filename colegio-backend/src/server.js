@@ -8,12 +8,12 @@ import connectDB from './config/database.js';
 import eventRoutes from './routes/events.js';
 import blogRoutes from './routes/blog.js';
 import authRoutes from './routes/auth.js';
-import uploadRoutes from './routes/upload.js';  // ← debe estar aquí arriba
+import uploadRoutes from './routes/upload.js';
 
 dotenv.config();
 connectDB();
 
-const app = express();  // ← app se define aquí
+const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Headers de seguridad HTTP (protege contra XSS, clickjacking, sniffing, etc.)
@@ -41,7 +41,7 @@ app.use(cors({
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-// Rutas  ← todo esto DESPUÉS de definir app
+// Rutas
 app.get('/', (req, res) => {
   res.json({
     message: 'API del Colegio funcionando',
@@ -58,7 +58,7 @@ app.get('/', (req, res) => {
 app.use('/api/events', eventRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/upload', uploadRoutes);  // ← DESPUÉS de que app existe
+app.use('/api/upload', uploadRoutes);
 
 // 404
 app.use((req, res) => {
