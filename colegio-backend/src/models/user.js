@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const userSchema = new mongoose.Schema(
   {
@@ -152,16 +153,15 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
 
 // Método de instancia: Generar token de reseteo de contraseña
 userSchema.methods.createPasswordResetToken = function() {
-  // Generar token random
-  const resetToken = Math.random().toString(36).substring(2, 15) + 
-                     Math.random().toString(36).substring(2, 15);
-  
-  // Hashear y guardar en DB
-  this.passwordResetToken = bcrypt.hashSync(resetToken, 10);
-  
+  // Generar token criptográficamente seguro
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  // Hashear con SHA-256 y guardar en DB (más rápido que bcrypt para tokens de un solo uso)
+  this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
   // Expiración: 10 minutos
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
-  
+
   // Devolver token sin hashear (se enviará por email)
   return resetToken;
 };
