@@ -14,22 +14,30 @@ import {
 } from '../controllers/blogController.js';
 import { protect, optionalAuth, authorize } from '../middleware/auth.js';
 import { likeLimiter } from '../middleware/rateLimit.js';
+import {
+    validateObjectId,
+    validateCreatePost,
+    validateUpdatePost,
+    validateBlogCategory,
+    validateBlogTag,
+    validateBlogQuery,
+} from '../middleware/validate.js';
 
 const router = express.Router();
 
 // Rutas públicas
-router.get('/', optionalAuth, getAllPosts);
+router.get('/', validateBlogQuery, optionalAuth, getAllPosts);
 router.get('/featured', getFeaturedPosts);
 router.get('/recent', getRecentPosts);
 router.get('/tags/all', getAllTags);
-router.get('/category/:category', getPostsByCategory);
-router.get('/tag/:tag', getPostsByTag);
-router.post('/:id/like', likeLimiter, likePost);
+router.get('/category/:category', validateBlogCategory, getPostsByCategory);
+router.get('/tag/:tag', validateBlogTag, getPostsByTag);
+router.post('/:id/like', validateObjectId, likeLimiter, likePost);
 router.get('/:identifier', optionalAuth, getPostByIdOrSlug);
 
 // Rutas privadas
-router.post('/', protect, authorize('admin', 'editor', 'author'), createPost);
-router.put('/:id', protect, authorize('admin', 'editor', 'author'), updatePost);
-router.delete('/:id', protect, authorize('admin', 'editor'), deletePost);
+router.post('/', protect, authorize('admin', 'editor', 'author'), validateCreatePost, createPost);
+router.put('/:id', protect, authorize('admin', 'editor', 'author'), validateUpdatePost, updatePost);
+router.delete('/:id', protect, authorize('admin', 'editor'), validateObjectId, deletePost);
 
 export default router;
