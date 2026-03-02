@@ -1,18 +1,20 @@
-import { Inter } from 'next/font/google';
+import { Libertinus_Mono } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
+import { defaultMetadata } from '@/lib/seo';
 
-const inter = Inter({ subsets: ['latin'] });
+const libertinusMono = Libertinus_Mono({
+  subsets: ['latin'],
+  weight: '400',  // Solo tiene un peso disponible
+  display: 'swap',
+});
 
-export const metadata = {
-  title: 'Colegio - Institución Educativa',
-  description: 'Sitio web oficial de la Institución Educativa',
-};
+export const metadata = defaultMetadata;
 
 export default function RootLayout({ children }) {
   return (
     <html lang="es">
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${libertinusMono.className} antialiased`}>
         <AuthProvider>
           {children}
         </AuthProvider>
