@@ -41,8 +41,8 @@ export default function EventCard({ event, variant = 'full' }) {
                     className="flex flex-col items-center justify-center w-12 h-12 rounded-lg flex-shrink-0"
                     style={{ backgroundColor: color || '#171717' }}
                 >
-                    <span className="text-white text-lg font-bold leading-none">{start.day}</span>
-                    <span className="text-white text-xs leading-none opacity-90">{start.month}</span>
+                    <span className="text-white font-mono text-lg font-bold leading-none">{start.day}</span>
+                    <span className="text-white font-mono text-[0.6rem] leading-none opacity-90">{start.month}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                     <Heading level="h6" className="line-clamp-1">{title}</Heading>
@@ -70,8 +70,8 @@ export default function EventCard({ event, variant = 'full' }) {
                     className="flex flex-col items-center justify-center w-16 h-16 rounded-xl flex-shrink-0"
                     style={{ backgroundColor: color || '#171717' }}
                 >
-                    <span className="text-white text-2xl font-bold leading-none">{start.day}</span>
-                    <span className="text-white text-xs leading-none opacity-90 mt-0.5">{start.month}</span>
+                    <span className="text-white font-mono text-2xl font-bold leading-none">{start.day}</span>
+                    <span className="text-white font-mono text-[0.65rem] leading-none opacity-90 mt-0.5 uppercase">{start.month}</span>
                 </div>
                 {/* Contenido */}
                 <div className="flex flex-col gap-2 flex-1 min-w-0">

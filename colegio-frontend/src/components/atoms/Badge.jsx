@@ -7,8 +7,8 @@ const variants = {
 };
 
 const sizes = {
-  sm: 'px-2 py-0.5 text-xs',
-  md: 'px-3 py-1 text-sm',
+  sm: 'px-2 py-0.5 text-[0.65rem]',
+  md: 'px-3 py-1 text-xs',
 };
 
 export default function Badge({
@@ -20,7 +20,7 @@ export default function Badge({
   return (
     <span
       className={`
-        inline-flex items-center font-medium rounded-full
+        inline-flex items-center font-mono font-medium rounded-full uppercase tracking-wide
         ${variants[variant]}
         ${sizes[size]}
         ${className}

@@ -1,13 +1,12 @@
 'use client';
-import { useState } from 'react';
-import EventCard from '@/components/molecules/EventCard';
+import { useState, useEffect } from 'react';
 import CategoryFilter from '@/components/molecules/CategoryFilter';
-import Spinner from '@/components/atoms/Spinner';
 import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
 import Button from '@/components/atoms/Button';
 import EventCardSkeleton from '@/components/molecules/EventCardSkeleton';
-
+import CalendarGrid from '@/components/organisms/CalendarGrid';
+import EventTimeline from '@/components/organisms/EventTimeline';
 
 const eventCategories = [
     { value: 'academico', label: 'Académico' },
@@ -22,6 +21,46 @@ const MONTHS = [
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
+function ViewToggle({ viewMode, onChange }) {
+    return (
+        <div className="flex items-center bg-neutral-100 rounded-lg p-0.5">
+            <button
+                onClick={() => onChange('grid')}
+                className={`
+                    flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono font-medium transition-all duration-200
+                    ${viewMode === 'grid'
+                        ? 'bg-white text-neutral-900 shadow-sm'
+                        : 'text-neutral-500 hover:text-neutral-700'
+                    }
+                `}
+            >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" />
+                    <rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" />
+                    <rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" />
+                    <rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.5" />
+                </svg>
+                Grilla
+            </button>
+            <button
+                onClick={() => onChange('list')}
+                className={`
+                    flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono font-medium transition-all duration-200
+                    ${viewMode === 'list'
+                        ? 'bg-white text-neutral-900 shadow-sm'
+                        : 'text-neutral-500 hover:text-neutral-700'
+                    }
+                `}
+            >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M1 3h12M1 7h12M1 11h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+                Timeline
+            </button>
+        </div>
+    );
+}
+
 export default function EventCalendar({
     events = [],
     loading = false,
@@ -32,6 +71,20 @@ export default function EventCalendar({
     const now = new Date();
     const [currentMonth, setCurrentMonth] = useState(now.getMonth());
     const [currentYear, setCurrentYear] = useState(now.getFullYear());
+    const [viewMode, setViewMode] = useState('grid');
+
+    // Restore view mode from localStorage
+    useEffect(() => {
+        const saved = localStorage.getItem('eventCalendarView');
+        if (saved === 'grid' || saved === 'list') {
+            setViewMode(saved);
+        }
+    }, []);
+
+    const handleViewChange = (mode) => {
+        setViewMode(mode);
+        localStorage.setItem('eventCalendarView', mode);
+    };
 
     const handlePrevMonth = () => {
         if (currentMonth === 0) {
@@ -63,13 +116,26 @@ export default function EventCalendar({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <Heading level="h2">Calendario de Eventos</Heading>
 
-                    {/* Navegación de mes */}
-                    <div className="flex items-center gap-3">
-                        <Button variant="outline" size="sm" onClick={handlePrevMonth}>←</Button>
-                        <span className="text-base font-semibold text-neutral-900 min-w-36 text-center">
-                            {MONTHS[currentMonth]} {currentYear}
-                        </span>
-                        <Button variant="outline" size="sm" onClick={handleNextMonth}>→</Button>
+                    <div className="flex items-center gap-3 flex-wrap">
+                        {/* Toggle de vista */}
+                        <ViewToggle viewMode={viewMode} onChange={handleViewChange} />
+
+                        {/* Navegación de mes */}
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm" onClick={handlePrevMonth}>
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M10 4l-4 4 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            </Button>
+                            <span className="font-mono text-sm font-semibold text-neutral-900 min-w-32 text-center">
+                                {MONTHS[currentMonth]} {currentYear}
+                            </span>
+                            <Button variant="outline" size="sm" onClick={handleNextMonth}>
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            </Button>
+                        </div>
                     </div>
                 </div>
 
@@ -90,31 +156,34 @@ export default function EventCalendar({
                 </div>
             )}
 
-            {/* Sin eventos */}
-            {!loading && events.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-20 gap-3">
-                    <span className="text-5xl">📅</span>
-                    <Heading level="h4" className="text-neutral-500">
-                        Sin eventos este mes
-                    </Heading>
-                    <Paragraph color="muted">
-                        No hay eventos programados para {MONTHS[currentMonth]} {currentYear}.
-                    </Paragraph>
-                </div>
-            )}
+            {/* Contenido principal */}
+            {!loading && (
+                <>
+                    {/* Contador de eventos */}
+                    {events.length > 0 && (
+                        <Paragraph color="muted" className="mb-4">
+                            {events.length} {events.length === 1 ? 'evento' : 'eventos'} en {MONTHS[currentMonth]}
+                        </Paragraph>
+                    )}
 
-            {/* Lista de eventos */}
-            {!loading && events.length > 0 && (
-                <div className="flex flex-col gap-4">
-                    <Paragraph color="muted">
-                        {events.length} {events.length === 1 ? 'evento' : 'eventos'} en {MONTHS[currentMonth]}
-                    </Paragraph>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {events.map((event) => (
-                            <EventCard key={event._id} event={event} variant="full" />
-                        ))}
-                    </div>
-                </div>
+                    {/* Vista de grilla */}
+                    {viewMode === 'grid' && (
+                        <CalendarGrid
+                            events={events}
+                            currentMonth={currentMonth}
+                            currentYear={currentYear}
+                        />
+                    )}
+
+                    {/* Vista de timeline */}
+                    {viewMode === 'list' && (
+                        <EventTimeline
+                            events={events}
+                            currentMonth={currentMonth}
+                            currentYear={currentYear}
+                        />
+                    )}
+                </>
             )}
         </section>
     );
