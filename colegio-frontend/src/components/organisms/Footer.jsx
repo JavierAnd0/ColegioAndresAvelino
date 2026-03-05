@@ -26,9 +26,9 @@ export default function Footer() {
                     <div className="flex flex-col gap-4">
                         <div className="flex items-center gap-2">
                             <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center">
-                                <span className="text-neutral-900 font-bold text-sm">C</span>
+                                <span className="text-neutral-900 font-mono font-bold text-sm">C</span>
                             </div>
-                            <span className="font-bold text-lg">Nombre del Colegio</span>
+                            <span className="font-mono font-bold text-lg tracking-tight">Nombre del Colegio</span>
                         </div>
                         <Paragraph size="sm" className="text-neutral-400">
                             Formando líderes del mañana con valores, conocimiento y compromiso social.

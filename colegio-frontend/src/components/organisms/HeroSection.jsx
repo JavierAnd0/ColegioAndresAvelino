@@ -15,7 +15,7 @@ export default function HeroSection({
 
                 {/* Texto */}
                 <div className="flex flex-col gap-6">
-                    <span className="inline-flex items-center gap-2 text-sm font-medium text-neutral-500 bg-neutral-100 px-3 py-1.5 rounded-full w-fit">
+                    <span className="inline-flex items-center gap-2 text-xs font-mono font-medium text-neutral-500 bg-neutral-100 px-3 py-1.5 rounded-full w-fit uppercase tracking-wide">
                         <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
                         Institución Educativa
                     </span>
@@ -49,7 +49,7 @@ export default function HeroSection({
                             { value: '25+', label: 'Años de experiencia' },
                         ].map((stat) => (
                             <div key={stat.label} className="flex flex-col">
-                                <span className="text-2xl font-bold text-neutral-900">{stat.value}</span>
+                                <span className="text-2xl font-mono font-bold text-neutral-900">{stat.value}</span>
                                 <span className="text-sm text-neutral-500">{stat.label}</span>
                             </div>
                         ))}
