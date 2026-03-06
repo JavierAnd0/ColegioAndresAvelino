@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
-import CloudinaryStorage from 'multer-storage-cloudinary';
+import pkg from 'multer-storage-cloudinary';
+const { CloudinaryStorage } = pkg;
 import multer from 'multer';
 
 // Configurar Cloudinary con las credenciales
@@ -43,7 +44,20 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
+// Configurar storage para fotos del cuadro de honor
+const honorStorage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder: 'colegio/honor',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        transformation: [
+            { width: 400, height: 400, crop: 'fill', gravity: 'face', quality: 'auto' }
+        ],
+    },
+});
+
 // Exportar middlewares de multer
 export const uploadBlogImage = multer({ storage: blogStorage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB
 export const uploadAvatar = multer({ storage: avatarStorage, fileFilter, limits: { fileSize: 2 * 1024 * 1024 } }); // 2MB
+export const uploadHonorImage = multer({ storage: honorStorage, fileFilter, limits: { fileSize: 3 * 1024 * 1024 } }); // 3MB
 export { cloudinary };

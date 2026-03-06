@@ -7,6 +7,8 @@ import eventRoutes from './routes/events.js';
 import blogRoutes from './routes/blog.js';
 import authRoutes from './routes/auth.js';
 import uploadRoutes from './routes/upload.js';
+import honorRoutes from './routes/honor.js';
+import gradeRoutes from './routes/grades.js';
 
 const app = express();
 
@@ -45,6 +47,8 @@ app.get('/', (req, res) => {
       blog: '/api/blog',
       auth: '/api/auth',
       upload: '/api/upload',
+      honor: '/api/honor',
+      grades: '/api/grades',
     }
   });
 });
@@ -53,6 +57,8 @@ app.use('/api/events', eventRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/honor', honorRoutes);
+app.use('/api/grades', gradeRoutes);
 
 // 404
 app.use((req, res) => {

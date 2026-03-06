@@ -4,6 +4,7 @@ import Paragraph from '@/components/atoms/Typography/Paragraph';
 const footerLinks = {
     'Institución': [
         { label: 'Nosotros', href: '/nosotros' },
+        { label: 'Cuadro de Honor', href: '/cuadro-honor' },
         { label: 'Calendario', href: '/calendario' },
         { label: 'Blog', href: '/blog' },
         { label: 'Contacto', href: '/contacto' },
