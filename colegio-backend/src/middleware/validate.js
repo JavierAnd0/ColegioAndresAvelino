@@ -343,3 +343,105 @@ export const validateEventQuery = [
     .isISO8601().withMessage('endDate debe ser una fecha válida'),
   runValidation,
 ];
+
+// =============================================
+// VALIDACIONES DE CUADRO DE HONOR
+// =============================================
+
+const honorCategories = ['academico', 'valores', 'reciclaje'];
+
+export const validateCreateHonor = [
+  body('grade')
+    .notEmpty().withMessage('El grado es obligatorio')
+    .isMongoId().withMessage('ID de grado no válido'),
+  body('year')
+    .notEmpty().withMessage('El año es obligatorio')
+    .isInt({ min: 2000, max: 2100 }).withMessage('El año debe estar entre 2000 y 2100'),
+  body('month')
+    .notEmpty().withMessage('El mes es obligatorio')
+    .isInt({ min: 1, max: 12 }).withMessage('El mes debe estar entre 1 y 12'),
+  body('category')
+    .notEmpty().withMessage('La categoría es obligatoria')
+    .isIn(honorCategories).withMessage(`Categoría no válida. Debe ser: ${honorCategories.join(', ')}`),
+  body('studentName')
+    .trim()
+    .notEmpty().withMessage('El nombre del estudiante es obligatorio')
+    .isLength({ max: 100 }).withMessage('El nombre no puede tener más de 100 caracteres'),
+  body('photo.url')
+    .optional()
+    .isURL().withMessage('La URL de la foto debe ser válida'),
+  body('photo.publicId')
+    .optional()
+    .isString().withMessage('El publicId debe ser texto'),
+  runValidation,
+];
+
+export const validateUpdateHonor = [
+  param('id')
+    .isMongoId().withMessage('ID no válido'),
+  body('grade')
+    .optional()
+    .isMongoId().withMessage('ID de grado no válido'),
+  body('year')
+    .optional()
+    .isInt({ min: 2000, max: 2100 }).withMessage('El año debe estar entre 2000 y 2100'),
+  body('month')
+    .optional()
+    .isInt({ min: 1, max: 12 }).withMessage('El mes debe estar entre 1 y 12'),
+  body('category')
+    .optional()
+    .isIn(honorCategories).withMessage(`Categoría no válida. Debe ser: ${honorCategories.join(', ')}`),
+  body('studentName')
+    .optional()
+    .trim()
+    .isLength({ max: 100 }).withMessage('El nombre no puede tener más de 100 caracteres'),
+  body('photo.url')
+    .optional()
+    .isURL().withMessage('La URL de la foto debe ser válida'),
+  body('photo.publicId')
+    .optional()
+    .isString().withMessage('El publicId debe ser texto'),
+  runValidation,
+];
+
+export const validateHonorMonth = [
+  param('year')
+    .isInt({ min: 2000, max: 2100 }).withMessage('El año debe ser un número entre 2000 y 2100'),
+  param('month')
+    .isInt({ min: 1, max: 12 }).withMessage('El mes debe ser un número entre 1 y 12'),
+  runValidation,
+];
+
+// =============================================
+// VALIDACIONES DE GRADOS
+// =============================================
+
+export const validateCreateGrade = [
+  body('name')
+    .trim()
+    .notEmpty().withMessage('El nombre del grado es obligatorio')
+    .isLength({ max: 50 }).withMessage('El nombre no puede tener más de 50 caracteres'),
+  body('order')
+    .notEmpty().withMessage('El orden es obligatorio')
+    .isInt({ min: 0 }).withMessage('El orden debe ser un número positivo'),
+  body('isActive')
+    .optional()
+    .isBoolean().withMessage('isActive debe ser verdadero o falso'),
+  runValidation,
+];
+
+export const validateUpdateGrade = [
+  param('id')
+    .isMongoId().withMessage('ID no válido'),
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ max: 50 }).withMessage('El nombre no puede tener más de 50 caracteres'),
+  body('order')
+    .optional()
+    .isInt({ min: 0 }).withMessage('El orden debe ser un número positivo'),
+  body('isActive')
+    .optional()
+    .isBoolean().withMessage('isActive debe ser verdadero o falso'),
+  runValidation,
+];

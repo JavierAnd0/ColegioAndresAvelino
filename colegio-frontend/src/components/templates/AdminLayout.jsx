@@ -8,6 +8,8 @@ import Spinner from '@/components/atoms/Spinner';
 
 const sidebarLinks = [
     { label: 'Dashboard', href: '/admin', icon: '📊' },
+    { label: 'Cuadro de Honor', href: '/admin/cuadro-honor', icon: '🏆' },
+    { label: 'Grados', href: '/admin/grados', icon: '🎓' },
     { label: 'Eventos', href: '/admin/eventos', icon: '📅' },
     { label: 'Blog', href: '/admin/blog', icon: '📝' },
     { label: 'Ver sitio', href: '/', icon: '🌐' },

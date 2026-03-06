@@ -7,6 +7,7 @@ import {
 import {
     uploadBlogImage,
     uploadAvatar,
+    uploadHonorImage,
 } from '../config/cloudinary.js';
 import { protect, authorize } from '../middleware/auth.js';
 
@@ -27,6 +28,28 @@ router.post(
     protect,
     uploadAvatar.single('image'),
     uploadAvatarController
+);
+
+// Subir foto para cuadro de honor
+router.post(
+    '/honor',
+    protect,
+    authorize('admin', 'editor'),
+    uploadHonorImage.single('image'),
+    async (req, res) => {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ success: false, message: 'No se proporcionó ninguna imagen.' });
+            }
+            res.json({
+                success: true,
+                message: 'Foto subida exitosamente',
+                data: { url: req.file.path, publicId: req.file.filename },
+            });
+        } catch (error) {
+            res.status(500).json({ success: false, message: 'Error al subir la foto' });
+        }
+    }
 );
 
 // Eliminar imagen

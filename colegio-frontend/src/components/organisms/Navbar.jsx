@@ -7,6 +7,7 @@ import Button from '@/components/atoms/Button';
 const navLinks = [
     { label: 'Inicio', href: '/' },
     { label: 'Nosotros', href: '/nosotros' },
+    { label: 'Cuadro de Honor', href: '/cuadro-honor' },
     { label: 'Calendario', href: '/calendario' },
     { label: 'Blog', href: '/blog' },
     { label: 'Contacto', href: '/contacto' },
