@@ -1,6 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
-import pkg from 'multer-storage-cloudinary';
-const { CloudinaryStorage } = pkg;
+import CloudinaryStorage from 'multer-storage-cloudinary';
 import multer from 'multer';
 
 // Configurar Cloudinary con las credenciales
@@ -9,6 +8,13 @@ cloudinary.config({
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+// Debug: verificar que las credenciales se cargaron
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    console.warn('⚠️  Cloudinary: Faltan credenciales en .env (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET)');
+} else {
+    console.log('✅ Cloudinary configurado para:', process.env.CLOUDINARY_CLOUD_NAME);
+}
 
 // Configurar storage para posts del blog
 const blogStorage = new CloudinaryStorage({
@@ -44,20 +50,7 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-// Configurar storage para fotos del cuadro de honor
-const honorStorage = new CloudinaryStorage({
-    cloudinary,
-    params: {
-        folder: 'colegio/honor',
-        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-        transformation: [
-            { width: 400, height: 400, crop: 'fill', gravity: 'face', quality: 'auto' }
-        ],
-    },
-});
-
 // Exportar middlewares de multer
 export const uploadBlogImage = multer({ storage: blogStorage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB
 export const uploadAvatar = multer({ storage: avatarStorage, fileFilter, limits: { fileSize: 2 * 1024 * 1024 } }); // 2MB
-export const uploadHonorImage = multer({ storage: honorStorage, fileFilter, limits: { fileSize: 3 * 1024 * 1024 } }); // 3MB
 export { cloudinary };

@@ -93,8 +93,7 @@ const blogPostSchema = new mongoose.Schema(
   }
 );
 
-// Índices para optimizar búsquedas
-blogPostSchema.index({ slug: 1 });
+// Índices para optimizar búsquedas (slug ya tiene unique:true en el schema)
 blogPostSchema.index({ status: 1 });
 blogPostSchema.index({ category: 1 });
 blogPostSchema.index({ publishedAt: -1 }); // Orden descendente para posts más recientes

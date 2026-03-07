@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react';
 import Button from '@/components/atoms/Button';
 import Label from '@/components/atoms/Typography/Label';
+import Spinner from '@/components/atoms/Spinner';
 import { honorService } from '@/services/honorService';
 
 const MONTHS = [
@@ -30,17 +31,37 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
         photo: initialData.photo || { url: '', publicId: '' },
     });
     const [uploading, setUploading] = useState(false);
+    const [uploadError, setUploadError] = useState('');
+    const [preview, setPreview] = useState(initialData.photo?.url || '');
+    const [dragOver, setDragOver] = useState(false);
     const fileRef = useRef(null);
 
     const handleChange = (field, value) => {
         setForm(prev => ({ ...prev, [field]: value }));
     };
 
-    const handlePhotoUpload = async (e) => {
-        const file = e.target.files?.[0];
+    const processFile = async (file) => {
         if (!file) return;
 
+        // Validar tipo
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            setUploadError('Solo se permiten imágenes JPG, PNG o WebP.');
+            return;
+        }
+
+        // Validar tamaño (3MB)
+        if (file.size > 3 * 1024 * 1024) {
+            setUploadError('La imagen no puede superar 3MB.');
+            return;
+        }
+
+        // Preview local inmediato
+        const localPreview = URL.createObjectURL(file);
+        setPreview(localPreview);
+        setUploadError('');
         setUploading(true);
+
         try {
             const formData = new FormData();
             formData.append('image', file);
@@ -49,11 +70,31 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
                 ...prev,
                 photo: { url: result.data.url, publicId: result.data.publicId },
             }));
+            setPreview(result.data.url);
         } catch {
-            alert('Error al subir la foto');
+            setUploadError('Error al subir la foto. Verifica tu conexión.');
+            setPreview('');
         } finally {
             setUploading(false);
         }
+    };
+
+    const handleFileChange = (e) => {
+        processFile(e.target.files?.[0]);
+        if (fileRef.current) fileRef.current.value = '';
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setDragOver(false);
+        const file = e.dataTransfer.files?.[0];
+        processFile(file);
+    };
+
+    const handleRemovePhoto = () => {
+        setPreview('');
+        setForm(prev => ({ ...prev, photo: { url: '', publicId: '' } }));
+        if (fileRef.current) fileRef.current.value = '';
     };
 
     const handleSubmit = (e) => {
@@ -143,35 +184,90 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
                 />
             </div>
 
-            {/* Foto */}
+            {/* Foto del estudiante - Dropzone style */}
             <div>
                 <Label>Foto del estudiante</Label>
-                <div className="flex items-center gap-4">
-                    {form.photo?.url && (
-                        <img
-                            src={form.photo.url}
-                            alt="Preview"
-                            className="w-16 h-16 rounded-full object-cover border border-neutral-200"
-                        />
+                <div className="flex flex-col gap-3">
+                    {/* Área de preview / dropzone */}
+                    <div
+                        onClick={() => !uploading && fileRef.current?.click()}
+                        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                        onDragLeave={() => setDragOver(false)}
+                        onDrop={handleDrop}
+                        className={`
+                            relative w-full h-48 rounded-xl border-2 border-dashed
+                            flex flex-col items-center justify-center gap-2
+                            transition-all duration-200 overflow-hidden
+                            ${preview
+                                ? 'border-neutral-300'
+                                : dragOver
+                                    ? 'border-neutral-900 bg-neutral-100 cursor-pointer'
+                                    : 'border-neutral-300 hover:border-neutral-500 cursor-pointer hover:bg-neutral-50'
+                            }
+                        `}
+                    >
+                        {preview ? (
+                            <>
+                                <img
+                                    src={preview}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover"
+                                />
+                                {uploading && (
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                        <Spinner size="md" />
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <span className="text-3xl">📷</span>
+                                <p className="text-sm text-neutral-500 text-center px-4">
+                                    Click o arrastra para subir foto
+                                </p>
+                                <p className="text-xs text-neutral-400">
+                                    JPG, PNG, WebP · Máx 3MB
+                                </p>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Error */}
+                    {uploadError && (
+                        <p className="text-sm text-red-500">{uploadError}</p>
                     )}
-                    <div>
-                        <input
-                            ref={fileRef}
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            onChange={handlePhotoUpload}
-                            className="hidden"
-                        />
+
+                    {/* Botones */}
+                    <div className="flex gap-2">
                         <Button
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => fileRef.current?.click()}
                             loading={uploading}
+                            onClick={() => fileRef.current?.click()}
                         >
-                            {form.photo?.url ? 'Cambiar foto' : 'Subir foto'}
+                            {preview ? 'Cambiar foto' : 'Subir foto'}
                         </Button>
+                        {preview && !uploading && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleRemovePhoto}
+                            >
+                                Eliminar
+                            </Button>
+                        )}
                     </div>
+
+                    {/* Input oculto */}
+                    <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleFileChange}
+                        className="hidden"
+                    />
                 </div>
             </div>
 
