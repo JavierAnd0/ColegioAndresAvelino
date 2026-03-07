@@ -368,10 +368,10 @@ export const validateCreateHonor = [
     .notEmpty().withMessage('El nombre del estudiante es obligatorio')
     .isLength({ max: 100 }).withMessage('El nombre no puede tener más de 100 caracteres'),
   body('photo.url')
-    .optional()
+    .optional({ values: 'falsy' })
     .isURL().withMessage('La URL de la foto debe ser válida'),
   body('photo.publicId')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString().withMessage('El publicId debe ser texto'),
   runValidation,
 ];
@@ -396,10 +396,10 @@ export const validateUpdateHonor = [
     .trim()
     .isLength({ max: 100 }).withMessage('El nombre no puede tener más de 100 caracteres'),
   body('photo.url')
-    .optional()
+    .optional({ values: 'falsy' })
     .isURL().withMessage('La URL de la foto debe ser válida'),
   body('photo.publicId')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString().withMessage('El publicId debe ser texto'),
   runValidation,
 ];

@@ -56,7 +56,9 @@ export default function HonorBoard({ entries = [], loading = false, year, month 
                                 {gradeGroup.name.charAt(0)}
                             </span>
                         </div>
-                        <Heading level="h5">{gradeGroup.name}</Heading>
+                        <h5 className="font-mono font-bold text-lg text-neutral-900 tracking-tight">
+                            {gradeGroup.name}
+                        </h5>
                     </div>
 
                     {/* 3 cards de estudiantes */}

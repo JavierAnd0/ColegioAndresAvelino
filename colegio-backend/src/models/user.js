@@ -66,8 +66,7 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Índices
-userSchema.index({ email: 1 });
+// Índices (email ya tiene unique:true en el schema, no necesita index adicional)
 userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
 

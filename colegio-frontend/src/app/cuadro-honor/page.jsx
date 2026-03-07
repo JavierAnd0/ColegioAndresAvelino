@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import MainLayout from '@/components/templates/MainLayout';
 import HonorBoard from '@/components/organisms/HonorBoard';
 import MonthSelector from '@/components/molecules/MonthSelector';
-import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
 import { honorService } from '@/services/honorService';
 
@@ -40,7 +39,9 @@ export default function CuadroHonorPage() {
             <section className="max-w-6xl mx-auto px-4 py-12">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                     <div>
-                        <Heading level="h2">Cuadro de Honor</Heading>
+                        <h2 className="font-mono font-bold text-2xl sm:text-3xl text-neutral-900 tracking-tight">
+                            Cuadro de Honor
+                        </h2>
                         <Paragraph color="muted" className="mt-1">
                             Reconocimiento mensual a nuestros mejores estudiantes
                         </Paragraph>

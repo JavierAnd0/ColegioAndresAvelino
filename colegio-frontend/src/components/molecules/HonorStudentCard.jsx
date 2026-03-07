@@ -31,7 +31,7 @@ export default function HonorStudentCard({ studentName, photo, category }) {
             </div>
 
             {/* Nombre */}
-            <p className="font-semibold text-sm text-neutral-900 text-center leading-tight">
+            <p className="font-mono font-semibold text-sm text-neutral-900 text-center leading-tight">
                 {studentName}
             </p>
 
