@@ -5,19 +5,10 @@ import Label from '@/components/atoms/Typography/Label';
 import Spinner from '@/components/atoms/Spinner';
 import { honorService } from '@/services/honorService';
 
-const MONTHS = [
-    { value: 1, label: 'Enero' }, { value: 2, label: 'Febrero' },
-    { value: 3, label: 'Marzo' }, { value: 4, label: 'Abril' },
-    { value: 5, label: 'Mayo' }, { value: 6, label: 'Junio' },
-    { value: 7, label: 'Julio' }, { value: 8, label: 'Agosto' },
-    { value: 9, label: 'Septiembre' }, { value: 10, label: 'Octubre' },
-    { value: 11, label: 'Noviembre' }, { value: 12, label: 'Diciembre' },
-];
-
 const CATEGORIES = [
-    { value: 'academico', label: 'Académico' },
-    { value: 'valores', label: 'Valores' },
-    { value: 'reciclaje', label: 'Reciclaje' },
+    { value: 'academico', label: '📚 Mejor rendimiento académico', short: 'Académico' },
+    { value: 'valores', label: '🌟 Mejores valores', short: 'Valores' },
+    { value: 'reciclaje', label: '♻️ Mayor aporte al reciclaje', short: 'Reciclaje' },
 ];
 
 export default function HonorEntryForm({ onSubmit, initialData = {}, grades = [], loading = false }) {
@@ -43,20 +34,17 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
     const processFile = async (file) => {
         if (!file) return;
 
-        // Validar tipo
         const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
         if (!validTypes.includes(file.type)) {
             setUploadError('Solo se permiten imágenes JPG, PNG o WebP.');
             return;
         }
 
-        // Validar tamaño (3MB)
         if (file.size > 3 * 1024 * 1024) {
             setUploadError('La imagen no puede superar 3MB.');
             return;
         }
 
-        // Preview local inmediato
         const localPreview = URL.createObjectURL(file);
         setPreview(localPreview);
         setUploadError('');
@@ -87,8 +75,7 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
     const handleDrop = (e) => {
         e.preventDefault();
         setDragOver(false);
-        const file = e.dataTransfer.files?.[0];
-        processFile(file);
+        processFile(e.dataTransfer.files?.[0]);
     };
 
     const handleRemovePhoto = () => {
@@ -103,76 +90,71 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
         onSubmit(form);
     };
 
-    const inputClass = 'w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent';
+    const selectClass = `
+        w-full px-3 py-2.5 border border-neutral-200 rounded-lg text-sm
+        bg-white appearance-none cursor-pointer
+        focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent
+        font-mono
+    `;
+
+    const inputClass = `
+        w-full px-3 py-2.5 border border-neutral-200 rounded-lg text-sm
+        focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent
+        font-mono
+    `;
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            {/* Grado y Categoría */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Grado */}
                 <div>
-                    <Label>Grado</Label>
-                    <select
-                        value={form.grade}
-                        onChange={(e) => handleChange('grade', e.target.value)}
-                        className={inputClass}
-                        required
-                    >
-                        <option value="">Seleccionar grado...</option>
-                        {grades.map(g => (
-                            <option key={g._id} value={g._id}>{g.name}</option>
-                        ))}
-                    </select>
+                    <Label className="mb-1.5 block text-sm font-medium text-neutral-700">Grado</Label>
+                    <div className="relative">
+                        <select
+                            value={form.grade}
+                            onChange={(e) => handleChange('grade', e.target.value)}
+                            className={selectClass}
+                            required
+                        >
+                            <option value="">Seleccionar grado...</option>
+                            {grades.map(g => (
+                                <option key={g._id} value={g._id}>{g.name}</option>
+                            ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                            <svg className="h-4 w-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Categoría */}
                 <div>
-                    <Label>Categoría</Label>
-                    <select
-                        value={form.category}
-                        onChange={(e) => handleChange('category', e.target.value)}
-                        className={inputClass}
-                        required
-                    >
-                        <option value="">Seleccionar categoría...</option>
-                        {CATEGORIES.map(c => (
-                            <option key={c.value} value={c.value}>{c.label}</option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Año */}
-                <div>
-                    <Label>Año</Label>
-                    <input
-                        type="number"
-                        value={form.year}
-                        onChange={(e) => handleChange('year', parseInt(e.target.value))}
-                        min={2000}
-                        max={2100}
-                        className={inputClass}
-                        required
-                    />
-                </div>
-
-                {/* Mes */}
-                <div>
-                    <Label>Mes</Label>
-                    <select
-                        value={form.month}
-                        onChange={(e) => handleChange('month', parseInt(e.target.value))}
-                        className={inputClass}
-                        required
-                    >
-                        {MONTHS.map(m => (
-                            <option key={m.value} value={m.value}>{m.label}</option>
-                        ))}
-                    </select>
+                    <Label className="mb-1.5 block text-sm font-medium text-neutral-700">Categoría</Label>
+                    <div className="relative">
+                        <select
+                            value={form.category}
+                            onChange={(e) => handleChange('category', e.target.value)}
+                            className={selectClass}
+                            required
+                        >
+                            <option value="">Seleccionar categoría...</option>
+                            {CATEGORIES.map(c => (
+                                <option key={c.value} value={c.value}>{c.label}</option>
+                            ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                            <svg className="h-4 w-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {/* Nombre del estudiante */}
             <div>
-                <Label>Nombre del estudiante</Label>
+                <Label className="mb-1.5 block text-sm font-medium text-neutral-700">Nombre del estudiante</Label>
                 <input
                     type="text"
                     value={form.studentName}
@@ -184,11 +166,10 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
                 />
             </div>
 
-            {/* Foto del estudiante - Dropzone style */}
+            {/* Foto del estudiante - Dropzone */}
             <div>
-                <Label>Foto del estudiante</Label>
+                <Label className="mb-1.5 block text-sm font-medium text-neutral-700">Foto del estudiante</Label>
                 <div className="flex flex-col gap-3">
-                    {/* Área de preview / dropzone */}
                     <div
                         onClick={() => !uploading && fileRef.current?.click()}
                         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -232,12 +213,10 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
                         )}
                     </div>
 
-                    {/* Error */}
                     {uploadError && (
                         <p className="text-sm text-red-500">{uploadError}</p>
                     )}
 
-                    {/* Botones */}
                     <div className="flex gap-2">
                         <Button
                             type="button"
@@ -260,7 +239,6 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
                         )}
                     </div>
 
-                    {/* Input oculto */}
                     <input
                         ref={fileRef}
                         type="file"
