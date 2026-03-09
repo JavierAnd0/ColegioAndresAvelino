@@ -10,7 +10,7 @@ import Label from '@/components/atoms/Typography/Label';
 import Textarea from '@/components/atoms/Textarea';
 
 const infoCards = [
-    { icon: '📍', title: 'Dirección', desc: 'Dirección del colegio, Ciudad, Departamento' },
+    { icon: '📍', title: 'Dirección', desc: 'KR 8 # 5-51, HUILA, RIVERA.' },
     { icon: '📞', title: 'Teléfono', desc: '(+57) 000 000 0000' },
     { icon: '✉️', title: 'Email', desc: 'contacto@colegio.edu.co' },
     { icon: '🕐', title: 'Horario', desc: 'Lunes a Viernes: 7:00am - 5:00pm' },
