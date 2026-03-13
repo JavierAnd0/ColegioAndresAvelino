@@ -42,7 +42,7 @@ export default function EventTimeline({ events = [], currentMonth, currentYear }
     if (events.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-                <span className="text-5xl">📅</span>
+                <span className="text-5xl"></span>
                 <Heading level="h4" className="text-neutral-500">
                     Sin eventos este mes
                 </Heading>
