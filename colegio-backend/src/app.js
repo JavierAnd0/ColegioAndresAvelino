@@ -13,7 +13,13 @@ import gradeRoutes from './routes/grades.js';
 const app = express();
 
 // Headers de seguridad HTTP (protege contra XSS, clickjacking, sniffing, etc.)
+<<<<<<< HEAD
 app.use(helmet());
+=======
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
+>>>>>>> 4c128e5 (Fix CORS upload blog y rediseñar carrusel eventos)
 
 // CORS - orígenes permitidos según entorno
 // En .env: CORS_ORIGINS=http://localhost:3000,https://tucolegio.com
@@ -31,6 +37,11 @@ app.use(cors({
     callback(new Error('Origen no permitido por CORS'));
   },
   credentials: true,
+<<<<<<< HEAD
+=======
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+>>>>>>> 4c128e5 (Fix CORS upload blog y rediseñar carrusel eventos)
 }));
 
 // Limitar tamaño del body para prevenir payload DoS
