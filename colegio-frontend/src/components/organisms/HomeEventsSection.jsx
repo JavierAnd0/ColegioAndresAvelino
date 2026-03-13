@@ -3,25 +3,24 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
-import Badge from '@/components/atoms/Badge';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-const categoryConfig = {
-    academico: { label: 'Académico', variant: 'info' },
-    deportivo: { label: 'Deportivo', variant: 'success' },
-    cultural: { label: 'Cultural', variant: 'warning' },
-    reunion: { label: 'Reunión', variant: 'default' },
-    festivo: { label: 'Festivo', variant: 'danger' },
-    otro: { label: 'Otro', variant: 'default' },
+const categoryColors = {
+    academico: '#2563eb',
+    deportivo: '#16a34a',
+    cultural: '#ea580c',
+    reunion: '#6b7280',
+    festivo: '#dc2626',
+    otro: '#171717',
 };
 
 function formatEventDate(dateStr) {
     const d = new Date(dateStr);
     return {
         day: d.getDate(),
-        monthShort: d.toLocaleDateString('es-CO', { month: 'short' }),
-        weekday: d.toLocaleDateString('es-CO', { weekday: 'short' }),
+        monthShort: d.toLocaleDateString('es-CO', { month: 'short' }).toUpperCase(),
+        weekday: d.toLocaleDateString('es-CO', { weekday: 'long' }),
         time: d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
     };
 }
@@ -29,73 +28,54 @@ function formatEventDate(dateStr) {
 function EventSlide({ event, isDragging }) {
     const { title, description, startDate, category, location, color, isAllDay } = event;
     const start = formatEventDate(startDate);
-    const config = categoryConfig[category] || categoryConfig.otro;
-    const accentColor = color || '#171717';
+    const accentColor = color || categoryColors[category] || '#171717';
 
     return (
-        <div className="min-w-[300px] sm:min-w-[340px] snap-start flex-shrink-0 select-none">
+        <div className="min-w-[260px] sm:min-w-[300px] snap-start flex-shrink-0 select-none">
             <Link
                 href="/calendario"
                 draggable={false}
                 onClick={(e) => { if (isDragging) e.preventDefault(); }}
                 className="block h-full"
             >
-                <div className="relative bg-white rounded-2xl overflow-hidden border border-neutral-100
-                    shadow-sm hover:shadow-xl hover:-translate-y-1
-                    transition-all duration-300 h-full min-h-[200px] flex flex-col group">
+                <div className="bg-white rounded-xl border border-neutral-200/60
+                    hover:border-neutral-300 hover:shadow-md
+                    transition-all duration-200 h-full flex flex-col group">
 
-                    <div className="h-1.5 w-full" style={{ backgroundColor: accentColor }} />
-
-                    <div className="p-5 flex-1 flex flex-col">
-                        <div className="flex items-start justify-between gap-3 mb-3">
-                            <div className="flex items-center gap-3">
-                                <div
-                                    className="flex flex-col items-center justify-center w-12 h-12 rounded-xl shrink-0"
-                                    style={{ backgroundColor: accentColor }}
-                                >
-                                    <span className="text-white font-mono text-lg font-bold leading-none">
-                                        {start.day}
-                                    </span>
-                                    <span className="text-white/70 font-mono text-[0.55rem] uppercase leading-none mt-0.5">
-                                        {start.monthShort}
-                                    </span>
-                                </div>
-                                <div>
-                                    <p className="text-[0.7rem] text-neutral-400 capitalize font-medium">
-                                        {start.weekday}
-                                    </p>
-                                    <p className="text-sm font-mono font-semibold text-neutral-800">
-                                        {isAllDay ? 'Todo el día' : start.time}
-                                    </p>
-                                </div>
-                            </div>
-                            <Badge variant={config.variant} size="sm" className="shrink-0">
-                                {config.label}
-                            </Badge>
+                    <div className="p-4 flex gap-3.5 flex-1">
+                        {/* Bloque fecha */}
+                        <div
+                            className="w-14 h-14 rounded-lg flex flex-col items-center justify-center shrink-0"
+                            style={{ backgroundColor: accentColor }}
+                        >
+                            <span className="text-white font-mono text-xl font-bold leading-none">
+                                {start.day}
+                            </span>
+                            <span className="text-white/70 font-mono text-[0.5rem] tracking-wider leading-none mt-0.5">
+                                {start.monthShort}
+                            </span>
                         </div>
 
-                        <h3 className="font-mono font-bold text-sm text-neutral-900 leading-snug line-clamp-2
-                            group-hover:text-neutral-600 transition-colors">
-                            {title}
-                        </h3>
-
-                        {description && (
-                            <p className="text-xs text-neutral-400 leading-relaxed line-clamp-2 mt-1.5">
-                                {description}
+                        {/* Contenido */}
+                        <div className="flex-1 min-w-0 flex flex-col">
+                            <p className="text-[0.65rem] text-neutral-400 capitalize leading-none mb-1">
+                                {start.weekday} · {isAllDay ? 'Todo el día' : start.time}
                             </p>
-                        )}
-
-                        {location && (
-                            <div className="flex items-center gap-1.5 mt-auto pt-3">
-                                <svg className="h-3 w-3 text-neutral-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                        d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                        d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                                </svg>
-                                <span className="text-[0.7rem] text-neutral-400 truncate">{location}</span>
-                            </div>
-                        )}
+                            <h3 className="font-semibold text-sm text-neutral-900 leading-snug line-clamp-2
+                                group-hover:text-neutral-600 transition-colors">
+                                {title}
+                            </h3>
+                            {description && (
+                                <p className="text-xs text-neutral-400 line-clamp-1 mt-1">
+                                    {description}
+                                </p>
+                            )}
+                            {location && (
+                                <p className="text-[0.65rem] text-neutral-400 truncate mt-auto pt-2">
+                                    {location}
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
             </Link>
@@ -112,9 +92,7 @@ export default function HomeEventsSection() {
     const [isDragging, setIsDragging] = useState(false);
     const startXRef = useRef(0);
     const scrollLeftRef = useRef(0);
-
-    const [canScrollLeft, setCanScrollLeft] = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(false);
+    const [scrollProgress, setScrollProgress] = useState(0);
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -132,31 +110,25 @@ export default function HomeEventsSection() {
         fetchEvents();
     }, []);
 
-    const updateScrollState = useCallback(() => {
+    const updateScrollProgress = useCallback(() => {
         const el = scrollRef.current;
         if (!el) return;
-        setCanScrollLeft(el.scrollLeft > 10);
-        setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+        const maxScroll = el.scrollWidth - el.clientWidth;
+        setScrollProgress(maxScroll > 0 ? el.scrollLeft / maxScroll : 0);
     }, []);
 
     useEffect(() => {
-        updateScrollState();
         const el = scrollRef.current;
         if (el) {
-            el.addEventListener('scroll', updateScrollState, { passive: true });
-            window.addEventListener('resize', updateScrollState);
+            updateScrollProgress();
+            el.addEventListener('scroll', updateScrollProgress, { passive: true });
+            window.addEventListener('resize', updateScrollProgress);
             return () => {
-                el.removeEventListener('scroll', updateScrollState);
-                window.removeEventListener('resize', updateScrollState);
+                el.removeEventListener('scroll', updateScrollProgress);
+                window.removeEventListener('resize', updateScrollProgress);
             };
         }
-    }, [events.length, updateScrollState]);
-
-    const scroll = (direction) => {
-        const el = scrollRef.current;
-        if (!el) return;
-        el.scrollBy({ left: direction === 'left' ? -360 : 360, behavior: 'smooth' });
-    };
+    }, [events.length, updateScrollProgress]);
 
     const onMouseDown = useCallback((e) => {
         const el = scrollRef.current;
@@ -197,24 +169,21 @@ export default function HomeEventsSection() {
             <section className="py-16 bg-neutral-50">
                 <div className="max-w-6xl mx-auto px-4">
                     <div className="mb-8">
-                        <div className="h-8 w-56 bg-neutral-200 rounded animate-pulse" />
-                        <div className="h-4 w-80 bg-neutral-100 rounded animate-pulse mt-2" />
+                        <div className="h-8 w-48 bg-neutral-200 rounded animate-pulse" />
+                        <div className="h-4 w-72 bg-neutral-100 rounded animate-pulse mt-2" />
                     </div>
                     <div className="flex gap-4 overflow-hidden">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="min-w-[340px] flex-shrink-0 animate-pulse">
-                                <div className="bg-white rounded-2xl border border-neutral-100 p-5 min-h-[200px]">
-                                    <div className="flex gap-3 mb-3">
-                                        <div className="w-12 h-12 bg-neutral-100 rounded-xl" />
-                                        <div className="space-y-1.5 flex-1">
-                                            <div className="h-3 w-14 bg-neutral-100 rounded" />
-                                            <div className="h-4 w-10 bg-neutral-100 rounded" />
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="min-w-[300px] flex-shrink-0 animate-pulse">
+                                <div className="bg-white rounded-xl border border-neutral-200/60 p-4 h-[100px]">
+                                    <div className="flex gap-3.5">
+                                        <div className="w-14 h-14 bg-neutral-100 rounded-lg" />
+                                        <div className="flex-1 space-y-2">
+                                            <div className="h-2.5 w-20 bg-neutral-100 rounded" />
+                                            <div className="h-3.5 w-full bg-neutral-100 rounded" />
+                                            <div className="h-2.5 w-2/3 bg-neutral-100 rounded" />
                                         </div>
-                                        <div className="h-5 w-16 bg-neutral-100 rounded-full" />
                                     </div>
-                                    <div className="h-4 w-3/4 bg-neutral-100 rounded mt-2" />
-                                    <div className="h-3 w-full bg-neutral-100 rounded mt-2" />
-                                    <div className="h-3 w-1/2 bg-neutral-100 rounded mt-2" />
                                 </div>
                             </div>
                         ))}
@@ -240,61 +209,36 @@ export default function HomeEventsSection() {
     return (
         <section className="py-16 bg-neutral-50">
             <div className="max-w-6xl mx-auto px-4">
-                {/* Header con flechas */}
-                <div className="flex items-end justify-between gap-4 mb-8">
-                    <div>
-                        <Heading level="h2">Próximos Eventos</Heading>
-                        <Paragraph color="muted" className="mt-1">
-                            Actividades y eventos de nuestra institución
-                        </Paragraph>
-                    </div>
-
-                    <div className="hidden sm:flex items-center gap-1.5">
-                        <button
-                            type="button"
-                            onClick={() => scroll('left')}
-                            disabled={!canScrollLeft}
-                            className="h-9 w-9 rounded-full border border-neutral-200 bg-white flex items-center justify-center
-                                hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
-                        >
-                            <svg className="h-4 w-4 text-neutral-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => scroll('right')}
-                            disabled={!canScrollRight}
-                            className="h-9 w-9 rounded-full border border-neutral-200 bg-white flex items-center justify-center
-                                hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
-                        >
-                            <svg className="h-4 w-4 text-neutral-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
-                    </div>
+                <div className="mb-8">
+                    <Heading level="h2">Próximos Eventos</Heading>
+                    <Paragraph color="muted" className="mt-1">
+                        Actividades y eventos de nuestra institución
+                    </Paragraph>
                 </div>
 
                 {/* Carrusel */}
-                <div className="relative">
-                    {canScrollLeft && (
-                        <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-neutral-50 to-transparent z-10 pointer-events-none" />
-                    )}
-                    {canScrollRight && (
-                        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-neutral-50 to-transparent z-10 pointer-events-none" />
-                    )}
-
-                    <div
-                        ref={scrollRef}
-                        onMouseDown={onMouseDown}
-                        className="flex gap-4 overflow-x-auto scroll-smooth snap-x pb-2 -mx-4 px-4 cursor-grab active:cursor-grabbing"
-                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                    >
-                        {events.slice(0, 10).map((event) => (
-                            <EventSlide key={event._id} event={event} isDragging={isDragging} />
-                        ))}
-                    </div>
+                <div
+                    ref={scrollRef}
+                    onMouseDown={onMouseDown}
+                    className="flex gap-3 overflow-x-auto snap-x pb-4 -mx-4 px-4 cursor-grab active:cursor-grabbing"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                    {events.slice(0, 10).map((event) => (
+                        <EventSlide key={event._id} event={event} isDragging={isDragging} />
+                    ))}
                 </div>
+
+                {/* Barra de progreso */}
+                {events.length > 3 && (
+                    <div className="mt-4 mx-auto max-w-[120px]">
+                        <div className="h-1 bg-neutral-200 rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-neutral-900 rounded-full transition-all duration-150"
+                                style={{ width: `${Math.max(20, scrollProgress * 100)}%` }}
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
         </section>
     );
