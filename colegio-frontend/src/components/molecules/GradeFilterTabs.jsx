@@ -34,7 +34,7 @@ export default function GradeFilterTabs({ grades = [], selected, onChange }) {
             {/* Tabs de grados */}
             {grades.map((grade) => (
                 <button
-                    key={grade.order}
+                    key={grade._id}
                     type="button"
                     onClick={() => onChange(grade.order)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors cursor-pointer
