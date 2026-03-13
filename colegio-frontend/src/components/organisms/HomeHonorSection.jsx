@@ -19,56 +19,42 @@ const categoryConfig = {
 
 const CATEGORIES_ORDER = ['academico', 'valores', 'reciclaje'];
 
-/* --- SVG Icons para grados --- */
+/* --- Icono de Preescolar (lápiz) --- */
 function PreescolarIcon({ className }) {
     return (
-        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 3c-1.5 0-2.5 1-2.5 2a2.5 2.5 0 005 0c0-1-1-2-2.5-2z" />
-            <path d="M8 14s-1 0-1 1 1 4 5 4 5-3 5-4-1-1-1-1" />
-            <path d="M9 14v-1a3 3 0 016 0v1" />
-            <path d="M4 21c0-3 3.5-5 8-5s8 2 8 5" />
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <polygon points="12,2 9,7 15,7" fill="currentColor" stroke="none" />
+            <line x1="10" y1="20" x2="14" y2="20" />
         </svg>
     );
 }
 
-function GradeNumberIcon({ number, className }) {
-    return (
-        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="4" />
-            <text x="12" y="16" textAnchor="middle" fill="currentColor" stroke="none"
-                fontSize="12" fontWeight="700" fontFamily="monospace">
-                {number}
-            </text>
-        </svg>
-    );
-}
-
-/* --- Icono de categoría (SVG, no emoji) --- */
+/* --- Icono de categoría (SVG) --- */
 function CategoryIcon({ category, className }) {
     if (category === 'academico') {
+        // Libro
         return (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
             </svg>
         );
     }
     if (category === 'valores') {
+        // Estrella
         return (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
         );
     }
-    // reciclaje
+    // Reciclaje - hoja
     return (
-        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M7 19H4.815a1.83 1.83 0 01-1.57-.881 1.785 1.785 0 01-.004-1.784L7.196 9.5" />
-            <path d="M11 19h8.203a1.83 1.83 0 001.556-.89 1.784 1.784 0 000-1.775l-1.226-2.12" />
-            <path d="M14 16l3 3-3 3" />
-            <path d="M8.293 13.596L4.875 8.5l3.5-6.062a1.83 1.83 0 013.126-.009L14.5 7" />
-            <path d="M5.5 7.5l4 1" />
-            <path d="M16.5 2.5l-2 4.5" />
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 20A7 7 0 019.8 6.9C15.5 4.9 17 3.5 17 3.5s1.5 2.5 1.5 6.5c0 4-2 7-4.5 8.5" />
+            <path d="M12 10v6" />
+            <path d="M9 13l3-3 3 3" />
         </svg>
     );
 }
@@ -265,7 +251,7 @@ export default function HomeHonorSection() {
                                 {isPreescolar ? (
                                     <PreescolarIcon className="h-5 w-5" />
                                 ) : (
-                                    <GradeNumberIcon number={grade.order} className="h-6 w-6" />
+                                    <span className="font-mono text-sm font-bold">{grade.order}°</span>
                                 )}
                             </button>
                         );
