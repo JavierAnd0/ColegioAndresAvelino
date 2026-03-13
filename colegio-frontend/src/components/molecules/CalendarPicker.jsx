@@ -147,10 +147,10 @@ export default function CalendarPicker({
                         flex-1 flex items-center gap-2 px-3 py-2.5 text-sm text-left
                         bg-white border rounded-lg transition-all duration-200 cursor-pointer
                         ${error
-                            ? 'border-red-400'
+                            ? 'border-red-300 focus:ring-red-500'
                             : open
                                 ? 'border-neutral-900 ring-2 ring-neutral-900'
-                                : 'border-neutral-200 hover:border-neutral-400'
+                                : 'border-neutral-300 hover:border-neutral-400'
                         }
                     `}
                 >
@@ -159,24 +159,19 @@ export default function CalendarPicker({
                             d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                     </svg>
                     <span className={date ? 'text-neutral-900' : 'text-neutral-400'}>
-                        {date ? formatDisplay(date, time, includeTime) : 'Seleccionar fecha...'}
+                        {date ? formatDisplay(date, time, includeTime) : 'Seleccionar fecha'}
                     </span>
                 </button>
 
-                {/* Time input */}
                 {includeTime && (
-                    <div className="relative w-28">
-                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5">
-                            <svg className="h-4 w-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                                    d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
+                    <div className="relative">
                         <input
                             type="time"
                             value={time}
-                            onChange={(e) => onTimeChange(e.target.value)}
-                            className="w-full pl-8 pr-2 py-2.5 text-sm bg-white border border-neutral-200 rounded-lg text-neutral-900 outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent cursor-pointer"
+                            onChange={(e) => onTimeChange?.(e.target.value)}
+                            className="h-full px-3 py-2.5 text-sm bg-white border border-neutral-300 rounded-lg
+                                hover:border-neutral-400 focus:border-neutral-900 focus:ring-2
+                                focus:ring-neutral-900 outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent cursor-pointer"
                         />
                     </div>
                 )}
@@ -247,7 +242,7 @@ export default function CalendarPicker({
                             })}
                         </div>
 
-                        {/* End date hint */}
+                        {/* Confirm button */}
                         {date && (
                             <div className="mt-2 pt-2 border-t border-neutral-100">
                                 <button
