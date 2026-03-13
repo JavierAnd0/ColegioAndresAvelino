@@ -122,26 +122,53 @@ export default function EventForm({ onSubmit, initialData = {}, loading = false 
                     Información del evento
                 </h4>
 
-                <FormField
-                    label="Título" name="title" value={form.title}
-                    onChange={handleChange} error={errors.title} required
-                    placeholder="Ej: Día de la ciencia"
-                />
+                <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="title" required>Título</Label>
+                    <input
+                        id="title" name="title" value={form.title}
+                        onChange={handleChange} maxLength={100}
+                        placeholder="Ej: Día de la ciencia"
+                        className={`w-full px-3 py-2 text-base bg-white border rounded-md text-neutral-900
+                            placeholder-neutral-400 transition-all duration-200 outline-none
+                            ${errors.title
+                                ? 'border-red-500 focus:ring-2 focus:ring-red-200'
+                                : 'border-neutral-300 focus:border-neutral-900 focus:ring-2 focus:ring-neutral-100'
+                            }`}
+                    />
+                    <div className="flex justify-between">
+                        {errors.title && <span className="text-sm text-red-500">{errors.title}</span>}
+                        <span className={`text-xs ml-auto ${form.title.length > 80 ? 'text-amber-500' : 'text-neutral-400'}`}>
+                            {form.title.length}/100
+                        </span>
+                    </div>
+                </div>
 
                 <div className="flex flex-col gap-1.5">
                     <Label htmlFor="description" required>Descripción</Label>
                     <Textarea
                         name="description" placeholder="Describe el evento, actividades, público objetivo..."
                         value={form.description} onChange={handleChange}
-                        error={errors.description} rows={3}
+                        error={errors.description} rows={3} maxLength={500}
                     />
+                    <span className={`text-xs self-end -mt-1 ${form.description.length > 400 ? 'text-amber-500' : 'text-neutral-400'}`}>
+                        {form.description.length}/500
+                    </span>
                 </div>
 
-                <FormField
-                    label="Ubicación" name="location"
-                    placeholder="Ej: Auditorio principal, Cancha deportiva"
-                    value={form.location} onChange={handleChange}
-                />
+                <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="location">Ubicación</Label>
+                    <input
+                        id="location" name="location" value={form.location}
+                        onChange={handleChange} maxLength={200}
+                        placeholder="Ej: Auditorio principal, Cancha deportiva"
+                        className="w-full px-3 py-2 text-base bg-white border rounded-md text-neutral-900
+                            placeholder-neutral-400 transition-all duration-200 outline-none
+                            border-neutral-300 focus:border-neutral-900 focus:ring-2 focus:ring-neutral-100"
+                    />
+                    <span className={`text-xs self-end ${form.location.length > 160 ? 'text-amber-500' : 'text-neutral-400'}`}>
+                        {form.location.length}/200
+                    </span>
+                </div>
             </section>
 
             <hr className="border-neutral-100" />
