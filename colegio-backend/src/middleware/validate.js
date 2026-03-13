@@ -223,7 +223,7 @@ export const validateCreateEvent = [
   body('description')
     .trim()
     .notEmpty().withMessage('La descripción es obligatoria')
-    .isLength({ max: 1000 }).withMessage('La descripción no puede tener más de 1000 caracteres'),
+    .isLength({ max: 500 }).withMessage('La descripción no puede tener más de 500 caracteres'),
   body('startDate')
     .notEmpty().withMessage('La fecha de inicio es obligatoria')
     .isISO8601().withMessage('La fecha de inicio debe ser una fecha válida (ISO 8601)'),
@@ -273,7 +273,7 @@ export const validateUpdateEvent = [
   body('description')
     .optional()
     .trim()
-    .isLength({ max: 1000 }).withMessage('La descripción no puede tener más de 1000 caracteres'),
+    .isLength({ max: 500 }).withMessage('La descripción no puede tener más de 500 caracteres'),
   body('startDate')
     .optional()
     .isISO8601().withMessage('La fecha de inicio debe ser una fecha válida (ISO 8601)'),
