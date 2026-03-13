@@ -41,7 +41,19 @@ export default function HeroSection({
                         </Link>
                     </div>
 
-
+                    {/* Stats */}
+                    <div className="flex flex-wrap gap-6 pt-4 border-t border-neutral-200">
+                        {[
+                            { value: '+500', label: 'Estudiantes' },
+                            { value: '+40', label: 'Docentes' },
+                            { value: '25+', label: 'Años de experiencia' },
+                        ].map((stat) => (
+                            <div key={stat.label} className="flex flex-col">
+                                <span className="text-2xl font-mono font-bold text-neutral-900">{stat.value}</span>
+                                <span className="text-sm text-neutral-500">{stat.label}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Imagen / Placeholder visual */}

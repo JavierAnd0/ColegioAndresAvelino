@@ -2,14 +2,13 @@
 import { useState, useRef } from 'react';
 import Button from '@/components/atoms/Button';
 import Label from '@/components/atoms/Typography/Label';
-import SelectField from '@/components/molecules/SelectField';
 import Spinner from '@/components/atoms/Spinner';
 import { honorService } from '@/services/honorService';
 
 const CATEGORIES = [
-    { value: 'academico', label: '📚 Mejor rendimiento académico' },
-    { value: 'valores', label: '🌟 Mejores valores' },
-    { value: 'reciclaje', label: '♻️ Mayor aporte al reciclaje' },
+    { value: 'academico', label: '📚 Mejor rendimiento académico', short: 'Académico' },
+    { value: 'valores', label: '🌟 Mejores valores', short: 'Valores' },
+    { value: 'reciclaje', label: '♻️ Mayor aporte al reciclaje', short: 'Reciclaje' },
 ];
 
 export default function HonorEntryForm({ onSubmit, initialData = {}, grades = [], loading = false }) {
@@ -28,9 +27,8 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
     const [dragOver, setDragOver] = useState(false);
     const fileRef = useRef(null);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setForm(prev => ({ ...prev, [name]: value }));
+    const handleChange = (field, value) => {
+        setForm(prev => ({ ...prev, [field]: value }));
     };
 
     const processFile = async (file) => {
@@ -92,48 +90,85 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
         onSubmit(form);
     };
 
-    const gradeOptions = grades.map(g => ({ value: g._id, label: g.name }));
+    const selectClass = `
+        w-full px-3 py-2.5 border border-neutral-200 rounded-lg text-sm
+        bg-white appearance-none cursor-pointer
+        focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent
+        font-[family-name:var(--font-inter)]
+    `;
+
+    const inputClass = `
+        w-full px-3 py-2.5 border border-neutral-200 rounded-lg text-sm
+        focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent
+        font-[family-name:var(--font-inter)]
+    `;
 
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             {/* Grado y Categoría */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <SelectField
-                    label="Grado" name="grade"
-                    value={form.grade} onChange={handleChange}
-                    options={gradeOptions}
-                    placeholder="Seleccionar grado..."
-                    required
-                />
+                <div>
+                    <Label className="mb-1.5 block text-sm font-medium text-neutral-700">Grado</Label>
+                    <div className="relative">
+                        <select
+                            value={form.grade}
+                            onChange={(e) => handleChange('grade', e.target.value)}
+                            className={selectClass}
+                            required
+                        >
+                            <option value="">Seleccionar grado...</option>
+                            {grades.map(g => (
+                                <option key={g._id} value={g._id}>{g.name}</option>
+                            ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                            <svg className="h-4 w-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
 
-                <SelectField
-                    label="Categoría" name="category"
-                    value={form.category} onChange={handleChange}
-                    options={CATEGORIES}
-                    placeholder="Seleccionar categoría..."
-                    required
-                />
+                <div>
+                    <Label className="mb-1.5 block text-sm font-medium text-neutral-700">Categoría</Label>
+                    <div className="relative">
+                        <select
+                            value={form.category}
+                            onChange={(e) => handleChange('category', e.target.value)}
+                            className={selectClass}
+                            required
+                        >
+                            <option value="">Seleccionar categoría...</option>
+                            {CATEGORIES.map(c => (
+                                <option key={c.value} value={c.value}>{c.label}</option>
+                            ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                            <svg className="h-4 w-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Nombre del estudiante */}
-            <div className="flex flex-col gap-1.5">
-                <Label htmlFor="studentName" required>Nombre del estudiante</Label>
+            <div>
+                <Label className="mb-1.5 block text-sm font-medium text-neutral-700">Nombre del estudiante</Label>
                 <input
-                    id="studentName"
-                    name="studentName"
                     type="text"
                     value={form.studentName}
-                    onChange={handleChange}
+                    onChange={(e) => handleChange('studentName', e.target.value)}
                     placeholder="Nombre completo del estudiante"
                     maxLength={100}
+                    className={inputClass}
                     required
-                    className="w-full px-3 py-2.5 border border-neutral-200 rounded-lg text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
                 />
             </div>
 
             {/* Foto del estudiante - Dropzone */}
-            <div className="flex flex-col gap-1.5">
-                <Label>Foto del estudiante</Label>
+            <div>
+                <Label className="mb-1.5 block text-sm font-medium text-neutral-700">Foto del estudiante</Label>
                 <div className="flex flex-col gap-3">
                     <div
                         onClick={() => !uploading && fileRef.current?.click()}
@@ -154,7 +189,11 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
                     >
                         {preview ? (
                             <>
-                                <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                                <img
+                                    src={preview}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover"
+                                />
                                 {uploading && (
                                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                                         <Spinner size="md" />
@@ -174,22 +213,39 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
                         )}
                     </div>
 
-                    {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
+                    {uploadError && (
+                        <p className="text-sm text-red-500">{uploadError}</p>
+                    )}
 
                     <div className="flex gap-2">
-                        <Button type="button" variant="outline" size="sm" loading={uploading}
-                            onClick={() => fileRef.current?.click()}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            loading={uploading}
+                            onClick={() => fileRef.current?.click()}
+                        >
                             {preview ? 'Cambiar foto' : 'Subir foto'}
                         </Button>
                         {preview && !uploading && (
-                            <Button type="button" variant="ghost" size="sm" onClick={handleRemovePhoto}>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleRemovePhoto}
+                            >
                                 Eliminar
                             </Button>
                         )}
                     </div>
 
-                    <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp"
-                        onChange={handleFileChange} className="hidden" />
+                    <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleFileChange}
+                        className="hidden"
+                    />
                 </div>
             </div>
 

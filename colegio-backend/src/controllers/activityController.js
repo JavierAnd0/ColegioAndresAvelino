@@ -1,0 +1,230 @@
+import Activity, { getWeekMonday } from '../models/activity.js';
+import RssSource, { ACTIVITY_TYPES } from '../models/rssSource.js';
+import { fetchAllSources } from '../services/rssFetcher.js';
+
+// =============================================
+// ACTIVIDADES — Endpoints públicos
+// =============================================
+
+/** GET /api/activities */
+export const getActivities = async (req, res) => {
+    try {
+        const { grade, type, search, week, page = 1, limit = 20 } = req.query;
+        const filter = { isActive: true };
+
+        if (grade !== undefined) filter.targetGrades = parseInt(grade, 10);
+        if (type) filter.type = type;
+        if (week) filter.weekOf = new Date(week);
+        if (search) {
+            const regex = new RegExp(search, 'i');
+            filter.$or = [{ title: regex }, { description: regex }];
+        }
+
+        const pageNum = Math.max(1, parseInt(page, 10) || 1);
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+        const skip = (pageNum - 1) * limitNum;
+
+        const [data, total] = await Promise.all([
+            Activity.find(filter).sort({ weekOf: -1, createdAt: -1 }).skip(skip).limit(limitNum),
+            Activity.countDocuments(filter),
+        ]);
+
+        res.json({
+            success: true,
+            count: data.length,
+            total,
+            page: pageNum,
+            pages: Math.ceil(total / limitNum),
+            data,
+        });
+    } catch (error) {
+        console.error('Error al obtener actividades:', error);
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+};
+
+/** GET /api/activities/this-week */
+export const getThisWeekActivities = async (req, res) => {
+    try {
+        const { grade } = req.query;
+        const monday = getWeekMonday(new Date());
+        const filter = { weekOf: monday, isActive: true };
+
+        if (grade !== undefined) filter.targetGrades = parseInt(grade, 10);
+
+        const data = await Activity.find(filter).sort({ type: 1, createdAt: -1 });
+
+        res.json({ success: true, count: data.length, data });
+    } catch (error) {
+        console.error('Error al obtener actividades de la semana:', error);
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+};
+
+/** GET /api/activities/types */
+export const getActivityTypes = async (req, res) => {
+    res.json({ success: true, data: ACTIVITY_TYPES });
+};
+
+/** GET /api/activities/:id */
+export const getActivity = async (req, res) => {
+    try {
+        const activity = await Activity.findById(req.params.id);
+        if (!activity) {
+            return res.status(404).json({ success: false, message: 'Actividad no encontrada' });
+        }
+        res.json({ success: true, data: activity });
+    } catch (error) {
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, message: 'ID no válido' });
+        }
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+};
+
+// =============================================
+// ACTIVIDADES — Endpoints admin
+// =============================================
+
+/** POST /api/activities */
+export const createActivity = async (req, res) => {
+    try {
+        const { title, description, type, targetGrades, externalUrl, imageUrl } = req.body;
+        const activity = await Activity.create({
+            title,
+            description,
+            type,
+            targetGrades,
+            externalUrl,
+            imageUrl,
+            source: 'Manual',
+            weekOf: getWeekMonday(new Date()),
+        });
+        res.status(201).json({ success: true, data: activity });
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({ success: false, message: 'Ya existe una actividad con esa URL' });
+        }
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map((e) => e.message);
+            return res.status(400).json({ success: false, message: 'Error de validación', errors: messages });
+        }
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+};
+
+/** PUT /api/activities/:id */
+export const updateActivity = async (req, res) => {
+    try {
+        const activity = await Activity.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true,
+        });
+        if (!activity) {
+            return res.status(404).json({ success: false, message: 'Actividad no encontrada' });
+        }
+        res.json({ success: true, data: activity });
+    } catch (error) {
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, message: 'ID no válido' });
+        }
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map((e) => e.message);
+            return res.status(400).json({ success: false, message: 'Error de validación', errors: messages });
+        }
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+};
+
+/** DELETE /api/activities/:id */
+export const deleteActivity = async (req, res) => {
+    try {
+        const activity = await Activity.findByIdAndDelete(req.params.id);
+        if (!activity) {
+            return res.status(404).json({ success: false, message: 'Actividad no encontrada' });
+        }
+        res.json({ success: true, message: 'Actividad eliminada' });
+    } catch (error) {
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, message: 'ID no válido' });
+        }
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+};
+
+// =============================================
+// FUENTES RSS — CRUD admin
+// =============================================
+
+/** GET /api/activities/sources */
+export const getRssSources = async (req, res) => {
+    try {
+        const sources = await RssSource.find().sort({ createdAt: -1 });
+        res.json({ success: true, count: sources.length, data: sources });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+};
+
+/** POST /api/activities/sources */
+export const createRssSource = async (req, res) => {
+    try {
+        const source = await RssSource.create(req.body);
+        res.status(201).json({ success: true, data: source });
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({ success: false, message: 'Ya existe una fuente con esa URL' });
+        }
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map((e) => e.message);
+            return res.status(400).json({ success: false, message: 'Error de validación', errors: messages });
+        }
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+};
+
+/** PUT /api/activities/sources/:id */
+export const updateRssSource = async (req, res) => {
+    try {
+        const source = await RssSource.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true,
+        });
+        if (!source) {
+            return res.status(404).json({ success: false, message: 'Fuente no encontrada' });
+        }
+        res.json({ success: true, data: source });
+    } catch (error) {
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, message: 'ID no válido' });
+        }
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+};
+
+/** DELETE /api/activities/sources/:id */
+export const deleteRssSource = async (req, res) => {
+    try {
+        const source = await RssSource.findByIdAndDelete(req.params.id);
+        if (!source) {
+            return res.status(404).json({ success: false, message: 'Fuente no encontrada' });
+        }
+        res.json({ success: true, message: 'Fuente eliminada' });
+    } catch (error) {
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, message: 'ID no válido' });
+        }
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+};
+
+/** POST /api/activities/fetch — trigger manual */
+export const triggerFetch = async (req, res) => {
+    try {
+        const result = await fetchAllSources();
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error('Error al ejecutar fetch manual:', error);
+        res.status(500).json({ success: false, message: 'Error al obtener actividades de RSS' });
+    }
+};
