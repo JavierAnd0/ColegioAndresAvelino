@@ -14,4 +14,7 @@ app.listen(PORT, () => {
     ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
     : ['http://localhost:3000'];
   console.log(`CORS origenes permitidos: ${allowedOrigins.join(', ')}`);
+
+  // Iniciar cron de actividades educativas
+  startActivityCron();
 });

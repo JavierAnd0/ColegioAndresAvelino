@@ -146,84 +146,60 @@ export default function AdminCuadroHonorPage() {
                     </div>
                 )}
 
-                {/* Lista de entries agrupadas por grado */}
-                {loading ? (
-                    <div className="flex justify-center py-12"><Spinner size="lg" /></div>
-                ) : entries.length === 0 ? (
-                    <div className="bg-white rounded-xl border border-neutral-200 flex flex-col items-center py-12 gap-2">
-                        <span className="text-4xl">🏆</span>
-                        <Paragraph color="muted">No hay entradas este mes. ¡Crea la primera!</Paragraph>
+                {/* Lista de entries */}
+                <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+                    <div className="px-5 py-4 border-b border-neutral-100">
+                        <Heading level="h6">Entradas del mes</Heading>
                     </div>
-                ) : (
-                    <div className="flex flex-col gap-4">
-                        {/* Agrupar entries por grado */}
-                        {Object.values(
-                            entries.reduce((acc, entry) => {
-                                const gradeId = entry.grade?._id || 'sin-grado';
-                                if (!acc[gradeId]) {
-                                    acc[gradeId] = {
-                                        grade: entry.grade,
-                                        entries: [],
-                                    };
-                                }
-                                acc[gradeId].entries.push(entry);
-                                return acc;
-                            }, {})
-                        )
-                            .sort((a, b) => (a.grade?.order ?? 99) - (b.grade?.order ?? 99))
-                            .map(({ grade, entries: gradeEntries }) => (
-                                <div key={grade?._id || 'sin-grado'}
-                                    className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
-                                    {/* Header del grado */}
-                                    <div className="px-5 py-3 bg-neutral-50 border-b border-neutral-200 flex items-center gap-2">
-                                        <span className="text-base">🎓</span>
-                                        <h4 className="font-mono font-semibold text-sm text-neutral-800 tracking-tight">
-                                            {grade?.name || 'Sin grado'}
-                                        </h4>
-                                        <span className="text-xs text-neutral-400 ml-auto">
-                                            {gradeEntries.length}/3 categorías
-                                        </span>
-                                    </div>
 
-                                    {/* Entries del grado */}
-                                    <div className="divide-y divide-neutral-100">
-                                        {gradeEntries.map((entry) => (
-                                            <div key={entry._id}
-                                                className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-neutral-50 transition-colors">
-                                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                    {entry.photo?.url ? (
-                                                        <img src={entry.photo.url} alt={entry.studentName}
-                                                            className="h-10 w-10 rounded-full object-cover flex-shrink-0 border border-neutral-200" />
-                                                    ) : (
-                                                        <div className="h-10 w-10 rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center text-sm flex-shrink-0">
-                                                            👤
-                                                        </div>
-                                                    )}
-                                                    <p className="text-sm font-medium text-neutral-900 truncate">
-                                                        {entry.studentName}
-                                                    </p>
-                                                </div>
-                                                <Badge variant={categoryVariants[entry.category] || 'default'} size="sm">
-                                                    {categoryLabels[entry.category] || entry.category}
-                                                </Badge>
-                                                <div className="flex items-center gap-2 flex-shrink-0">
-                                                    <Button variant="outline" size="sm" onClick={() => handleEdit(entry)}>
-                                                        Editar
-                                                    </Button>
-                                                    <Button variant="danger" size="sm"
-                                                        loading={deleting === entry._id}
-                                                        onClick={() => handleDelete(entry._id)}>
-                                                        Eliminar
-                                                    </Button>
-                                                </div>
+                    {loading ? (
+                        <div className="flex justify-center py-12"><Spinner size="lg" /></div>
+                    ) : entries.length === 0 ? (
+                        <div className="flex flex-col items-center py-12 gap-2">
+                            <span className="text-4xl">🏆</span>
+                            <Paragraph color="muted">No hay entradas este mes. ¡Crea la primera!</Paragraph>
+                        </div>
+                    ) : (
+                        <div className="divide-y divide-neutral-100">
+                            {entries.map((entry) => (
+                                <div key={entry._id}
+                                    className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-neutral-50">
+                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                        {entry.photo?.url ? (
+                                            <img src={entry.photo.url} alt={entry.studentName}
+                                                className="h-9 w-9 rounded-full object-cover flex-shrink-0" />
+                                        ) : (
+                                            <div className="h-9 w-9 rounded-full bg-neutral-200 flex items-center justify-center text-xs flex-shrink-0">
+                                                👤
                                             </div>
-                                        ))}
+                                        )}
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium text-neutral-900 truncate">
+                                                {entry.studentName}
+                                            </p>
+                                            <p className="text-xs text-neutral-500">
+                                                {entry.grade?.name || 'Sin grado'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <Badge variant={categoryVariants[entry.category] || 'default'} size="sm">
+                                        {categoryLabels[entry.category] || entry.category}
+                                    </Badge>
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                        <Button variant="outline" size="sm" onClick={() => handleEdit(entry)}>
+                                            Editar
+                                        </Button>
+                                        <Button variant="danger" size="sm"
+                                            loading={deleting === entry._id}
+                                            onClick={() => handleDelete(entry._id)}>
+                                            Eliminar
+                                        </Button>
                                     </div>
                                 </div>
-                            ))
-                        }
-                    </div>
-                )}
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         </AdminLayout>
     );

@@ -445,3 +445,144 @@ export const validateUpdateGrade = [
     .isBoolean().withMessage('isActive debe ser verdadero o falso'),
   runValidation,
 ];
+
+// =============================================
+// VALIDACIONES DE ACTIVIDADES
+// =============================================
+
+const activityTypes = ['cuento', 'colorear', 'numeros', 'rompecabezas', 'juego', 'lectura', 'otro'];
+
+export const validateActivityQuery = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 }).withMessage('La página debe ser un entero positivo'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 }).withMessage('El límite debe estar entre 1 y 100'),
+  query('grade')
+    .optional()
+    .isInt({ min: 0, max: 11 }).withMessage('El grado debe ser un número entre 0 y 11'),
+  query('type')
+    .optional()
+    .isIn(activityTypes).withMessage('Tipo de actividad no válido'),
+  query('search')
+    .optional()
+    .trim()
+    .isLength({ max: 200 }).withMessage('La búsqueda no puede exceder 200 caracteres'),
+  query('week')
+    .optional()
+    .isISO8601().withMessage('La fecha debe estar en formato ISO 8601'),
+  runValidation,
+];
+
+export const validateCreateActivity = [
+  body('title')
+    .trim()
+    .notEmpty().withMessage('El título es obligatorio')
+    .isLength({ max: 200 }).withMessage('El título no puede tener más de 200 caracteres'),
+  body('externalUrl')
+    .trim()
+    .notEmpty().withMessage('La URL del recurso es obligatoria')
+    .isURL().withMessage('La URL no es válida'),
+  body('description')
+    .optional()
+    .trim()
+    .isLength({ max: 500 }).withMessage('La descripción no puede tener más de 500 caracteres'),
+  body('type')
+    .optional()
+    .isIn(activityTypes).withMessage('Tipo de actividad no válido'),
+  body('targetGrades')
+    .optional()
+    .isArray().withMessage('targetGrades debe ser un array'),
+  body('targetGrades.*')
+    .optional()
+    .isInt({ min: 0, max: 11 }).withMessage('Cada grado debe ser un número entre 0 y 11'),
+  body('imageUrl')
+    .optional()
+    .trim()
+    .isURL().withMessage('La URL de imagen no es válida'),
+  runValidation,
+];
+
+export const validateUpdateActivity = [
+  param('id')
+    .isMongoId().withMessage('ID no válido'),
+  body('title')
+    .optional()
+    .trim()
+    .isLength({ max: 200 }).withMessage('El título no puede tener más de 200 caracteres'),
+  body('externalUrl')
+    .optional()
+    .trim()
+    .isURL().withMessage('La URL no es válida'),
+  body('description')
+    .optional()
+    .trim()
+    .isLength({ max: 500 }).withMessage('La descripción no puede tener más de 500 caracteres'),
+  body('type')
+    .optional()
+    .isIn(activityTypes).withMessage('Tipo de actividad no válido'),
+  body('targetGrades')
+    .optional()
+    .isArray().withMessage('targetGrades debe ser un array'),
+  body('targetGrades.*')
+    .optional()
+    .isInt({ min: 0, max: 11 }).withMessage('Cada grado debe ser un número entre 0 y 11'),
+  body('isActive')
+    .optional()
+    .isBoolean().withMessage('isActive debe ser verdadero o falso'),
+  body('isFeatured')
+    .optional()
+    .isBoolean().withMessage('isFeatured debe ser verdadero o falso'),
+  runValidation,
+];
+
+export const validateCreateRssSource = [
+  body('name')
+    .trim()
+    .notEmpty().withMessage('El nombre de la fuente es obligatorio')
+    .isLength({ max: 100 }).withMessage('El nombre no puede tener más de 100 caracteres'),
+  body('url')
+    .trim()
+    .notEmpty().withMessage('La URL del feed es obligatoria')
+    .isURL().withMessage('La URL no es válida'),
+  body('defaultType')
+    .optional()
+    .isIn(activityTypes).withMessage('Tipo de actividad no válido'),
+  body('defaultGrades')
+    .optional()
+    .isArray().withMessage('defaultGrades debe ser un array'),
+  body('defaultGrades.*')
+    .optional()
+    .isInt({ min: 0, max: 11 }).withMessage('Cada grado debe ser un número entre 0 y 11'),
+  body('isActive')
+    .optional()
+    .isBoolean().withMessage('isActive debe ser verdadero o falso'),
+  runValidation,
+];
+
+export const validateUpdateRssSource = [
+  param('id')
+    .isMongoId().withMessage('ID no válido'),
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ max: 100 }).withMessage('El nombre no puede tener más de 100 caracteres'),
+  body('url')
+    .optional()
+    .trim()
+    .isURL().withMessage('La URL no es válida'),
+  body('defaultType')
+    .optional()
+    .isIn(activityTypes).withMessage('Tipo de actividad no válido'),
+  body('defaultGrades')
+    .optional()
+    .isArray().withMessage('defaultGrades debe ser un array'),
+  body('defaultGrades.*')
+    .optional()
+    .isInt({ min: 0, max: 11 }).withMessage('Cada grado debe ser un número entre 0 y 11'),
+  body('isActive')
+    .optional()
+    .isBoolean().withMessage('isActive debe ser verdadero o falso'),
+  runValidation,
+];

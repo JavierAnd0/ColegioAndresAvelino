@@ -8,6 +8,7 @@ const navLinks = [
     { label: 'Inicio', href: '/' },
     { label: 'Nosotros', href: '/nosotros' },
     { label: 'Cuadro de Honor', href: '/cuadro-honor' },
+    { label: 'Actividades', href: '/actividades' },
     { label: 'Calendario', href: '/calendario' },
     { label: 'Blog', href: '/blog' },
     { label: 'Contacto', href: '/contacto' },
