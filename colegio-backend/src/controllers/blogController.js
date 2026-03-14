@@ -21,9 +21,10 @@ export const getAllPosts = async (req, res) => {
     if (!req.user || req.user.role !== 'admin') {
       filters.status = 'publicado';
       filters.publishedAt = { $lte: new Date() };
-    } else if (status) {
+    } else if (status && status !== 'all') {
       filters.status = status;
     }
+    // si admin envía status=all, no se filtra por status
 
     if (category) {
       filters.category = category;
