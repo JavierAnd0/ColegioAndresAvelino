@@ -1,4 +1,5 @@
 import BlogPost from '../models/blogpost.js';
+import { suggestBlogImages, getAutoImage } from '../services/imageSearch.js';
 
 // @desc    Obtener todos los posts del blog
 // @route   GET /api/blog
@@ -142,6 +143,14 @@ export const createPost = async (req, res) => {
   try {
     // Agregar el autor
     req.body.author = req.user.id;
+
+    // Auto-asignar imagen si no se subió una
+    if (!req.body.featuredImage?.url) {
+      const autoImg = await getAutoImage(req.body.category, req.body.title);
+      if (autoImg) {
+        req.body.featuredImage = autoImg;
+      }
+    }
 
     const post = await BlogPost.create(req.body);
 
@@ -462,6 +471,27 @@ export const getPostsByTag = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al obtener posts por tag',
+    });
+  }
+};
+
+// @desc    Sugerir imágenes para un post basado en categoría y título
+// @route   GET /api/blog/suggest-images
+// @access  Private (admin/editor/author)
+export const suggestImages = async (req, res) => {
+  try {
+    const { category = 'general', title = '', count = 3 } = req.query;
+    const images = await suggestBlogImages(category, title, Math.min(parseInt(count) || 3, 5));
+
+    res.status(200).json({
+      success: true,
+      count: images.length,
+      data: images,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al buscar imágenes',
     });
   }
 };

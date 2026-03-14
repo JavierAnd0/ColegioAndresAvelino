@@ -11,6 +11,7 @@ import {
     getPostsByCategory,
     getPostsByTag,
     getAllTags,
+    suggestImages,
 } from '../controllers/blogController.js';
 import { protect, optionalAuth, authorize } from '../middleware/auth.js';
 import { likeLimiter } from '../middleware/rateLimit.js';
@@ -24,6 +25,9 @@ import {
 } from '../middleware/validate.js';
 
 const router = express.Router();
+
+// Rutas privadas — antes de rutas dinámicas
+router.get('/suggest-images', protect, authorize('admin', 'editor', 'author'), suggestImages);
 
 // Rutas públicas
 router.get('/', validateBlogQuery, optionalAuth, getAllPosts);
