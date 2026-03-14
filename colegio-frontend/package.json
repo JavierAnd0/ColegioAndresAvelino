@@ -10,6 +10,7 @@
     "format": "biome format --write"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "axios": "^1.13.4",
     "date-fns": "^4.1.0",
     "jwt-decode": "^4.0.0",

@@ -288,17 +288,17 @@ export default function AdminActividadesPage() {
                 )}
 
                 {/* Tabs */}
-                <div className="flex gap-1 mb-6 bg-neutral-100 rounded-lg p-1 w-fit">
+                <div className="flex gap-1 mb-6 bg-neutral-100 rounded-lg p-1 w-full sm:w-fit overflow-x-auto">
                     {[
                         { key: 'actividades', label: `Aprobadas (${activities.length})` },
                         { key: 'pendientes', label: `Pendientes (${pendingActivities.length})` },
-                        { key: 'fuentes', label: `Fuentes RSS (${sources.length})` },
+                        { key: 'fuentes', label: `RSS (${sources.length})` },
                     ].map((t) => (
                         <button
                             key={t.key}
                             type="button"
                             onClick={() => setTab(t.key)}
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer
+                            className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors cursor-pointer whitespace-nowrap flex-1 sm:flex-none
                                 ${tab === t.key ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-700'}`}
                         >
                             {t.label}
@@ -447,61 +447,43 @@ export default function AdminActividadesPage() {
                         ) : (
                             <div className="space-y-2">
                                 {pendingActivities.map((act) => (
-                                    <div key={act._id} className="flex items-center gap-4 p-3 rounded-lg border border-yellow-200 bg-yellow-50/50">
-                                        <div className="w-12 h-12 rounded-lg bg-neutral-100 overflow-hidden shrink-0">
-                                            {act.imageUrl ? (
-                                                <img src={act.imageUrl} alt="" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-neutral-300">
-                                                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                                    </svg>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-neutral-900 truncate">{act.title}</p>
-                                            <div className="flex items-center gap-2 mt-0.5">
-                                                <Badge variant="warning" size="sm">Pendiente</Badge>
-                                                <Badge variant="info" size="sm">
-                                                    {typeOptions.find(t => t.value === act.type)?.label || act.type}
-                                                </Badge>
-                                                <span className="text-[0.65rem] text-neutral-400">{act.source}</span>
+                                    <div key={act._id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg border border-yellow-200 bg-yellow-50/50">
+                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-neutral-100 overflow-hidden shrink-0">
+                                                {act.imageUrl ? (
+                                                    <img src={act.imageUrl} alt="" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-neutral-300">
+                                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                                        </svg>
+                                                    </div>
+                                                )}
                                             </div>
-                                            {act.description && (
-                                                <p className="text-xs text-neutral-400 mt-1 line-clamp-1">{act.description}</p>
-                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-neutral-900 truncate">{act.title}</p>
+                                                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                    <Badge variant="warning" size="sm">Pendiente</Badge>
+                                                    <Badge variant="info" size="sm">
+                                                        {typeOptions.find(t => t.value === act.type)?.label || act.type}
+                                                    </Badge>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <div className="flex items-center gap-1.5 shrink-0">
-                                            <button
-                                                type="button"
-                                                onClick={() => handleApprove(act._id)}
-                                                title="Aprobar"
-                                                className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-medium
-                                                    hover:bg-green-700 transition-colors cursor-pointer"
-                                            >
+                                        <div className="flex items-center gap-1.5 shrink-0 ml-13 sm:ml-0">
+                                            <button type="button" onClick={() => handleApprove(act._id)} title="Aprobar"
+                                                className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700 transition-colors cursor-pointer">
                                                 Aprobar
                                             </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => handleReject(act._id)}
-                                                title="Rechazar"
-                                                className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-medium
-                                                    hover:bg-red-100 transition-colors cursor-pointer"
-                                            >
+                                            <button type="button" onClick={() => handleReject(act._id)} title="Rechazar"
+                                                className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100 transition-colors cursor-pointer">
                                                 Rechazar
                                             </button>
                                             {act.externalUrl && (
-                                                <a
-                                                    href={act.externalUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    title="Ver recurso"
-                                                    className="p-1.5 rounded text-neutral-300 hover:text-blue-500 transition-colors"
-                                                >
+                                                <a href={act.externalUrl} target="_blank" rel="noopener noreferrer" title="Ver recurso"
+                                                    className="p-1.5 rounded text-neutral-300 hover:text-blue-500 transition-colors">
                                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                                     </svg>
@@ -631,9 +613,10 @@ export default function AdminActividadesPage() {
 
 function ActivityRow({ activity: act, onToggleActive, onDelete }) {
     return (
-        <div className={`flex items-center gap-4 p-3 rounded-lg border transition-colors
+        <div className={`flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg border transition-colors
             ${act.isActive ? 'bg-white border-neutral-200' : 'bg-neutral-50 border-neutral-100 opacity-60'}`}>
-            <div className="w-12 h-12 rounded-lg bg-neutral-100 overflow-hidden shrink-0">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-neutral-100 overflow-hidden shrink-0">
                 {act.imageUrl ? (
                     <img src={act.imageUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
@@ -648,7 +631,7 @@ function ActivityRow({ activity: act, onToggleActive, onDelete }) {
 
             <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-neutral-900 truncate">{act.title}</p>
-                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                     <Badge variant={statusConfig[act.status]?.variant || 'default'} size="sm">
                         {statusConfig[act.status]?.label || act.status}
                     </Badge>
@@ -656,13 +639,12 @@ function ActivityRow({ activity: act, onToggleActive, onDelete }) {
                         {typeOptions.find(t => t.value === act.type)?.label || act.type}
                     </Badge>
                     <span className="text-[0.65rem] text-neutral-400">{act.sourceType === 'rss' ? 'RSS' : 'Manual'}</span>
-                    <span className="text-[0.65rem] text-neutral-400">{act.source}</span>
                     {act.fileUrl && <Badge variant="warning" size="sm">PDF</Badge>}
-                    {act.content && <Badge variant="info" size="sm">Contenido</Badge>}
                 </div>
             </div>
+            </div>
 
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0 ml-13 sm:ml-0">
                 <button type="button" onClick={onToggleActive} title={act.isActive ? 'Desactivar' : 'Activar'}
                     className={`p-1.5 rounded cursor-pointer transition-colors ${act.isActive ? 'text-green-500' : 'text-neutral-300 hover:text-green-400'}`}>
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

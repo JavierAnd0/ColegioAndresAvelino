@@ -96,15 +96,15 @@ export default function ActividadesPage() {
                     </div>
 
                     {/* Filtros — dropdowns + búsqueda */}
-                    <div className="flex flex-col sm:flex-row gap-3 mb-8">
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-6 sm:mb-8">
                         <select
                             value={selectedGrade}
                             onChange={handleGradeChange}
-                            className="px-3 py-2 rounded-lg border border-neutral-200 text-sm bg-white
+                            className="px-3 py-2 rounded-lg border border-neutral-200 text-sm text-neutral-900 bg-white
                                 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400
-                                cursor-pointer"
+                                cursor-pointer min-w-[160px]"
                         >
-                            <option value="">Todos los grados</option>
+                            <option value="">Grado</option>
                             {grades.map((g) => (
                                 <option key={g._id} value={g.order}>
                                     {g.order === 0 ? 'Preescolar' : `${g.order}°`}
@@ -115,11 +115,11 @@ export default function ActividadesPage() {
                         <select
                             value={selectedType}
                             onChange={handleTypeChange}
-                            className="px-3 py-2 rounded-lg border border-neutral-200 text-sm bg-white
+                            className="px-3 py-2 rounded-lg border border-neutral-200 text-sm text-neutral-900 bg-white
                                 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400
-                                cursor-pointer"
+                                cursor-pointer min-w-[160px]"
                         >
-                            <option value="">Todos los tipos</option>
+                            <option value="">Tipo de actividad</option>
                             {types.map((t) => (
                                 <option key={t} value={t}>
                                     {typeLabels[t] || t}
@@ -162,7 +162,7 @@ export default function ActividadesPage() {
                         </div>
                     ) : (
                         <>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {activities.map((activity) => (
                                     <ActivityCard key={activity._id} activity={activity} />
                                 ))}

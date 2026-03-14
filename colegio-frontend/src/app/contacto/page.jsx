@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import emailjs from '@emailjs/browser';
 import MainLayout from '@/components/templates/MainLayout';
 import FormField from '@/components/molecules/FormField';
 import AlertMessage from '@/components/molecules/AlertMessage';
@@ -9,6 +10,10 @@ import Paragraph from '@/components/atoms/Typography/Paragraph';
 import Label from '@/components/atoms/Typography/Label';
 import Textarea from '@/components/atoms/Textarea';
 
+const EMAILJS_SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+const EMAILJS_PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
 const infoCards = [
     { icon: '📍', title: 'Dirección', desc: 'KR 8 # 5-51, HUILA, RIVERA.' },
     { icon: '📞', title: 'Teléfono', desc: '(+57) 000 000 0000' },
@@ -16,17 +21,55 @@ const infoCards = [
     { icon: '🕐', title: 'Horario', desc: 'Lunes a Viernes: 7:00am - 5:00pm' },
 ];
 
+// --- Anti-spam ---
+const spamWords = [
+    'viagra', 'casino', 'bitcoin', 'loan', 'crypto', 'seo service',
+    'free money', 'click here', 'buy now', 'lottery', 'winner',
+];
+
+const detectarSpam = (texto) => {
+    const lower = texto.toLowerCase();
+    return spamWords.some((word) => lower.includes(word));
+};
+
+const contarLinks = (texto) => {
+    const matches = texto.match(/(https?:\/\/[^\s]+)/g);
+    return matches ? matches.length : 0;
+};
+
+// --- Teléfono colombiano ---
+const telefonoRegex = /^3\d{9}$/;
+
+const formatTelefono = (value) => {
+    const numeros = value.replace(/\D/g, '').slice(0, 10);
+    if (numeros.length <= 3) return numeros;
+    if (numeros.length <= 6) return `${numeros.slice(0, 3)} ${numeros.slice(3)}`;
+    return `${numeros.slice(0, 3)} ${numeros.slice(3, 6)} ${numeros.slice(6)}`;
+};
+
 export default function ContactoPage() {
     const [form, setForm] = useState({
-        nombre: '', email: '', telefono: '', asunto: '', mensaje: '',
+        nombre: '', email: '', telefono: '', asunto: '', mensaje: '', botcheck: '',
     });
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const [alert, setAlert] = useState(null);
+    const [startTime, setStartTime] = useState(null);
+
+    useEffect(() => {
+        setStartTime(Date.now());
+    }, []);
 
     const handleChange = (e) => {
-        setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
-        setErrors(prev => ({ ...prev, [e.target.name]: '' }));
+        const { name, value } = e.target;
+        if (name === 'telefono') {
+            const limpio = value.replace(/\D/g, '').slice(0, 10);
+            setForm(prev => ({ ...prev, telefono: limpio }));
+            setErrors(prev => ({ ...prev, telefono: '' }));
+            return;
+        }
+        setForm(prev => ({ ...prev, [name]: value }));
+        setErrors(prev => ({ ...prev, [name]: '' }));
     };
 
     const validate = () => {
@@ -37,6 +80,21 @@ export default function ContactoPage() {
         if (!form.mensaje.trim()) newErrors.mensaje = 'El mensaje es obligatorio';
         if (form.email && !/\S+@\S+\.\S+/.test(form.email))
             newErrors.email = 'El email no es válido';
+        if (form.telefono && !telefonoRegex.test(form.telefono))
+            newErrors.telefono = 'Debe ser un celular colombiano válido (10 dígitos, empieza por 3)';
+
+        // Anti-spam
+        if (detectarSpam(form.mensaje) || detectarSpam(form.asunto))
+            newErrors.mensaje = 'El mensaje contiene contenido no permitido.';
+        if (contarLinks(form.mensaje) > 2)
+            newErrors.mensaje = 'El mensaje contiene demasiados enlaces.';
+        if (form.botcheck !== '')
+            newErrors.general = 'Detección de spam activada.';
+
+        // Envío muy rápido (< 3s)
+        if (startTime && (Date.now() - startTime) / 1000 < 3)
+            newErrors.general = 'Por favor, tómate un momento para completar el formulario.';
+
         return newErrors;
     };
 
@@ -45,24 +103,60 @@ export default function ContactoPage() {
         const newErrors = validate();
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
+            if (newErrors.general) {
+                setAlert({ type: 'error', message: newErrors.general });
+            }
             return;
         }
+
+        if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
+            setAlert({
+                type: 'error',
+                message: 'El servicio de correo no está configurado. Contacta al administrador.',
+            });
+            return;
+        }
+
         setLoading(true);
-        // Simulación de envío (aquí conectarías con tu backend o EmailJS)
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setAlert({
-            type: 'success',
-            message: '¡Mensaje enviado! Nos pondremos en contacto contigo pronto.',
-        });
-        setForm({ nombre: '', email: '', telefono: '', asunto: '', mensaje: '' });
-        setLoading(false);
+        setAlert(null);
+        try {
+            const templateParams = {
+                nombre: form.nombre,
+                email: form.email,
+                telefono: form.telefono ? formatTelefono(form.telefono) : 'No proporcionado',
+                asunto: form.asunto,
+                mensaje: form.mensaje,
+            };
+
+            // Enviar notificación al colegio
+            await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
+
+            // Auto-reply al remitente (no bloquea si falla)
+            if (EMAILJS_TEMPLATE_ID2) {
+                emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID2, templateParams, EMAILJS_PUBLIC_KEY).catch(() => {});
+            }
+
+            setAlert({
+                type: 'success',
+                message: '¡Mensaje enviado! Nos pondremos en contacto contigo pronto.',
+            });
+            setForm({ nombre: '', email: '', telefono: '', asunto: '', mensaje: '', botcheck: '' });
+            setStartTime(Date.now());
+        } catch {
+            setAlert({
+                type: 'error',
+                message: 'Error al enviar el mensaje. Intenta de nuevo o contáctanos por teléfono.',
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <MainLayout>
 
             {/* Hero */}
-            <section className="bg-neutral-900 text-white py-16">
+            <section className="bg-neutral-900 text-white py-12 sm:py-16">
                 <div className="max-w-6xl mx-auto px-4 text-center flex flex-col gap-3">
                     <Heading level="h1" className="text-white">Contáctanos</Heading>
                     <Paragraph size="lg" className="text-neutral-300 max-w-xl mx-auto">
@@ -72,30 +166,30 @@ export default function ContactoPage() {
             </section>
 
             {/* Info cards */}
-            <section className="py-12 bg-neutral-50">
-                <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <section className="py-8 sm:py-12 bg-neutral-50">
+                <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     {infoCards.map((card) => (
                         <div key={card.title}
-                            className="bg-white rounded-xl p-5 flex flex-col gap-2 border border-neutral-200">
-                            <span className="text-2xl">{card.icon}</span>
-                            <p className="font-semibold text-neutral-900">{card.title}</p>
-                            <Paragraph size="sm" color="muted">{card.desc}</Paragraph>
+                            className="bg-white rounded-xl p-4 sm:p-5 flex flex-col gap-1.5 sm:gap-2 border border-neutral-200">
+                            <span className="text-xl sm:text-2xl">{card.icon}</span>
+                            <p className="font-semibold text-neutral-900 text-sm sm:text-base">{card.title}</p>
+                            <Paragraph size="sm" color="muted" className="text-xs sm:text-sm">{card.desc}</Paragraph>
                         </div>
                     ))}
                 </div>
             </section>
 
             {/* Formulario */}
-            <section className="py-16">
+            <section className="py-12 sm:py-16">
                 <div className="max-w-3xl mx-auto px-4">
-                    <div className="text-center mb-10">
+                    <div className="text-center mb-8 sm:mb-10">
                         <Heading level="h2">Envíanos un mensaje</Heading>
                         <Paragraph color="muted" className="mt-2">
                             Completa el formulario y te responderemos a la brevedad.
                         </Paragraph>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-neutral-200 p-8">
+                    <div className="bg-white rounded-2xl border border-neutral-200 p-5 sm:p-8">
                         {alert && (
                             <div className="mb-6">
                                 <AlertMessage type={alert.type} message={alert.message}
@@ -103,7 +197,18 @@ export default function ContactoPage() {
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-4 sm:gap-5">
+                            {/* Honeypot - campo oculto anti-bot */}
+                            <input
+                                type="text"
+                                name="botcheck"
+                                value={form.botcheck}
+                                onChange={handleChange}
+                                style={{ display: 'none' }}
+                                tabIndex={-1}
+                                autoComplete="off"
+                            />
+
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <FormField label="Nombre completo" name="nombre"
                                     placeholder="Tu nombre" value={form.nombre}
@@ -114,9 +219,13 @@ export default function ContactoPage() {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <FormField label="Teléfono" name="telefono" type="tel"
-                                    placeholder="(+57) 000 000 0000" value={form.telefono}
-                                    onChange={handleChange} />
+                                <FormField
+                                    label="Teléfono" name="telefono"
+                                    type="tel"
+                                    placeholder="300 123 4567"
+                                    value={formatTelefono(form.telefono)}
+                                    onChange={handleChange} error={errors.telefono}
+                                />
                                 <FormField label="Asunto" name="asunto"
                                     placeholder="¿En qué podemos ayudarte?" value={form.asunto}
                                     onChange={handleChange} error={errors.asunto} required />

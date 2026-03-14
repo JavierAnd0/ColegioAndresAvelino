@@ -64,12 +64,12 @@ function StudentRow({ entry, category }) {
 
     if (!entry) {
         return (
-            <div className="flex items-center gap-3 py-3">
-                <div className="h-10 w-10 rounded-full bg-neutral-50 flex items-center justify-center shrink-0">
-                    <CategoryIcon category={category} className="h-4 w-4 text-neutral-300" />
+            <div className="flex items-center gap-3 sm:gap-4 py-3 sm:py-4">
+                <div className="h-11 w-11 sm:h-14 sm:w-14 rounded-full bg-neutral-50 flex items-center justify-center shrink-0">
+                    <CategoryIcon category={category} className="h-4 w-4 sm:h-5 sm:w-5 text-neutral-300" />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <p className="text-xs text-neutral-300 italic">Sin asignar</p>
+                    <p className="text-xs sm:text-sm text-neutral-300 italic">Sin asignar</p>
                 </div>
                 <Badge variant={config.variant} size="sm">{config.label}</Badge>
             </div>
@@ -77,19 +77,19 @@ function StudentRow({ entry, category }) {
     }
 
     return (
-        <div className="flex items-center gap-3 py-3">
-            <div className="h-10 w-10 rounded-full overflow-hidden bg-neutral-100 ring-2 ring-white shrink-0">
+        <div className="flex items-center gap-3 sm:gap-4 py-3 sm:py-4">
+            <div className="h-11 w-11 sm:h-14 sm:w-14 rounded-full overflow-hidden bg-neutral-100 ring-2 ring-white shrink-0">
                 {entry.photo?.url ? (
                     <img src={entry.photo.url} alt={entry.studentName}
                         className="w-full h-full object-cover" />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                        <CategoryIcon category={category} className="h-4 w-4 text-neutral-400" />
+                        <CategoryIcon category={category} className="h-4 w-4 sm:h-5 sm:w-5 text-neutral-400" />
                     </div>
                 )}
             </div>
             <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-neutral-900 truncate">
+                <p className="font-semibold text-sm sm:text-base text-neutral-900 truncate">
                     {entry.studentName}
                 </p>
             </div>
@@ -217,18 +217,18 @@ export default function HomeHonorSection() {
     const activeGrade = sortedGrades[activeIndex];
 
     return (
-        <section className="py-16">
-            <div className="max-w-2xl mx-auto px-4">
+        <section className="py-20 bg-neutral-50/50">
+            <div className="max-w-4xl mx-auto px-4">
                 {/* Header */}
-                <div className="text-center mb-8">
-                    <Heading level="h2">Cuadro de Honor</Heading>
-                    <Paragraph color="muted" className="mt-1">
+                <div className="text-center mb-10">
+                    <Heading level="h2" className="text-3xl md:text-4xl">Cuadro de Honor</Heading>
+                    <Paragraph color="muted" className="mt-2 text-base">
                         Reconocimiento a nuestros estudiantes — {MONTHS[month - 1]} {year}
                     </Paragraph>
                 </div>
 
                 {/* Grade selector tabs */}
-                <div className="flex justify-center gap-1.5 mb-6">
+                <div className="flex justify-center gap-1.5 sm:gap-2 mb-8 flex-wrap">
                     {sortedGrades.map((grade, index) => {
                         const isActive = index === activeIndex;
                         const isPreescolar = grade.order === 0;
@@ -240,18 +240,18 @@ export default function HomeHonorSection() {
                                 onClick={() => goTo(index)}
                                 title={grade.name}
                                 className={`
-                                    relative h-10 w-10 rounded-lg flex items-center justify-center
+                                    relative h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center
                                     transition-all duration-200 cursor-pointer
                                     ${isActive
-                                        ? 'bg-neutral-900 text-white shadow-md scale-110'
-                                        : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-700'
+                                        ? 'bg-neutral-900 text-white shadow-lg scale-110'
+                                        : 'bg-white text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 border border-neutral-200'
                                     }
                                 `}
                             >
                                 {isPreescolar ? (
-                                    <PreescolarIcon className="h-5 w-5" />
+                                    <PreescolarIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                                 ) : (
-                                    <span className="font-mono text-sm font-bold">{grade.order}°</span>
+                                    <span className="font-mono text-sm sm:text-base font-bold">{grade.order}°</span>
                                 )}
                             </button>
                         );
@@ -259,14 +259,14 @@ export default function HomeHonorSection() {
                 </div>
 
                 {/* Active grade name */}
-                <div className="text-center mb-4">
-                    <span className="text-xs font-semibold text-neutral-400 uppercase tracking-widest">
+                <div className="text-center mb-5">
+                    <span className="text-sm font-semibold text-neutral-400 uppercase tracking-widest">
                         {activeGrade.name}
                     </span>
                 </div>
 
                 {/* Grade panel with transition */}
-                <div className="relative overflow-hidden">
+                <div className="relative overflow-hidden max-w-xl mx-auto">
                     <div
                         className="transition-opacity duration-300"
                         key={activeIndex}
@@ -276,24 +276,24 @@ export default function HomeHonorSection() {
                 </div>
 
                 {/* Progress dots */}
-                <div className="flex justify-center gap-1.5 mt-5">
+                <div className="flex justify-center gap-1.5 mt-6">
                     {sortedGrades.map((_, index) => (
                         <div
                             key={index}
-                            className={`h-1 rounded-full transition-all duration-300 ${
+                            className={`h-1.5 rounded-full transition-all duration-300 ${
                                 index === activeIndex
-                                    ? 'w-6 bg-neutral-900'
-                                    : 'w-1.5 bg-neutral-200'
+                                    ? 'w-7 bg-neutral-900'
+                                    : 'w-1.5 bg-neutral-300'
                             }`}
                         />
                     ))}
                 </div>
 
                 {/* Link to full page */}
-                <div className="text-center mt-6">
+                <div className="text-center mt-8">
                     <Link
                         href="/cuadro-honor"
-                        className="text-sm text-neutral-500 hover:text-neutral-900 transition-colors underline underline-offset-2"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-neutral-500 hover:text-neutral-900 transition-colors underline underline-offset-4"
                     >
                         Ver cuadro completo
                     </Link>

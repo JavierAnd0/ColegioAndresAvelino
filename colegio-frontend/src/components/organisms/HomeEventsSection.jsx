@@ -45,13 +45,13 @@ function EventSlide({ event, isDragging }) {
                     <div className="p-4 flex gap-3.5 flex-1">
                         {/* Bloque fecha */}
                         <div
-                            className="w-14 h-14 rounded-lg flex flex-col items-center justify-center shrink-0"
+                            className="w-12 h-12 rounded-lg flex flex-col items-center justify-center shrink-0"
                             style={{ backgroundColor: accentColor }}
                         >
-                            <span className="text-white font-mono text-xl font-bold leading-none">
+                            <span className="text-white font-mono text-base font-bold leading-none">
                                 {start.day}
                             </span>
-                            <span className="text-white/70 font-mono text-[0.5rem] tracking-wider leading-none mt-0.5">
+                            <span className="text-white/70 font-mono text-[0.45rem] tracking-wider leading-none mt-0.5">
                                 {start.monthShort}
                             </span>
                         </div>

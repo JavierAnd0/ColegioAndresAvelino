@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
-import CloudinaryStorage from 'multer-storage-cloudinary';
+import pkg from 'multer-storage-cloudinary';
+const { CloudinaryStorage } = pkg;
 import multer from 'multer';
 
 // Configurar Cloudinary con las credenciales
@@ -8,13 +9,6 @@ cloudinary.config({
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
-// Debug: verificar que las credenciales se cargaron
-if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-    console.warn('⚠️  Cloudinary: Faltan credenciales en .env (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET)');
-} else {
-    console.log('✅ Cloudinary configurado para:', process.env.CLOUDINARY_CLOUD_NAME);
-}
 
 // Configurar storage para posts del blog
 const blogStorage = new CloudinaryStorage({
