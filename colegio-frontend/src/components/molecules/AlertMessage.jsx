@@ -1,3 +1,6 @@
+'use client';
+import { useEffect } from 'react';
+
 const types = {
   success: {
     container: 'bg-green-50 border-green-200 text-green-800',
@@ -22,7 +25,14 @@ export default function AlertMessage({
   message,
   onClose,
   className = '',
+  duration = 5000,
 }) {
+  useEffect(() => {
+    if (!message || !onClose || duration <= 0) return;
+    const timer = setTimeout(onClose, duration);
+    return () => clearTimeout(timer);
+  }, [message, onClose, duration]);
+
   if (!message) return null;
 
   const style = types[type] || types.info;

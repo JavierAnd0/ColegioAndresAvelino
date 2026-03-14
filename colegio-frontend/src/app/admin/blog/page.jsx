@@ -50,18 +50,26 @@ export default function AdminBlogPage() {
     useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
     const handleCreate = async (formData) => {
-        await blogService.create(formData);
-        setAlert({ type: 'success', message: 'Post creado exitosamente.' });
-        setShowForm(false);
-        fetchPosts();
+        try {
+            await blogService.create(formData);
+            setAlert({ type: 'success', message: 'Post creado exitosamente.' });
+            setShowForm(false);
+            fetchPosts();
+        } catch (err) {
+            throw err;
+        }
     };
 
     const handleUpdate = async (formData) => {
-        await blogService.update(editing._id, formData);
-        setAlert({ type: 'success', message: 'Post actualizado.' });
-        setEditing(null);
-        setShowForm(false);
-        fetchPosts();
+        try {
+            await blogService.update(editing._id, formData);
+            setAlert({ type: 'success', message: 'Post actualizado.' });
+            setEditing(null);
+            setShowForm(false);
+            fetchPosts();
+        } catch (err) {
+            throw err;
+        }
     };
 
     const handleDelete = async (id) => {
@@ -81,12 +89,14 @@ export default function AdminBlogPage() {
     const handleStatusChange = async (id, newStatus) => {
         setChangingStatus(id);
         try {
-            await blogService.update(id, { status: newStatus });
+            const result = await blogService.update(id, { status: newStatus });
+            console.log('Status change result:', result);
             const labels = { publicado: 'publicado', borrador: 'movido a borrador', archivado: 'archivado' };
             setAlert({ type: 'success', message: `Post ${labels[newStatus]}.` });
             fetchPosts();
-        } catch {
-            setAlert({ type: 'error', message: 'Error al cambiar estado.' });
+        } catch (err) {
+            console.error('Status change error:', err);
+            setAlert({ type: 'error', message: err?.message || 'Error al cambiar estado.' });
         } finally {
             setChangingStatus(null);
         }
@@ -102,7 +112,7 @@ export default function AdminBlogPage() {
         <AdminLayout>
             <div className="flex flex-col gap-6">
 
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                         <Heading level="h3">Gestión de Blog</Heading>
                         <Paragraph color="muted" className="mt-1">
@@ -110,7 +120,7 @@ export default function AdminBlogPage() {
                         </Paragraph>
                     </div>
                     {!showForm && (
-                        <Button variant="primary" onClick={() => setShowForm(true)}>
+                        <Button variant="primary" onClick={() => setShowForm(true)} className="self-start">
                             + Nuevo post
                         </Button>
                     )}
@@ -171,67 +181,59 @@ export default function AdminBlogPage() {
                         <div className="divide-y divide-neutral-100">
                             {posts.map((post) => (
                                 <div key={post._id}
-                                    className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-neutral-50">
+                                    className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 sm:px-5 py-4 hover:bg-neutral-50">
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium text-neutral-900 truncate">
                                             {post.title}
                                         </p>
-                                        <p className="text-xs text-neutral-500 mt-0.5">
-                                            {post.category}
-                                            {post.publishedAt && (
-                                                <span className="ml-2">
-                                                    {new Date(post.publishedAt).toLocaleDateString('es-CO')}
-                                                </span>
-                                            )}
-                                        </p>
+                                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                            <p className="text-xs text-neutral-500">
+                                                {post.category}
+                                                {post.publishedAt && (
+                                                    <span className="ml-2">
+                                                        {new Date(post.publishedAt).toLocaleDateString('es-CO')}
+                                                    </span>
+                                                )}
+                                            </p>
+                                            <Badge variant={statusVariant[post.status] || 'default'} size="sm">
+                                                {post.status}
+                                            </Badge>
+                                        </div>
                                     </div>
 
-                                    <Badge variant={statusVariant[post.status] || 'default'} size="sm">
-                                        {post.status}
-                                    </Badge>
-
-                                    {/* Quick status actions */}
-                                    <div className="flex items-center gap-1 flex-shrink-0">
-                                        {post.status !== 'publicado' && (
-                                            <button
-                                                title="Publicar"
-                                                disabled={changingStatus === post._id}
-                                                onClick={() => handleStatusChange(post._id, 'publicado')}
-                                                className="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors cursor-pointer disabled:opacity-30"
-                                            >
-                                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                                </svg>
-                                            </button>
-                                        )}
-                                        {post.status !== 'borrador' && (
-                                            <button
-                                                title="Mover a borrador"
-                                                disabled={changingStatus === post._id}
-                                                onClick={() => handleStatusChange(post._id, 'borrador')}
-                                                className="p-1.5 rounded-lg text-neutral-500 hover:bg-neutral-100 transition-colors cursor-pointer disabled:opacity-30"
-                                            >
-                                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                </svg>
-                                            </button>
-                                        )}
-                                        {post.status !== 'archivado' && (
-                                            <button
-                                                title="Archivar"
-                                                disabled={changingStatus === post._id}
-                                                onClick={() => handleStatusChange(post._id, 'archivado')}
-                                                className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer disabled:opacity-30"
-                                            >
-                                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                                                </svg>
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    {/* Edit / Delete */}
                                     <div className="flex items-center gap-2 flex-shrink-0">
+                                        {/* Quick status actions */}
+                                        <div className="flex items-center gap-1">
+                                            {post.status !== 'publicado' && (
+                                                <button title="Publicar" disabled={changingStatus === post._id}
+                                                    onClick={() => handleStatusChange(post._id, 'publicado')}
+                                                    className="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors cursor-pointer disabled:opacity-30">
+                                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </button>
+                                            )}
+                                            {post.status !== 'borrador' && (
+                                                <button title="Mover a borrador" disabled={changingStatus === post._id}
+                                                    onClick={() => handleStatusChange(post._id, 'borrador')}
+                                                    className="p-1.5 rounded-lg text-neutral-500 hover:bg-neutral-100 transition-colors cursor-pointer disabled:opacity-30">
+                                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                            )}
+                                            {post.status !== 'archivado' && (
+                                                <button title="Archivar" disabled={changingStatus === post._id}
+                                                    onClick={() => handleStatusChange(post._id, 'archivado')}
+                                                    className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer disabled:opacity-30">
+                                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                                    </svg>
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* Edit / Delete */}
                                         <Button variant="outline" size="sm" onClick={() => handleEdit(post)}>
                                             Editar
                                         </Button>

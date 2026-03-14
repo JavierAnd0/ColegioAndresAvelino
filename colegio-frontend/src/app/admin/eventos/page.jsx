@@ -82,7 +82,7 @@ export default function AdminEventosPage() {
             <div className="flex flex-col gap-6">
 
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                         <Heading level="h3">Gestión de Eventos</Heading>
                         <Paragraph color="muted" className="mt-1">
@@ -90,7 +90,7 @@ export default function AdminEventosPage() {
                         </Paragraph>
                     </div>
                     {!showForm && (
-                        <Button variant="primary" onClick={() => setShowForm(true)}>
+                        <Button variant="primary" onClick={() => setShowForm(true)} className="self-start">
                             + Nuevo evento
                         </Button>
                     )}
@@ -137,21 +137,23 @@ export default function AdminEventosPage() {
                         <div className="divide-y divide-neutral-100">
                             {events.map((event) => (
                                 <div key={event._id}
-                                    className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-neutral-50">
+                                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-4 hover:bg-neutral-50">
                                     <div className="flex items-center gap-3 flex-1 min-w-0">
                                         <div className="h-9 w-9 rounded-lg flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
                                             style={{ backgroundColor: event.color || '#171717' }}>
                                             {new Date(event.startDate).getDate()}
                                         </div>
-                                        <div className="min-w-0">
+                                        <div className="min-w-0 flex-1">
                                             <p className="text-sm font-medium text-neutral-900 truncate">{event.title}</p>
-                                            <p className="text-xs text-neutral-500">{formatDate(event.startDate)}</p>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <p className="text-xs text-neutral-500">{formatDate(event.startDate)}</p>
+                                                <Badge variant={categoryVariants[event.category] || 'default'} size="sm">
+                                                    {event.category}
+                                                </Badge>
+                                            </div>
                                         </div>
                                     </div>
-                                    <Badge variant={categoryVariants[event.category] || 'default'} size="sm">
-                                        {event.category}
-                                    </Badge>
-                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                    <div className="flex items-center gap-2 flex-shrink-0 ml-12 sm:ml-0">
                                         <Button variant="outline" size="sm" onClick={() => handleEdit(event)}>
                                             Editar
                                         </Button>
