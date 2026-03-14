@@ -10,4 +10,5 @@ export const blogService = {
     update: (id, data) => api.put(`/blog/${id}`, data).then(r => r.data),
     delete: (id) => api.delete(`/blog/${id}`).then(r => r.data),
     like: (id) => api.post(`/blog/${id}/like`).then(r => r.data),
+    suggestImages: (params) => api.get('/blog/suggest-images', { params }).then(r => r.data),
 };

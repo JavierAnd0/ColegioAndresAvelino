@@ -8,7 +8,8 @@ import Button from '@/components/atoms/Button';
 import Label from '@/components/atoms/Typography/Label';
 import Textarea from '@/components/atoms/Textarea';
 import ImageUploader from '@/components/molecules/ImageUploader';
-import ToggleSwitch from '@/components/atoms/ToggleSwitch';
+import { blogService } from '@/services/blogService';
+
 
 const categories = [
     { value: 'noticias', label: 'Noticias' },
@@ -40,6 +41,10 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
     const [errors, setErrors] = useState({});
     const [alert, setAlert] = useState(null);
 
+    // Estado para sugerencias de imágenes
+    const [suggestions, setSuggestions] = useState([]);
+    const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
@@ -53,6 +58,35 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
                 ? { url: imageData.url, alt: prev.title || '' }
                 : { url: '', alt: '' },
         }));
+        setSuggestions([]);
+    };
+
+    const handleSuggestImages = async () => {
+        if (!form.title.trim() && !form.category) return;
+        setLoadingSuggestions(true);
+        try {
+            const res = await blogService.suggestImages({
+                category: form.category,
+                title: form.title,
+                count: 3,
+            });
+            setSuggestions(res.data || []);
+            if ((res.data || []).length === 0) {
+                setAlert({ type: 'info', message: 'No se encontraron imágenes sugeridas. Intenta con otro título.' });
+            }
+        } catch {
+            setAlert({ type: 'error', message: 'Error al buscar imágenes. Verifica que PEXELS_API_KEY esté configurada.' });
+        } finally {
+            setLoadingSuggestions(false);
+        }
+    };
+
+    const handleSelectSuggestion = (image) => {
+        setForm(prev => ({
+            ...prev,
+            featuredImage: { url: image.url, alt: form.title || image.alt },
+        }));
+        setSuggestions([]);
     };
 
     const generateExcerpt = () => {
@@ -161,124 +195,94 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="excerpt" required>Extracto / Resumen</Label>
-                    <Textarea
-                        name="excerpt" placeholder="Breve resumen del post (máx. 300 caracteres)..."
-                        value={form.excerpt} onChange={handleChange} error={errors.excerpt} rows={2}
+                    <Label>Imagen destacada</Label>
+                    <ImageUploader
+                        onUpload={handleImageUpload}
+                        currentImage={form.featuredImage?.url}
+                        endpoint="/upload/blog"
                     />
-                    <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1 bg-neutral-100 rounded-full overflow-hidden">
-                            <div
-                                className={`h-full rounded-full transition-all duration-300 ${
-                                    excerptPercent > 90 ? 'bg-red-400' : excerptPercent > 70 ? 'bg-yellow-400' : 'bg-neutral-400'
-                                }`}
-                                style={{ width: `${excerptPercent}%` }}
-                            />
-                        </div>
-                        <span className={`text-xs tabular-nums ${
-                            excerptPercent > 90 ? 'text-red-500' : 'text-neutral-400'
-                        }`}>
-                            {form.excerpt.length}/300
-                        </span>
-                    </div>
                 </div>
-            </section>
 
-            <hr className="border-neutral-100" />
+                <hr className="border-neutral-100" />
 
-            {/* --- Sección: Media --- */}
-            <section className="flex flex-col gap-4">
-                <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-widest">
-                    Imagen destacada
-                </h4>
+                {/* --- Sección: Publicación --- */}
+                <section className="flex flex-col gap-4">
+                    <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-widest">
+                        Publicación
+                    </h4>
 
-                <ImageUploader
-                    onUpload={handleImageUpload}
-                    currentImage={form.featuredImage?.url}
-                    endpoint="/upload/blog"
-                />
-            </section>
-
-            <hr className="border-neutral-100" />
-
-            {/* --- Sección: Publicación --- */}
-            <section className="flex flex-col gap-4">
-                <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-widest">
-                    Publicación
-                </h4>
-
-                {/* Status como pills */}
-                <div className="flex flex-col gap-1.5">
-                    <Label>Estado</Label>
-                    <div className="flex gap-2">
-                        {statusOptions.map(opt => (
-                            <button
-                                key={opt.value}
-                                type="button"
-                                onClick={() => setForm(p => ({ ...p, status: opt.value }))}
-                                className={`
+                    {/* Status como pills */}
+                    <div className="flex flex-col gap-1.5">
+                        <Label>Estado</Label>
+                        <div className="flex gap-2">
+                            {statusOptions.map(opt => (
+                                <button
+                                    key={opt.value}
+                                    type="button"
+                                    onClick={() => setForm(p => ({ ...p, status: opt.value }))}
+                                    className={`
                                     px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer
                                     ${form.status === opt.value
-                                        ? `${opt.color} ring-2 ring-neutral-900 ring-offset-1`
-                                        : 'bg-neutral-50 text-neutral-500 hover:bg-neutral-100'
-                                    }
+                                            ? `${opt.color} ring-2 ring-neutral-900 ring-offset-1`
+                                            : 'bg-neutral-50 text-neutral-500 hover:bg-neutral-100'
+                                        }
                                 `}
-                            >
-                                {opt.label}
-                            </button>
-                        ))}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <SelectField
-                        label="Categoría" name="category"
-                        value={form.category} onChange={handleChange}
-                        options={categories}
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <SelectField
+                            label="Categoría" name="category"
+                            value={form.category} onChange={handleChange}
+                            options={categories}
+                        />
 
-                    <FormField
-                        label="Tags (separados por coma)" name="tags"
-                        placeholder="Ej: deportes, cultura, noticias"
-                        value={form.tags} onChange={handleChange}
-                    />
-                </div>
-
-                {/* Tags preview */}
-                {form.tags.trim() && (
-                    <div className="flex gap-1.5 flex-wrap">
-                        {form.tags.split(',').map(t => t.trim()).filter(Boolean).map((tag, i) => (
-                            <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-600">
-                                #{tag}
-                            </span>
-                        ))}
+                        <FormField
+                            label="Tags (separados por coma)" name="tags"
+                            placeholder="Ej: deportes, cultura, noticias"
+                            value={form.tags} onChange={handleChange}
+                        />
                     </div>
-                )}
 
-                <ToggleSwitch
-                    name="isFeatured"
-                    checked={form.isFeatured}
-                    onChange={handleChange}
-                    label="Destacar en página principal"
-                />
-            </section>
+                    {/* Tags preview */}
+                    {form.tags.trim() && (
+                        <div className="flex gap-1.5 flex-wrap">
+                            {form.tags.split(',').map(t => t.trim()).filter(Boolean).map((tag, i) => (
+                                <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-600">
+                                    #{tag}
+                                </span>
+                            ))}
+                        </div>
+                    )}
 
-            {/* --- Acciones --- */}
-            <div className="flex gap-3 pt-4 border-t border-neutral-100">
-                <Button
-                    type="button" variant="primary" size="md" loading={loading}
-                    onClick={(e) => handleSubmit(e, 'publicado')}
-                >
-                    {initialData._id ? 'Actualizar y publicar' : 'Publicar'}
-                </Button>
+                    <ToggleSwitch
+                        name="isFeatured"
+                        checked={form.isFeatured}
+                        onChange={handleChange}
+                        label="Destacar en página principal"
+                    />
+                </section>
 
-                <Button
-                    type="button" variant="secondary" size="md"
-                    onClick={(e) => handleSubmit(e, 'borrador')}
-                >
-                    Guardar borrador
-                </Button>
-            </div>
+                <div className="flex gap-3 pt-2 border-t border-neutral-100">
+                    {/* Botón Publicar - siempre envía status: publicado */}
+                    <Button
+                        type="button" variant="primary" size="md" loading={loading}
+                        onClick={(e) => handleSubmit(e, 'publicado')}
+                    >
+                        {initialData._id ? 'Actualizar y publicar' : 'Publicar'}
+                    </Button>
+
+                    <Button
+                        type="button" variant="secondary" size="md"
+                        onClick={(e) => handleSubmit(e, 'borrador')}
+                    >
+                        Guardar borrador
+                    </Button>
+                </div>
         </form>
     );
 }
