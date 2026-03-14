@@ -199,7 +199,7 @@ export const validateBlogQuery = [
     .isIn(blogCategories).withMessage(`Categoría no válida`),
   query('status')
     .optional()
-    .isIn(blogStatuses).withMessage(`Estado no válido`),
+    .isIn([...blogStatuses, 'all']).withMessage(`Estado no válido`),
   query('search')
     .optional()
     .trim()
