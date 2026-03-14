@@ -10,7 +10,7 @@ import { fetchAllSources } from '../services/rssFetcher.js';
 export const getActivities = async (req, res) => {
     try {
         const { grade, type, search, week, page = 1, limit = 20 } = req.query;
-        const filter = { isActive: true };
+        const filter = { isActive: true, status: 'approved' };
 
         if (grade !== undefined) filter.targetGrades = parseInt(grade, 10);
         if (type) filter.type = type;
@@ -48,7 +48,7 @@ export const getThisWeekActivities = async (req, res) => {
     try {
         const { grade } = req.query;
         const monday = getWeekMonday(new Date());
-        const filter = { weekOf: monday, isActive: true };
+        const filter = { weekOf: monday, isActive: true, status: 'approved' };
 
         if (grade !== undefined) filter.targetGrades = parseInt(grade, 10);
 
@@ -89,17 +89,28 @@ export const getActivity = async (req, res) => {
 /** POST /api/activities */
 export const createActivity = async (req, res) => {
     try {
-        const { title, description, type, targetGrades, externalUrl, imageUrl } = req.body;
-        const activity = await Activity.create({
+        const { title, description, content, type, targetGrades, externalUrl, imageUrl } = req.body;
+
+        const activityData = {
             title,
             description,
+            content,
             type,
             targetGrades,
-            externalUrl,
+            externalUrl: externalUrl || undefined,
             imageUrl,
             source: 'Manual',
+            sourceType: 'manual',
+            status: 'approved',
             weekOf: getWeekMonday(new Date()),
-        });
+        };
+
+        // Si se subió un archivo (PDF o imagen)
+        if (req.file) {
+            activityData.fileUrl = req.file.path;
+        }
+
+        const activity = await Activity.create(activityData);
         res.status(201).json({ success: true, data: activity });
     } catch (error) {
         if (error.code === 11000) {
@@ -109,6 +120,7 @@ export const createActivity = async (req, res) => {
             const messages = Object.values(error.errors).map((e) => e.message);
             return res.status(400).json({ success: false, message: 'Error de validación', errors: messages });
         }
+        console.error('Error al crear actividad:', error);
         res.status(500).json({ success: false, message: 'Error interno del servidor' });
     }
 };
@@ -116,7 +128,14 @@ export const createActivity = async (req, res) => {
 /** PUT /api/activities/:id */
 export const updateActivity = async (req, res) => {
     try {
-        const activity = await Activity.findByIdAndUpdate(req.params.id, req.body, {
+        const updateData = { ...req.body };
+
+        // Si se subió un archivo nuevo
+        if (req.file) {
+            updateData.fileUrl = req.file.path;
+        }
+
+        const activity = await Activity.findByIdAndUpdate(req.params.id, updateData, {
             new: true,
             runValidators: true,
         });
@@ -148,6 +167,74 @@ export const deleteActivity = async (req, res) => {
         if (error.name === 'CastError') {
             return res.status(400).json({ success: false, message: 'ID no válido' });
         }
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+};
+
+/** PUT /api/activities/:id/approve */
+export const approveActivity = async (req, res) => {
+    try {
+        const activity = await Activity.findByIdAndUpdate(
+            req.params.id,
+            { status: 'approved' },
+            { new: true }
+        );
+        if (!activity) {
+            return res.status(404).json({ success: false, message: 'Actividad no encontrada' });
+        }
+        res.json({ success: true, data: activity });
+    } catch (error) {
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, message: 'ID no válido' });
+        }
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+};
+
+/** PUT /api/activities/:id/reject */
+export const rejectActivity = async (req, res) => {
+    try {
+        const activity = await Activity.findByIdAndUpdate(
+            req.params.id,
+            { status: 'rejected' },
+            { new: true }
+        );
+        if (!activity) {
+            return res.status(404).json({ success: false, message: 'Actividad no encontrada' });
+        }
+        res.json({ success: true, data: activity });
+    } catch (error) {
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, message: 'ID no válido' });
+        }
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+};
+
+/** GET /api/activities/pending */
+export const getPendingActivities = async (req, res) => {
+    try {
+        const { page = 1, limit = 20 } = req.query;
+        const filter = { status: 'pending' };
+
+        const pageNum = Math.max(1, parseInt(page, 10) || 1);
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+        const skip = (pageNum - 1) * limitNum;
+
+        const [data, total] = await Promise.all([
+            Activity.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limitNum),
+            Activity.countDocuments(filter),
+        ]);
+
+        res.json({
+            success: true,
+            count: data.length,
+            total,
+            page: pageNum,
+            pages: Math.ceil(total / limitNum),
+            data,
+        });
+    } catch (error) {
         res.status(500).json({ success: false, message: 'Error interno del servidor' });
     }
 };

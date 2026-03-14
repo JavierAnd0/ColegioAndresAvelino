@@ -1,11 +1,10 @@
 'use client';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import MainLayout from '@/components/templates/MainLayout';
 import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
 import Spinner from '@/components/atoms/Spinner';
 import ActivityCard from '@/components/molecules/ActivityCard';
-import GradeFilterTabs from '@/components/molecules/GradeFilterTabs';
 import { activityService } from '@/services/activityService';
 import { gradeService } from '@/services/honorService';
 
@@ -25,16 +24,12 @@ export default function ActividadesPage() {
     const [types, setTypes] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Filtros
-    const [selectedGrade, setSelectedGrade] = useState(null);
-    const [selectedType, setSelectedType] = useState(null);
+    const [selectedGrade, setSelectedGrade] = useState('');
+    const [selectedType, setSelectedType] = useState('');
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
-    const searchTimeout = useRef(null);
-
-    // Cargar grados y tipos al inicio
     useEffect(() => {
         const loadFilters = async () => {
             try {
@@ -45,18 +40,17 @@ export default function ActividadesPage() {
                 setGrades((gradesRes.data || []).sort((a, b) => a.order - b.order));
                 setTypes(typesRes.data || []);
             } catch {
-                // Silenciar errores de filtros
+                // silenciar
             }
         };
         loadFilters();
     }, []);
 
-    // Cargar actividades cuando cambian los filtros
     const fetchActivities = useCallback(async () => {
         setLoading(true);
         try {
             const params = { page, limit: 12 };
-            if (selectedGrade !== null) params.grade = selectedGrade;
+            if (selectedGrade !== '') params.grade = selectedGrade;
             if (selectedType) params.type = selectedType;
             if (search.trim()) params.search = search.trim();
 
@@ -74,20 +68,18 @@ export default function ActividadesPage() {
         fetchActivities();
     }, [fetchActivities]);
 
-    // Debounce para búsqueda
+    const handleGradeChange = (e) => {
+        setSelectedGrade(e.target.value);
+        setPage(1);
+    };
+
+    const handleTypeChange = (e) => {
+        setSelectedType(e.target.value);
+        setPage(1);
+    };
+
     const handleSearchChange = (e) => {
-        const value = e.target.value;
-        setSearch(value);
-        setPage(1);
-    };
-
-    const handleGradeChange = (gradeOrder) => {
-        setSelectedGrade(gradeOrder);
-        setPage(1);
-    };
-
-    const handleTypeChange = (type) => {
-        setSelectedType(type === selectedType ? null : type);
+        setSearch(e.target.value);
         setPage(1);
     };
 
@@ -103,50 +95,51 @@ export default function ActividadesPage() {
                         </Paragraph>
                     </div>
 
-                    {/* Filtros */}
-                    <div className="space-y-4 mb-8">
-                        {/* Grados */}
-                        <GradeFilterTabs
-                            grades={grades}
-                            selected={selectedGrade}
+                    {/* Filtros — dropdowns + búsqueda */}
+                    <div className="flex flex-col sm:flex-row gap-3 mb-8">
+                        <select
+                            value={selectedGrade}
                             onChange={handleGradeChange}
-                        />
+                            className="px-3 py-2 rounded-lg border border-neutral-200 text-sm bg-white
+                                focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400
+                                cursor-pointer"
+                        >
+                            <option value="">Todos los grados</option>
+                            {grades.map((g) => (
+                                <option key={g._id} value={g.order}>
+                                    {g.order === 0 ? 'Preescolar' : `${g.order}°`}
+                                </option>
+                            ))}
+                        </select>
 
-                        {/* Tipo + Búsqueda */}
-                        <div className="flex flex-col sm:flex-row gap-3">
-                            {/* Pills de tipo */}
-                            <div className="flex gap-2 overflow-x-auto flex-1" style={{ scrollbarWidth: 'none' }}>
-                                {types.map((t) => (
-                                    <button
-                                        key={t}
-                                        type="button"
-                                        onClick={() => handleTypeChange(t)}
-                                        className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors cursor-pointer
-                                            ${selectedType === t
-                                                ? 'bg-neutral-800 text-white'
-                                                : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200'
-                                            }`}
-                                    >
-                                        {typeLabels[t] || t}
-                                    </button>
-                                ))}
-                            </div>
+                        <select
+                            value={selectedType}
+                            onChange={handleTypeChange}
+                            className="px-3 py-2 rounded-lg border border-neutral-200 text-sm bg-white
+                                focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400
+                                cursor-pointer"
+                        >
+                            <option value="">Todos los tipos</option>
+                            {types.map((t) => (
+                                <option key={t} value={t}>
+                                    {typeLabels[t] || t}
+                                </option>
+                            ))}
+                        </select>
 
-                            {/* Búsqueda */}
-                            <div className="relative sm:w-64 shrink-0">
-                                <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                <input
-                                    type="text"
-                                    value={search}
-                                    onChange={handleSearchChange}
-                                    placeholder="Buscar actividad..."
-                                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-neutral-200 text-sm
-                                        focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400
-                                        placeholder:text-neutral-400"
-                                />
-                            </div>
+                        <div className="relative sm:flex-1 sm:max-w-xs">
+                            <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={handleSearchChange}
+                                placeholder="Buscar actividad..."
+                                className="w-full pl-10 pr-4 py-2 rounded-lg border border-neutral-200 text-sm
+                                    focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400
+                                    placeholder:text-neutral-400"
+                            />
                         </div>
                     </div>
 
@@ -169,14 +162,12 @@ export default function ActividadesPage() {
                         </div>
                     ) : (
                         <>
-                            {/* Grid de actividades */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {activities.map((activity) => (
                                     <ActivityCard key={activity._id} activity={activity} />
                                 ))}
                             </div>
 
-                            {/* Paginación */}
                             {totalPages > 1 && (
                                 <div className="flex items-center justify-center gap-3 mt-10">
                                     <button

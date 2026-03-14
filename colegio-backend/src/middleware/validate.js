@@ -475,19 +475,25 @@ export const validateActivityQuery = [
   runValidation,
 ];
 
+const activityStatuses = ['draft', 'pending', 'approved', 'rejected'];
+
 export const validateCreateActivity = [
   body('title')
     .trim()
     .notEmpty().withMessage('El título es obligatorio')
     .isLength({ max: 200 }).withMessage('El título no puede tener más de 200 caracteres'),
   body('externalUrl')
+    .optional({ values: 'falsy' })
     .trim()
-    .notEmpty().withMessage('La URL del recurso es obligatoria')
     .isURL().withMessage('La URL no es válida'),
   body('description')
     .optional()
     .trim()
     .isLength({ max: 500 }).withMessage('La descripción no puede tener más de 500 caracteres'),
+  body('content')
+    .optional()
+    .trim()
+    .isLength({ max: 5000 }).withMessage('El contenido no puede tener más de 5000 caracteres'),
   body('type')
     .optional()
     .isIn(activityTypes).withMessage('Tipo de actividad no válido'),
@@ -498,7 +504,7 @@ export const validateCreateActivity = [
     .optional()
     .isInt({ min: 0, max: 11 }).withMessage('Cada grado debe ser un número entre 0 y 11'),
   body('imageUrl')
-    .optional()
+    .optional({ values: 'falsy' })
     .trim()
     .isURL().withMessage('La URL de imagen no es válida'),
   runValidation,
@@ -512,13 +518,17 @@ export const validateUpdateActivity = [
     .trim()
     .isLength({ max: 200 }).withMessage('El título no puede tener más de 200 caracteres'),
   body('externalUrl')
-    .optional()
+    .optional({ values: 'falsy' })
     .trim()
     .isURL().withMessage('La URL no es válida'),
   body('description')
     .optional()
     .trim()
     .isLength({ max: 500 }).withMessage('La descripción no puede tener más de 500 caracteres'),
+  body('content')
+    .optional()
+    .trim()
+    .isLength({ max: 5000 }).withMessage('El contenido no puede tener más de 5000 caracteres'),
   body('type')
     .optional()
     .isIn(activityTypes).withMessage('Tipo de actividad no válido'),
@@ -528,6 +538,9 @@ export const validateUpdateActivity = [
   body('targetGrades.*')
     .optional()
     .isInt({ min: 0, max: 11 }).withMessage('Cada grado debe ser un número entre 0 y 11'),
+  body('status')
+    .optional()
+    .isIn(activityStatuses).withMessage('Estado no válido'),
   body('isActive')
     .optional()
     .isBoolean().withMessage('isActive debe ser verdadero o falso'),

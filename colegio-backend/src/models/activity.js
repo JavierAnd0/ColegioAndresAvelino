@@ -31,11 +31,21 @@ const activitySchema = new mongoose.Schema(
                 message: 'Los grados deben ser números enteros entre 0 y 11',
             },
         },
+        content: {
+            type: String,
+            trim: true,
+            maxlength: [5000, 'El contenido no puede tener más de 5000 caracteres'],
+            default: '',
+        },
+        fileUrl: {
+            type: String,
+            trim: true,
+            default: '',
+        },
         externalUrl: {
             type: String,
-            required: [true, 'La URL del recurso es obligatoria'],
-            unique: true,
             trim: true,
+            default: '',
         },
         imageUrl: {
             type: String,
@@ -46,6 +56,22 @@ const activitySchema = new mongoose.Schema(
             type: String,
             trim: true,
             default: '',
+        },
+        sourceType: {
+            type: String,
+            enum: {
+                values: ['manual', 'rss'],
+                message: '{VALUE} no es un tipo de fuente válido',
+            },
+            default: 'manual',
+        },
+        status: {
+            type: String,
+            enum: {
+                values: ['draft', 'pending', 'approved', 'rejected'],
+                message: '{VALUE} no es un estado válido',
+            },
+            default: 'approved',
         },
         rssSource: {
             type: mongoose.Schema.Types.ObjectId,
@@ -69,10 +95,10 @@ const activitySchema = new mongoose.Schema(
 );
 
 // Índices
-activitySchema.index({ externalUrl: 1 }, { unique: true });
+activitySchema.index({ externalUrl: 1 }, { unique: true, sparse: true });
 activitySchema.index({ targetGrades: 1, type: 1 });
 activitySchema.index({ weekOf: -1 });
-activitySchema.index({ isActive: 1 });
+activitySchema.index({ isActive: 1, status: 1 });
 
 // Virtual: actividad nueva si weekOf es de esta semana
 activitySchema.virtual('isNew').get(function () {
@@ -103,7 +129,7 @@ function getWeekMonday(date) {
 // Estáticos
 activitySchema.statics.getThisWeek = function (gradeFilter) {
     const monday = getWeekMonday(new Date());
-    const filter = { weekOf: monday, isActive: true };
+    const filter = { weekOf: monday, isActive: true, status: 'approved' };
     if (gradeFilter !== undefined) {
         filter.targetGrades = parseInt(gradeFilter, 10);
     }
@@ -114,6 +140,7 @@ activitySchema.statics.getByGrade = function (gradeOrder) {
     return this.find({
         targetGrades: parseInt(gradeOrder, 10),
         isActive: true,
+        status: 'approved',
     }).sort({ weekOf: -1, createdAt: -1 });
 };
 

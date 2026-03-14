@@ -62,8 +62,28 @@ const honorStorage = new CloudinaryStorage({
     },
 });
 
+// Configurar storage para actividades (PDFs e imágenes)
+const activityStorage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder: 'colegio/actividades',
+        allowed_formats: ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
+        resource_type: 'auto',
+    },
+});
+
+const activityFileFilter = (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+    if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Solo se permiten imágenes (jpg, png, webp) y PDFs'), false);
+    }
+};
+
 // Exportar middlewares de multer
 export const uploadBlogImage = multer({ storage: blogStorage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB
 export const uploadAvatar = multer({ storage: avatarStorage, fileFilter, limits: { fileSize: 2 * 1024 * 1024 } }); // 2MB
 export const uploadHonorImage = multer({ storage: honorStorage, fileFilter, limits: { fileSize: 3 * 1024 * 1024 } }); // 3MB
+export const uploadActivityFile = multer({ storage: activityStorage, fileFilter: activityFileFilter, limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB
 export { cloudinary };
