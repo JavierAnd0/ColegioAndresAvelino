@@ -113,6 +113,8 @@ async function fetchSingleSource(source, monday) {
                         type: source.defaultType || 'otro',
                         targetGrades: source.defaultGrades || [],
                         source: source.name,
+                        sourceType: 'rss',
+                        status: 'pending',
                         rssSource: source._id,
                         weekOf: monday,
                         isActive: true,

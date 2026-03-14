@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { protect, authorize } from '../middleware/auth.js';
+import { uploadActivityFile } from '../config/cloudinary.js';
 import {
     validateObjectId,
     validateActivityQuery,
@@ -16,6 +17,9 @@ import {
     createActivity,
     updateActivity,
     deleteActivity,
+    approveActivity,
+    rejectActivity,
+    getPendingActivities,
     getRssSources,
     createRssSource,
     updateRssSource,
@@ -30,6 +34,9 @@ const router = Router();
 // Público
 router.get('/this-week', getThisWeekActivities);
 router.get('/types', getActivityTypes);
+
+// Admin — pendientes de aprobación
+router.get('/pending', protect, authorize('admin'), getPendingActivities);
 
 // Admin — fuentes RSS
 router.get('/sources', protect, authorize('admin'), getRssSources);
@@ -46,9 +53,13 @@ router.post('/fetch', protect, authorize('admin'), triggerFetch);
 router.get('/', validateActivityQuery, getActivities);
 router.get('/:id', validateObjectId, getActivity);
 
-// Admin
-router.post('/', protect, authorize('admin'), validateCreateActivity, createActivity);
-router.put('/:id', protect, authorize('admin'), validateUpdateActivity, updateActivity);
+// Admin — CRUD con soporte de file upload
+router.post('/', protect, authorize('admin'), uploadActivityFile.single('file'), validateCreateActivity, createActivity);
+router.put('/:id', protect, authorize('admin'), uploadActivityFile.single('file'), validateUpdateActivity, updateActivity);
 router.delete('/:id', protect, authorize('admin'), validateObjectId, deleteActivity);
+
+// Admin — aprobar/rechazar
+router.put('/:id/approve', protect, authorize('admin'), validateObjectId, approveActivity);
+router.put('/:id/reject', protect, authorize('admin'), validateObjectId, rejectActivity);
 
 export default router;

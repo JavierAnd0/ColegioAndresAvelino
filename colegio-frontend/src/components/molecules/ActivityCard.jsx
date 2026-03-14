@@ -1,28 +1,19 @@
+import Link from 'next/link';
 import Badge from '@/components/atoms/Badge';
 
 const typeConfig = {
-    cuento: { label: 'Cuento', variant: 'info', icon: BookIcon },
-    colorear: { label: 'Colorear', variant: 'warning', icon: PaletteIcon },
-    numeros: { label: 'Números', variant: 'success', icon: HashIcon },
-    rompecabezas: { label: 'Rompecabezas', variant: 'default', icon: PuzzleIcon },
-    juego: { label: 'Juego', variant: 'danger', icon: GameIcon },
-    lectura: { label: 'Lectura', variant: 'info', icon: ReadIcon },
-    otro: { label: 'Otro', variant: 'default', icon: StarIcon },
+    cuento: { label: 'Cuento', variant: 'info', icon: BookIcon, actionLabel: 'Leer cuento' },
+    colorear: { label: 'Colorear', variant: 'warning', icon: PaletteIcon, actionLabel: 'Ver PDF' },
+    numeros: { label: 'Números', variant: 'success', icon: HashIcon, actionLabel: 'Ver actividad' },
+    rompecabezas: { label: 'Rompecabezas', variant: 'default', icon: PuzzleIcon, actionLabel: 'Ver actividad' },
+    juego: { label: 'Juego', variant: 'danger', icon: GameIcon, actionLabel: 'Jugar' },
+    lectura: { label: 'Lectura', variant: 'info', icon: ReadIcon, actionLabel: 'Leer' },
+    otro: { label: 'Otro', variant: 'default', icon: StarIcon, actionLabel: 'Ver' },
 };
 
 const gradeLabels = {
-    0: 'Pre',
-    1: '1°',
-    2: '2°',
-    3: '3°',
-    4: '4°',
-    5: '5°',
-    6: '6°',
-    7: '7°',
-    8: '8°',
-    9: '9°',
-    10: '10°',
-    11: '11°',
+    0: 'Pre', 1: '1°', 2: '2°', 3: '3°', 4: '4°', 5: '5°',
+    6: '6°', 7: '7°', 8: '8°', 9: '9°', 10: '10°', 11: '11°',
 };
 
 /* --- SVG Icons --- */
@@ -95,16 +86,67 @@ function StarIcon({ className }) {
     );
 }
 
+function PdfIcon({ className }) {
+    return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <polyline points="10 9 9 9 8 9" />
+        </svg>
+    );
+}
+
+function ExternalLinkIcon({ className }) {
+    return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+        </svg>
+    );
+}
+
+/**
+ * Determina el href y target según el tipo de actividad
+ */
+function getCardAction(activity) {
+    const { type, fileUrl, content, externalUrl, _id } = activity;
+
+    // Colorear con PDF → abrir PDF
+    if (type === 'colorear' && fileUrl) {
+        return { href: fileUrl, target: '_blank', isExternal: true, icon: PdfIcon };
+    }
+
+    // Cuento/lectura con contenido → página detalle in-app
+    if ((type === 'cuento' || type === 'lectura') && content) {
+        return { href: `/actividades/${_id}`, target: '_self', isExternal: false, icon: BookIcon };
+    }
+
+    // Fallback → link externo
+    if (externalUrl) {
+        return { href: externalUrl, target: '_blank', isExternal: true, icon: ExternalLinkIcon };
+    }
+
+    // Sin URL ni contenido → página detalle
+    return { href: `/actividades/${_id}`, target: '_self', isExternal: false, icon: null };
+}
+
 export default function ActivityCard({ activity }) {
-    const { title, description, type, targetGrades, externalUrl, imageUrl, source, isNew } = activity;
+    const { title, description, type, targetGrades, imageUrl, source, isNew, fileUrl, content } = activity;
     const config = typeConfig[type] || typeConfig.otro;
     const IconComponent = config.icon;
+    const action = getCardAction(activity);
+
+    const CardWrapper = action.isExternal ? 'a' : Link;
+    const wrapperProps = action.isExternal
+        ? { href: action.href, target: '_blank', rel: 'noopener noreferrer' }
+        : { href: action.href };
 
     return (
-        <a
-            href={externalUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+        <CardWrapper
+            {...wrapperProps}
             className="group block bg-white rounded-xl border border-neutral-200/60
                 hover:border-neutral-300 hover:shadow-md transition-all duration-200 overflow-hidden h-full"
         >
@@ -131,11 +173,20 @@ export default function ActivityCard({ activity }) {
                         </span>
                     </div>
                 )}
+
+                {/* Indicador de tipo de contenido */}
+                {(fileUrl || content) && (
+                    <div className="absolute top-2 right-2">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[0.6rem] font-mono font-medium uppercase bg-white/90 text-neutral-700 rounded-full backdrop-blur-sm">
+                            {fileUrl ? <PdfIcon className="h-3 w-3" /> : <BookIcon className="h-3 w-3" />}
+                            {fileUrl ? 'PDF' : 'In-app'}
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* Contenido */}
             <div className="p-4 flex flex-col gap-2">
-                {/* Tipo badge */}
                 <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant={config.variant} size="sm">{config.label}</Badge>
                     {targetGrades.length > 0 && targetGrades.length <= 3 && (
@@ -148,26 +199,23 @@ export default function ActivityCard({ activity }) {
                     )}
                 </div>
 
-                {/* Título */}
                 <h3 className="font-semibold text-sm text-neutral-900 leading-snug line-clamp-2
                     group-hover:text-neutral-600 transition-colors">
                     {title}
                 </h3>
 
-                {/* Descripción */}
                 {description && (
                     <p className="text-xs text-neutral-400 leading-relaxed line-clamp-2">
                         {description}
                     </p>
                 )}
 
-                {/* Source */}
                 {source && (
                     <p className="text-[0.65rem] text-neutral-400 mt-auto pt-1 truncate">
                         {source}
                     </p>
                 )}
             </div>
-        </a>
+        </CardWrapper>
     );
 }
