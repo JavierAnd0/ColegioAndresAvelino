@@ -75,9 +75,22 @@ const activityFileFilter = (req, file, cb) => {
     }
 };
 
+// Configurar storage para fotos de docentes
+const teacherStorage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder: 'colegio/docentes',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        transformation: [
+            { width: 400, height: 400, crop: 'fill', gravity: 'face', quality: 'auto' }
+        ],
+    },
+});
+
 // Exportar middlewares de multer
 export const uploadBlogImage = multer({ storage: blogStorage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB
 export const uploadAvatar = multer({ storage: avatarStorage, fileFilter, limits: { fileSize: 2 * 1024 * 1024 } }); // 2MB
 export const uploadHonorImage = multer({ storage: honorStorage, fileFilter, limits: { fileSize: 3 * 1024 * 1024 } }); // 3MB
 export const uploadActivityFile = multer({ storage: activityStorage, fileFilter: activityFileFilter, limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB
+export const uploadTeacherPhoto = multer({ storage: teacherStorage, fileFilter, limits: { fileSize: 3 * 1024 * 1024 } }); // 3MB
 export { cloudinary };

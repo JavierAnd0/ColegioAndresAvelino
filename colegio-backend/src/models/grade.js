@@ -14,6 +14,14 @@ const gradeSchema = new mongoose.Schema(
             required: [true, 'El orden del grado es obligatorio'],
             min: 0,
         },
+        jornada: {
+            type: String,
+            enum: {
+                values: ['manana', 'tarde'],
+                message: '{VALUE} no es una jornada válida',
+            },
+            default: 'manana',
+        },
         isActive: {
             type: Boolean,
             default: true,
@@ -22,7 +30,7 @@ const gradeSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-gradeSchema.index({ order: 1 });
+gradeSchema.index({ jornada: 1, order: 1 });
 
 const Grade = mongoose.model('Grade', gradeSchema);
 export default Grade;
