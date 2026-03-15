@@ -5,15 +5,17 @@ import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import Button from '@/components/atoms/Button';
 import Spinner from '@/components/atoms/Spinner';
+import { LuLayoutDashboard, LuTrophy, LuGraduationCap, LuCalendar, LuBookOpen, LuFileText, LuUsers, LuGlobe } from 'react-icons/lu';
 
 const sidebarLinks = [
-    { label: 'Dashboard', href: '/admin', icon: '📊' },
-    { label: 'Cuadro de Honor', href: '/admin/cuadro-honor', icon: '🏆' },
-    { label: 'Grados', href: '/admin/grados', icon: '🎓' },
-    { label: 'Eventos', href: '/admin/eventos', icon: '📅' },
-    { label: 'Actividades', href: '/admin/actividades', icon: '📚' },
-    { label: 'Blog', href: '/admin/blog', icon: '📝' },
-    { label: 'Ver sitio', href: '/', icon: '🌐' },
+    { label: 'Dashboard', href: '/admin', Icon: LuLayoutDashboard },
+    { label: 'Cuadro de Honor', href: '/admin/cuadro-honor', Icon: LuTrophy },
+    { label: 'Grados', href: '/admin/grados', Icon: LuGraduationCap },
+    { label: 'Eventos', href: '/admin/eventos', Icon: LuCalendar },
+    { label: 'Actividades', href: '/admin/actividades', Icon: LuBookOpen },
+    { label: 'Blog', href: '/admin/blog', Icon: LuFileText },
+    { label: 'Docentes', href: '/admin/docentes', Icon: LuUsers },
+    { label: 'Ver sitio', href: '/', Icon: LuGlobe },
 ];
 
 export default function AdminLayout({ children }) {
@@ -99,7 +101,7 @@ export default function AdminLayout({ children }) {
                                 }
                             `}
                         >
-                            <span>{link.icon}</span>
+                            <link.Icon className="w-[18px] h-[18px] flex-shrink-0" />
                             {link.label}
                         </Link>
                     ))}
@@ -148,7 +150,7 @@ export default function AdminLayout({ children }) {
                                 }
               `}
                         >
-                            <span>{link.icon}</span>
+                            <link.Icon className="w-[18px] h-[18px] flex-shrink-0" />
                             {link.label}
                         </Link>
                     ))}

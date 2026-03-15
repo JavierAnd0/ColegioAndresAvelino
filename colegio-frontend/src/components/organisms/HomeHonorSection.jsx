@@ -124,6 +124,7 @@ export default function HomeHonorSection() {
     const [activeIndex, setActiveIndex] = useState(0);
     const autoPlayRef = useRef(null);
     const [paused, setPaused] = useState(false);
+    const [jornada, setJornada] = useState('manana');
 
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
@@ -161,13 +162,18 @@ export default function HomeHonorSection() {
         byGrade[gradeId].entries[entry.category] = entry;
     });
 
-    // Build sorted list using all grades (even empty ones)
-    const sortedGrades = grades.map(g => ({
-        _id: g._id,
-        name: g.name,
-        order: g.order,
-        entries: byGrade[g._id]?.entries || {},
-    })).sort((a, b) => a.order - b.order);
+    // Build sorted list using grades filtered by jornada
+    const sortedGrades = grades
+        .filter(g => (g.jornada || 'manana') === jornada)
+        .map(g => ({
+            _id: g._id,
+            name: g.name,
+            order: g.order,
+            entries: byGrade[g._id]?.entries || {},
+        })).sort((a, b) => a.order - b.order);
+
+    // Reset index when switching jornada
+    useEffect(() => { setActiveIndex(0); }, [jornada]);
 
     // Auto-play carousel
     useEffect(() => {
@@ -212,9 +218,8 @@ export default function HomeHonorSection() {
         );
     }
 
-    if (sortedGrades.length === 0) return null;
-
-    const activeGrade = sortedGrades[activeIndex];
+    const safeIndex = sortedGrades.length > 0 ? Math.min(activeIndex, sortedGrades.length - 1) : 0;
+    const activeGrade = sortedGrades[safeIndex];
 
     return (
         <section className="py-20 bg-neutral-50/50">
@@ -226,6 +231,33 @@ export default function HomeHonorSection() {
                         Reconocimiento a nuestros estudiantes — {MONTHS[month - 1]} {year}
                     </Paragraph>
                 </div>
+
+                {/* Jornada selector */}
+                <div className="flex justify-center gap-2 mb-6">
+                    {[
+                        { key: 'manana', label: 'Mañana', icon: '☀️' },
+                        { key: 'tarde', label: 'Tarde', icon: '🌙' },
+                    ].map(j => (
+                        <button
+                            key={j.key}
+                            type="button"
+                            onClick={() => setJornada(j.key)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                                jornada === j.key
+                                    ? 'bg-neutral-900 text-white shadow-md'
+                                    : 'bg-white text-neutral-500 hover:bg-neutral-100 border border-neutral-200'
+                            }`}
+                        >
+                            {j.icon} {j.label}
+                        </button>
+                    ))}
+                </div>
+
+                {sortedGrades.length === 0 ? (
+                    <div className="text-center py-8">
+                        <Paragraph color="muted">No hay grados registrados para esta jornada.</Paragraph>
+                    </div>
+                ) : (<>
 
                 {/* Grade selector tabs */}
                 <div className="flex justify-center gap-1.5 sm:gap-2 mb-8 flex-wrap">
@@ -288,6 +320,8 @@ export default function HomeHonorSection() {
                         />
                     ))}
                 </div>
+
+                </>)}
 
                 {/* Link to full page */}
                 <div className="text-center mt-8">
