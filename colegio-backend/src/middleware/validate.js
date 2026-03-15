@@ -350,6 +350,8 @@ export const validateEventQuery = [
 
 const honorCategories = ['academico', 'valores', 'reciclaje'];
 
+const jornadas = ['manana', 'tarde'];
+
 export const validateCreateHonor = [
   body('grade')
     .notEmpty().withMessage('El grado es obligatorio')
@@ -367,6 +369,9 @@ export const validateCreateHonor = [
     .trim()
     .notEmpty().withMessage('El nombre del estudiante es obligatorio')
     .isLength({ max: 100 }).withMessage('El nombre no puede tener más de 100 caracteres'),
+  body('jornada')
+    .optional()
+    .isIn(jornadas).withMessage('Jornada no válida. Debe ser: manana o tarde'),
   body('photo.url')
     .optional({ values: 'falsy' })
     .isURL().withMessage('La URL de la foto debe ser válida'),
@@ -395,6 +400,9 @@ export const validateUpdateHonor = [
     .optional()
     .trim()
     .isLength({ max: 100 }).withMessage('El nombre no puede tener más de 100 caracteres'),
+  body('jornada')
+    .optional()
+    .isIn(jornadas).withMessage('Jornada no válida. Debe ser: manana o tarde'),
   body('photo.url')
     .optional({ values: 'falsy' })
     .isURL().withMessage('La URL de la foto debe ser válida'),
@@ -424,6 +432,9 @@ export const validateCreateGrade = [
   body('order')
     .notEmpty().withMessage('El orden es obligatorio')
     .isInt({ min: 0 }).withMessage('El orden debe ser un número positivo'),
+  body('jornada')
+    .optional()
+    .isIn(['manana', 'tarde']).withMessage('Jornada no válida. Debe ser: manana o tarde'),
   body('isActive')
     .optional()
     .isBoolean().withMessage('isActive debe ser verdadero o falso'),
@@ -440,6 +451,9 @@ export const validateUpdateGrade = [
   body('order')
     .optional()
     .isInt({ min: 0 }).withMessage('El orden debe ser un número positivo'),
+  body('jornada')
+    .optional()
+    .isIn(['manana', 'tarde']).withMessage('Jornada no válida. Debe ser: manana o tarde'),
   body('isActive')
     .optional()
     .isBoolean().withMessage('isActive debe ser verdadero o falso'),

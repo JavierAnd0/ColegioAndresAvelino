@@ -10,6 +10,7 @@ import uploadRoutes from './routes/upload.js';
 import honorRoutes from './routes/honor.js';
 import gradeRoutes from './routes/grades.js';
 import activityRoutes from './routes/activities.js';
+import teacherRoutes from './routes/teachers.js';
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.get('/', (req, res) => {
       honor: '/api/honor',
       grades: '/api/grades',
       activities: '/api/activities',
+      teachers: '/api/teachers',
     }
   });
 });
@@ -66,6 +68,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/honor', honorRoutes);
 app.use('/api/grades', gradeRoutes);
 app.use('/api/activities', activityRoutes);
+app.use('/api/teachers', teacherRoutes);
 
 // 404
 app.use((req, res) => {

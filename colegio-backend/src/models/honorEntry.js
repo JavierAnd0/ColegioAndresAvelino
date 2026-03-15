@@ -37,6 +37,14 @@ const honorEntrySchema = new mongoose.Schema(
             url: { type: String, default: '' },
             publicId: { type: String, default: '' },
         },
+        jornada: {
+            type: String,
+            enum: {
+                values: ['manana', 'tarde'],
+                message: '{VALUE} no es una jornada válida',
+            },
+            default: 'manana',
+        },
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
@@ -46,9 +54,9 @@ const honorEntrySchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// 1 estudiante por grado + mes + categoría
+// 1 estudiante por grado + mes + categoría + jornada
 honorEntrySchema.index(
-    { grade: 1, year: 1, month: 1, category: 1 },
+    { grade: 1, year: 1, month: 1, category: 1, jornada: 1 },
     { unique: true }
 );
 
