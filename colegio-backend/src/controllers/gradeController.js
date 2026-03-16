@@ -31,7 +31,7 @@ export const createGrade = async (req, res) => {
         res.status(201).json({ success: true, data: grade });
     } catch (error) {
         if (error.code === 11000) {
-            return res.status(400).json({ success: false, message: 'Ya existe un grado con ese nombre' });
+            return res.status(400).json({ success: false, message: 'Ya existe un grado con ese nombre en esta jornada' });
         }
         if (error.name === 'ValidationError') {
             const messages = Object.values(error.errors).map(e => e.message);
@@ -56,7 +56,7 @@ export const updateGrade = async (req, res) => {
         res.json({ success: true, data: grade });
     } catch (error) {
         if (error.code === 11000) {
-            return res.status(400).json({ success: false, message: 'Ya existe un grado con ese nombre' });
+            return res.status(400).json({ success: false, message: 'Ya existe un grado con ese nombre en esta jornada' });
         }
         if (error.name === 'CastError') {
             return res.status(400).json({ success: false, message: 'ID no válido' });

@@ -6,6 +6,7 @@ import MonthSelector from '@/components/molecules/MonthSelector';
 import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
 import { honorService, gradeService } from '@/services/honorService';
+import { LuSun, LuMoon } from "react-icons/lu";
 
 export default function CuadroHonorPage() {
     const now = new Date();
@@ -67,20 +68,20 @@ export default function CuadroHonorPage() {
                 {/* Selector de jornada */}
                 <div className="flex justify-center gap-2 mb-8">
                     {[
-                        { key: 'manana', label: 'Mañana', icon: '☀️' },
-                        { key: 'tarde', label: 'Tarde', icon: '🌙' },
+                        { key: 'manana', label: 'Mañana', Icon: LuSun },
+                        { key: 'tarde', label: 'Tarde', Icon: LuMoon },
                     ].map(j => (
                         <button
                             key={j.key}
                             type="button"
                             onClick={() => setJornada(j.key)}
-                            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                                jornada === j.key
-                                    ? 'bg-neutral-900 text-white shadow-md'
-                                    : 'bg-white text-neutral-500 hover:bg-neutral-100 border border-neutral-200'
-                            }`}
+                            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer flex items-center gap-2 ${jornada === j.key
+                                ? 'bg-neutral-900 text-white shadow-md'
+                                : 'bg-white text-neutral-500 hover:bg-neutral-100 border border-neutral-200'
+                                }`}
                         >
-                            {j.icon} Jornada {j.label}
+                            <j.Icon className="w-4 h-4" />
+                            Jornada {j.label}
                         </button>
                     ))}
                 </div>

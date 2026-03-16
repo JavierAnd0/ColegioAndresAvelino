@@ -6,6 +6,8 @@ import Paragraph from '@/components/atoms/Typography/Paragraph';
 import Spinner from '@/components/atoms/Spinner';
 import { blogService } from '@/services/blogService';
 import { eventService } from '@/services/eventService';
+import { LuFileText, LuCalendar, LuTrendingUp } from 'react-icons/lu';
+
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState(null);
@@ -55,12 +57,14 @@ export default function AdminDashboard() {
                 {/* Stats cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {[
-                        { label: 'Posts publicados', value: stats?.totalPosts || 0, icon: '📝' },
-                        { label: 'Eventos próximos', value: stats?.upcomingEvents?.length || 0, icon: '📅' },
-                        { label: 'Esta semana', value: stats?.upcomingEvents?.length || 0, icon: '📆' },
+                        { label: 'Posts publicados', value: stats?.totalPosts || 0, Icon: LuFileText },
+                        { label: 'Eventos próximos', value: stats?.upcomingEvents?.length || 0, Icon: LuCalendar },
+                        { label: 'Esta semana', value: stats?.upcomingEvents?.length || 0, Icon: LuTrendingUp },
                     ].map((stat) => (
                         <div key={stat.label} className="bg-white rounded-xl border border-neutral-200 p-5 flex items-center gap-4">
-                            <span className="text-3xl">{stat.icon}</span>
+                            <div className="h-12 w-12 rounded-xl bg-neutral-100 flex items-center justify-center">
+                                <stat.Icon className="w-6 h-6 text-neutral-700" />
+                            </div>
                             <div>
                                 <p className="text-2xl font-bold text-neutral-900">{stat.value}</p>
                                 <p className="text-sm text-neutral-500">{stat.label}</p>
