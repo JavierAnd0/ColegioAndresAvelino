@@ -45,7 +45,7 @@ export default function GradeManager() {
         try {
             await gradeService.create(form);
             setAlert({ type: 'success', message: 'Grado creado exitosamente.' });
-            setForm({ name: '', order: filteredGrades.length, jornada: jornadaFilter });
+            setForm({ name: '', order: grades.length, jornada: jornadaFilter });
             setShowAdd(false);
             fetchGrades();
         } catch (err) {
@@ -59,7 +59,7 @@ export default function GradeManager() {
             await gradeService.update(editingId, form);
             setAlert({ type: 'success', message: 'Grado actualizado.' });
             setEditingId(null);
-            setForm({ name: '', order: 0, jornada: jornadaFilter });
+            setForm({ name: '', order: 0, jornada: 'manana' });
             fetchGrades();
         } catch (err) {
             setAlert({ type: 'error', message: err.message || 'Error al actualizar.' });
@@ -83,10 +83,9 @@ export default function GradeManager() {
         setShowAdd(false);
     };
 
-    const filteredGrades = grades.filter(g => g.jornada === jornadaFilter || (!g.jornada && jornadaFilter === 'manana'));
+    const filteredGrades = grades.filter(g => (g.jornada || 'manana') === jornadaFilter);
 
-    const inputClass = 'px-3 py-1.5 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900';
-    const jornadaTabClass = (j) => `px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${jornadaFilter === j ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'}`;
+    const inputClass = 'px-3 py-1.5 border border-neutral-200 rounded-lg text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900';
 
     return (
         <div className="flex flex-col gap-5">
@@ -94,43 +93,56 @@ export default function GradeManager() {
                 <AlertMessage type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
             )}
 
-            <div className="flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <Heading level="h5">Grados</Heading>
-                        <Paragraph color="muted" className="mt-1">{filteredGrades.length} grados en jornada {jornadaFilter === 'manana' ? 'mañana' : 'tarde'}</Paragraph>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={handleSeed}>
-                            Cargar por defecto
-                        </Button>
-                        {!showAdd && (
-                            <Button variant="primary" size="sm" onClick={() => {
-                                setShowAdd(true);
-                                setEditingId(null);
-                                setForm({ name: '', order: filteredGrades.length, jornada: jornadaFilter });
-                            }}>
-                                + Nuevo grado
-                            </Button>
-                        )}
-                    </div>
+            <div className="flex items-center justify-between">
+                <div>
+                    <Heading level="h5">Grados</Heading>
+                    <Paragraph color="muted" className="mt-1">{grades.length} grados configurados</Paragraph>
                 </div>
-
-                {/* Selector de jornada */}
                 <div className="flex gap-2">
-                    <button type="button" className={jornadaTabClass('manana')} onClick={() => setJornadaFilter('manana')}>
-                        ☀️ Mañana
-                    </button>
-                    <button type="button" className={jornadaTabClass('tarde')} onClick={() => setJornadaFilter('tarde')}>
-                        🌙 Tarde
-                    </button>
+                    <Button variant="outline" size="sm" onClick={handleSeed}>
+                        Cargar por defecto
+                    </Button>
+                    {!showAdd && (
+                        <Button variant="primary" size="sm" onClick={() => {
+                            setShowAdd(true);
+                            setEditingId(null);
+                            setForm({ name: '', order: filteredGrades.length, jornada: jornadaFilter });
+                        }}>
+                            + Nuevo grado
+                        </Button>
+                    )}
                 </div>
+            </div>
+
+            {/* Jornada filter tabs */}
+            <div className="flex gap-2">
+                {[
+                    { key: 'manana', label: 'Mañana', icon: '☀️' },
+                    { key: 'tarde', label: 'Tarde', icon: '🌙' },
+                ].map(j => (
+                    <button
+                        key={j.key}
+                        type="button"
+                        onClick={() => {
+                            setJornadaFilter(j.key);
+                            setShowAdd(false);
+                            setEditingId(null);
+                        }}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                            jornadaFilter === j.key
+                                ? 'bg-neutral-900 text-white shadow-md'
+                                : 'bg-white text-neutral-500 hover:bg-neutral-100 border border-neutral-200'
+                        }`}
+                    >
+                        {j.icon} {j.label}
+                    </button>
+                ))}
             </div>
 
             {/* Form agregar */}
             {showAdd && (
-                <div className="flex flex-wrap items-end gap-3 p-4 bg-neutral-50 rounded-lg">
-                    <div className="flex-1 min-w-[140px]">
+                <div className="flex items-end gap-3 p-4 bg-neutral-50 rounded-lg flex-wrap">
+                    <div className="flex-1 min-w-[150px]">
                         <label className="text-xs font-medium text-neutral-500 mb-1 block">Nombre</label>
                         <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                             placeholder="Ej: Preescolar" className={inputClass + ' w-full'} />
@@ -140,12 +152,12 @@ export default function GradeManager() {
                         <input type="number" value={form.order} onChange={e => setForm(f => ({ ...f, order: parseInt(e.target.value) || 0 }))}
                             className={inputClass + ' w-full'} min={0} />
                     </div>
-                    <div className="w-32">
+                    <div className="w-36">
                         <label className="text-xs font-medium text-neutral-500 mb-1 block">Jornada</label>
                         <select value={form.jornada} onChange={e => setForm(f => ({ ...f, jornada: e.target.value }))}
-                            className={inputClass + ' w-full'}>
-                            <option value="manana">Mañana</option>
-                            <option value="tarde">Tarde</option>
+                            className={inputClass + ' w-full bg-white'}>
+                            <option value="manana">☀️ Mañana</option>
+                            <option value="tarde">🌙 Tarde</option>
                         </select>
                     </div>
                     <Button variant="primary" size="sm" onClick={handleAdd}>Guardar</Button>
@@ -156,25 +168,25 @@ export default function GradeManager() {
             {/* Lista */}
             {loading ? (
                 <div className="flex justify-center py-8"><Spinner /></div>
-            ) : grades.length === 0 ? (
+            ) : filteredGrades.length === 0 ? (
                 <div className="text-center py-8">
                     <span className="text-4xl block mb-2">🎓</span>
-                    <Paragraph color="muted">No hay grados. Usa "Cargar por defecto" para comenzar.</Paragraph>
+                    <Paragraph color="muted">No hay grados en esta jornada. Usa "Cargar por defecto" o crea uno nuevo.</Paragraph>
                 </div>
             ) : (
                 <div className="bg-white rounded-xl border border-neutral-200 divide-y divide-neutral-100 overflow-hidden">
                     {filteredGrades.map(grade => (
                         <div key={grade._id} className="flex items-center justify-between px-4 py-3 hover:bg-neutral-50">
                             {editingId === grade._id ? (
-                                <div className="flex flex-wrap items-center gap-3 flex-1">
+                                <div className="flex items-center gap-3 flex-1 flex-wrap">
                                     <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                                         className={inputClass} />
                                     <input type="number" value={form.order} onChange={e => setForm(f => ({ ...f, order: parseInt(e.target.value) || 0 }))}
                                         className={inputClass + ' w-20'} min={0} />
                                     <select value={form.jornada} onChange={e => setForm(f => ({ ...f, jornada: e.target.value }))}
-                                        className={inputClass}>
-                                        <option value="manana">Mañana</option>
-                                        <option value="tarde">Tarde</option>
+                                        className={inputClass + ' bg-white'}>
+                                        <option value="manana">☀️ Mañana</option>
+                                        <option value="tarde">🌙 Tarde</option>
                                     </select>
                                     <Button variant="primary" size="sm" onClick={handleUpdate}>Guardar</Button>
                                     <Button variant="ghost" size="sm" onClick={() => setEditingId(null)}>Cancelar</Button>
@@ -184,6 +196,9 @@ export default function GradeManager() {
                                     <div className="flex items-center gap-3">
                                         <span className="font-mono text-xs text-neutral-400 w-6 text-center">{grade.order}</span>
                                         <span className="text-sm font-medium text-neutral-900">{grade.name}</span>
+                                        <span className="text-xs text-neutral-400">
+                                            {(grade.jornada || 'manana') === 'manana' ? '☀️' : '🌙'}
+                                        </span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Button variant="outline" size="sm" onClick={() => startEdit(grade)}>Editar</Button>

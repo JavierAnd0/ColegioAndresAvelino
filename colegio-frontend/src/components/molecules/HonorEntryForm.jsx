@@ -92,13 +92,14 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
 
     const selectClass = `
         w-full px-3 py-2.5 border border-neutral-200 rounded-lg text-sm
-        bg-white appearance-none cursor-pointer
+        bg-white text-neutral-900 appearance-none cursor-pointer
         focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent
         font-[family-name:var(--font-inter)]
     `;
 
     const inputClass = `
         w-full px-3 py-2.5 border border-neutral-200 rounded-lg text-sm
+        text-neutral-900 placeholder:text-neutral-400
         focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent
         font-[family-name:var(--font-inter)]
     `;
