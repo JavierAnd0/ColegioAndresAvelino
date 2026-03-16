@@ -6,7 +6,6 @@ const gradeSchema = new mongoose.Schema(
             type: String,
             required: [true, 'El nombre del grado es obligatorio'],
             trim: true,
-            unique: true,
             maxlength: [50, 'El nombre no puede tener más de 50 caracteres'],
         },
         order: {
@@ -30,6 +29,7 @@ const gradeSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+gradeSchema.index({ name: 1, jornada: 1 }, { unique: true });
 gradeSchema.index({ jornada: 1, order: 1 });
 
 const Grade = mongoose.model('Grade', gradeSchema);

@@ -1,6 +1,7 @@
 import { Inter, Martian_Mono } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const martianMono = Martian_Mono({ subsets: ['latin'], variable: '--font-martian' });
@@ -16,6 +17,7 @@ export default function RootLayout({ children }) {
       <body className={`${inter.variable} ${martianMono.variable} font-sans antialiased`}>
         <AuthProvider>
           {children}
+          <SpeedInsights />
         </AuthProvider>
       </body>
     </html>

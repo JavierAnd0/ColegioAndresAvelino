@@ -26,7 +26,7 @@ export default function Navbar() {
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 flex-shrink-0">
                     <div className="h-8 w-8 bg-neutral-900 rounded-lg flex items-center justify-center">
-                        <span class="icon-[proicons--home]" role="img" aria-hidden="true"></span>
+                        <span className="text-white font-bold text-sm">C</span>
                     </div>
                     <span className="font-mono font-bold text-neutral-900 text-lg hidden sm:block tracking-tight">
                         Colegio
