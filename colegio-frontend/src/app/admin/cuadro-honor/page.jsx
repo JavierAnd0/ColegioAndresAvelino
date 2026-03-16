@@ -34,6 +34,17 @@ export default function AdminCuadroHonorPage() {
     const [deleting, setDeleting] = useState(null);
     const [year, setYear] = useState(now.getFullYear());
     const [month, setMonth] = useState(now.getMonth() + 1);
+    const [jornada, setJornada] = useState('manana');
+
+    // Filtrar grados por jornada seleccionada
+    const filteredGrades = grades.filter(g => (g.jornada || 'manana') === jornada);
+
+    // Filtrar entries por jornada (usando los grados)
+    const jornadaGradeIds = new Set(filteredGrades.map(g => g._id));
+    const filteredEntries = entries.filter(e => {
+        const gradeId = e.grade?._id || e.grade;
+        return jornadaGradeIds.has(gradeId);
+    });
 
     const fetchData = async () => {
         setLoading(true);
@@ -109,7 +120,7 @@ export default function AdminCuadroHonorPage() {
                     <div>
                         <Heading level="h3">Cuadro de Honor</Heading>
                         <Paragraph color="muted" className="mt-1">
-                            {entries.length} entrada(s) este mes
+                            {filteredEntries.length} entrada(s) este mes
                         </Paragraph>
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
@@ -120,6 +131,27 @@ export default function AdminCuadroHonorPage() {
                             </Button>
                         )}
                     </div>
+                </div>
+
+                {/* Jornada selector */}
+                <div className="flex gap-2">
+                    {[
+                        { key: 'manana', label: 'Mañana', icon: '☀️' },
+                        { key: 'tarde', label: 'Tarde', icon: '🌙' },
+                    ].map(j => (
+                        <button
+                            key={j.key}
+                            type="button"
+                            onClick={() => setJornada(j.key)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                                jornada === j.key
+                                    ? 'bg-neutral-900 text-white shadow-md'
+                                    : 'bg-white text-neutral-500 hover:bg-neutral-100 border border-neutral-200'
+                            }`}
+                        >
+                            {j.icon} Jornada {j.label}
+                        </button>
+                    ))}
                 </div>
 
                 {/* Alerta */}
@@ -135,7 +167,7 @@ export default function AdminCuadroHonorPage() {
                         </Heading>
                         <HonorEntryForm
                             initialData={editing || { year, month }}
-                            grades={grades}
+                            grades={filteredGrades}
                             onSubmit={editing ? handleUpdate : handleCreate}
                         />
                         <Button variant="ghost" size="sm"
@@ -154,72 +186,51 @@ export default function AdminCuadroHonorPage() {
 
                     {loading ? (
                         <div className="flex justify-center py-12"><Spinner size="lg" /></div>
-                    ) : entries.length === 0 ? (
+                    ) : filteredEntries.length === 0 ? (
                         <div className="flex flex-col items-center py-12 gap-2">
                             <span className="text-4xl">🏆</span>
-                            <Paragraph color="muted">No hay entradas este mes. ¡Crea la primera!</Paragraph>
+                            <Paragraph color="muted">No hay entradas este mes para esta jornada. ¡Crea la primera!</Paragraph>
                         </div>
-                    ) : (() => {
-                        // Agrupar entradas por grado
-                        const grouped = {};
-                        entries.forEach(entry => {
-                            const gradeName = entry.grade?.name || 'Sin grado';
-                            const gradeOrder = entry.grade?.order ?? 99;
-                            if (!grouped[gradeName]) {
-                                grouped[gradeName] = { order: gradeOrder, entries: [] };
-                            }
-                            grouped[gradeName].entries.push(entry);
-                        });
-                        const sortedGroups = Object.entries(grouped)
-                            .sort(([, a], [, b]) => a.order - b.order);
-
-                        return (
-                            <div className="divide-y divide-neutral-200">
-                                {sortedGroups.map(([gradeName, group]) => (
-                                    <div key={gradeName}>
-                                        <div className="px-5 py-3 bg-neutral-50">
-                                            <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-                                                {gradeName}
+                    ) : (
+                        <div className="divide-y divide-neutral-100">
+                            {filteredEntries.map((entry) => (
+                                <div key={entry._id}
+                                    className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-neutral-50">
+                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                        {entry.photo?.url ? (
+                                            <img src={entry.photo.url} alt={entry.studentName}
+                                                className="h-9 w-9 rounded-full object-cover flex-shrink-0" />
+                                        ) : (
+                                            <div className="h-9 w-9 rounded-full bg-neutral-200 flex items-center justify-center text-xs flex-shrink-0">
+                                                👤
+                                            </div>
+                                        )}
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium text-neutral-900 truncate">
+                                                {entry.studentName}
+                                            </p>
+                                            <p className="text-xs text-neutral-500">
+                                                {entry.grade?.name || 'Sin grado'}
                                             </p>
                                         </div>
-                                        <div className="divide-y divide-neutral-100">
-                                            {group.entries.map((entry) => (
-                                                <div key={entry._id}
-                                                    className="flex items-center justify-between gap-4 px-5 py-3 hover:bg-neutral-50">
-                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                        {entry.photo?.url ? (
-                                                            <img src={entry.photo.url} alt={entry.studentName}
-                                                                className="h-9 w-9 rounded-full object-cover flex-shrink-0" />
-                                                        ) : (
-                                                            <div className="h-9 w-9 rounded-full bg-neutral-200 flex items-center justify-center text-xs flex-shrink-0">
-                                                                👤
-                                                            </div>
-                                                        )}
-                                                        <p className="text-sm font-medium text-neutral-900 truncate">
-                                                            {entry.studentName}
-                                                        </p>
-                                                    </div>
-                                                    <Badge variant={categoryVariants[entry.category] || 'default'} size="sm">
-                                                        {categoryLabels[entry.category] || entry.category}
-                                                    </Badge>
-                                                    <div className="flex items-center gap-2 flex-shrink-0">
-                                                        <Button variant="outline" size="sm" onClick={() => handleEdit(entry)}>
-                                                            Editar
-                                                        </Button>
-                                                        <Button variant="danger" size="sm"
-                                                            loading={deleting === entry._id}
-                                                            onClick={() => handleDelete(entry._id)}>
-                                                            Eliminar
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                        );
-                    })()}
+                                    <Badge variant={categoryVariants[entry.category] || 'default'} size="sm">
+                                        {categoryLabels[entry.category] || entry.category}
+                                    </Badge>
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                        <Button variant="outline" size="sm" onClick={() => handleEdit(entry)}>
+                                            Editar
+                                        </Button>
+                                        <Button variant="danger" size="sm"
+                                            loading={deleting === entry._id}
+                                            onClick={() => handleDelete(entry._id)}>
+                                            Eliminar
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </AdminLayout>
