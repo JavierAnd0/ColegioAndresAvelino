@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import * as XLSX from 'xlsx';
 import AdminLayout from '@/components/templates/AdminLayout';
 import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
@@ -30,9 +31,9 @@ const gradeLabels = {
 
 const statusConfig = {
     approved: { label: 'Aprobada', variant: 'success' },
-    pending:  { label: 'Pendiente', variant: 'warning' },
+    pending: { label: 'Pendiente', variant: 'warning' },
     rejected: { label: 'Rechazada', variant: 'danger' },
-    draft:    { label: 'Borrador',  variant: 'default' },
+    draft: { label: 'Borrador', variant: 'default' },
 };
 
 // Tipos que soportan PDF adjunto
@@ -281,16 +282,34 @@ export default function AdminActividadesPage() {
         }
     };
 
-    // ── CSV Bulk Import ──
+    // ── Bulk Import (CSV o Excel) ──
     const handleCSVFile = (e) => {
         const file = e.target.files[0];
         if (!file) return;
+        const isExcel = /\.(xlsx|xls)$/i.test(file.name);
         const reader = new FileReader();
         reader.onload = (ev) => {
-            const rows = parseCSV(ev.target.result).map(csvRowToActivity);
-            setCsvRows(rows);
+            if (isExcel) {
+                const workbook = XLSX.read(ev.target.result, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+                // Normalizar claves a minúsculas para que funcione csvRowToActivity
+                const rows = json.map((row) => {
+                    const normalized = {};
+                    for (const k of Object.keys(row)) normalized[k.toLowerCase().trim()] = String(row[k]);
+                    return csvRowToActivity(normalized);
+                }).filter((r) => r.title);
+                setCsvRows(rows);
+            } else {
+                const rows = parseCSV(ev.target.result).map(csvRowToActivity);
+                setCsvRows(rows);
+            }
         };
-        reader.readAsText(file, 'UTF-8');
+        if (isExcel) {
+            reader.readAsArrayBuffer(file);
+        } else {
+            reader.readAsText(file, 'UTF-8');
+        }
     };
 
     const handleBulkImport = async () => {
@@ -316,7 +335,7 @@ export default function AdminActividadesPage() {
         const blob = new Blob([CSV_TEMPLATE], { type: 'text/csv;charset=utf-8;' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'plantilla_actividades.csv';
+        a.download = 'plantilla_actividades_docente.csv';
         a.click();
     };
 
@@ -417,12 +436,12 @@ export default function AdminActividadesPage() {
                         </div>
 
                         <p className="text-sm text-neutral-500">
-                            El CSV debe tener las columnas: <code className="bg-neutral-100 px-1 rounded text-xs">titulo, descripcion, tipo, grados, url_externa</code>.
-                            Los grados van separados por coma dentro de comillas: <code className="bg-neutral-100 px-1 rounded text-xs">"1,2,3"</code>.
+                            El archivo debe tener las columnas: <code className="bg-neutral-100 px-1 rounded text-xs">titulo, descripcion, tipo, grados, url_externa</code>.
+                            Los grados van separados por coma: <code className="bg-neutral-100 px-1 rounded text-xs">1,2,3</code>.
                             Tipos válidos: {VALID_TYPES.join(', ')}.
                         </p>
 
-                        <input ref={csvFileRef} type="file" accept=".csv,text/csv"
+                        <input ref={csvFileRef} type="file" accept=".csv,.xlsx,.xls,text/csv"
                             onChange={handleCSVFile}
                             className="text-sm text-neutral-500 file:mr-4 file:py-2 file:px-4
                                 file:rounded-lg file:border-0 file:text-sm file:font-medium
@@ -611,8 +630,8 @@ export default function AdminActividadesPage() {
                 <div className="flex gap-1 mb-6 bg-neutral-100 rounded-lg p-1 w-full sm:w-fit overflow-x-auto">
                     {[
                         { key: 'actividades', label: `Aprobadas (${activities.length})` },
-                        { key: 'pendientes',  label: `Pendientes (${pendingActivities.length})` },
-                        { key: 'fuentes',     label: `RSS (${sources.length})` },
+                        { key: 'pendientes', label: `Pendientes (${pendingActivities.length})` },
+                        { key: 'fuentes', label: `RSS (${sources.length})` },
                     ].map((t) => (
                         <button key={t.key} type="button" onClick={() => setTab(t.key)}
                             className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors cursor-pointer whitespace-nowrap flex-1 sm:flex-none
