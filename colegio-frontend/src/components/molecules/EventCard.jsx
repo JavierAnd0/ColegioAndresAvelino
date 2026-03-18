@@ -1,6 +1,7 @@
 import Badge from '@/components/atoms/Badge';
 import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
+import { LuMapPin, LuClock } from 'react-icons/lu';
 
 const categoryVariants = {
     academico: 'info',
@@ -47,8 +48,8 @@ export default function EventCard({ event, variant = 'full' }) {
                 <div className="flex-1 min-w-0">
                     <Heading level="h6" className="line-clamp-1">{title}</Heading>
                     {location && (
-                        <Paragraph size="sm" color="muted" className="line-clamp-1">
-                            📍 {location}
+                        <Paragraph size="sm" color="muted" className="line-clamp-1 flex items-center gap-1">
+                            <LuMapPin className="w-3 h-3 flex-shrink-0" /> {location}
                         </Paragraph>
                     )}
                 </div>
@@ -85,12 +86,12 @@ export default function EventCard({ event, variant = 'full' }) {
                         <Paragraph size="sm" color="muted" className="line-clamp-2">{description}</Paragraph>
                     )}
                     <div className="flex flex-wrap items-center gap-3 mt-auto">
-                        <Paragraph size="sm" color="muted">
-                            🕐 {start.time}
+                        <Paragraph size="sm" color="muted" className="flex items-center gap-1">
+                            <LuClock className="w-3 h-3 flex-shrink-0" /> {start.time}
                         </Paragraph>
                         {location && (
-                            <Paragraph size="sm" color="muted">
-                                📍 {location}
+                            <Paragraph size="sm" color="muted" className="flex items-center gap-1">
+                                <LuMapPin className="w-3 h-3 flex-shrink-0" /> {location}
                             </Paragraph>
                         )}
                     </div>

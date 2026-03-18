@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
+import { LuMapPin, LuPhone, LuMail, LuHeart } from 'react-icons/lu';
 
 const footerLinks = {
     'Institución': [
@@ -35,14 +36,14 @@ export default function Footer() {
                             Formando líderes del mañana con valores, conocimiento y compromiso social.
                         </Paragraph>
                         <div className="flex flex-col gap-1">
-                            <Paragraph size="sm" className="text-neutral-400">
-                                📍 Dirección del colegio
+                            <Paragraph size="sm" className="text-neutral-400 flex items-center gap-1.5">
+                                <LuMapPin className="w-3.5 h-3.5 flex-shrink-0" /> Dirección del colegio
                             </Paragraph>
-                            <Paragraph size="sm" className="text-neutral-400">
-                                📞 Teléfono de contacto
+                            <Paragraph size="sm" className="text-neutral-400 flex items-center gap-1.5">
+                                <LuPhone className="w-3.5 h-3.5 flex-shrink-0" /> Teléfono de contacto
                             </Paragraph>
-                            <Paragraph size="sm" className="text-neutral-400">
-                                ✉️ correo@colegio.edu.co
+                            <Paragraph size="sm" className="text-neutral-400 flex items-center gap-1.5">
+                                <LuMail className="w-3.5 h-3.5 flex-shrink-0" /> correo@colegio.edu.co
                             </Paragraph>
                         </div>
                     </div>
@@ -73,7 +74,7 @@ export default function Footer() {
                         © {year} Nombre del Colegio. Todos los derechos reservados.
                     </Paragraph>
                     <Paragraph size="sm" className="text-neutral-500">
-                        Hecho con ❤️ para nuestra comunidad educativa
+                        Hecho con <LuHeart className="w-3.5 h-3.5 inline text-red-400" /> para nuestra comunidad educativa
                     </Paragraph>
                 </div>
             </div>

@@ -4,22 +4,23 @@ import MainLayout from '@/components/templates/MainLayout';
 import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
 import { teacherService } from '@/services/teacherService';
+import { LuGraduationCap, LuHandshake, LuSprout, LuGlobe, LuTarget, LuTelescope, LuSun, LuMoon } from 'react-icons/lu';
 
 const valores = [
     {
-        icon: '🎓', title: 'Excelencia Académica',
+        Icon: LuGraduationCap, title: 'Excelencia Académica',
         desc: 'Comprometidos con los más altos estándares de calidad educativa.'
     },
     {
-        icon: '🤝', title: 'Valores y Ética',
+        Icon: LuHandshake, title: 'Valores y Ética',
         desc: 'Formamos personas íntegras con principios sólidos para la vida.'
     },
     {
-        icon: '🌱', title: 'Desarrollo Integral',
+        Icon: LuSprout, title: 'Desarrollo Integral',
         desc: 'Potenciamos las habilidades académicas, sociales y emocionales.'
     },
     {
-        icon: '🌍', title: 'Compromiso Social',
+        Icon: LuGlobe, title: 'Compromiso Social',
         desc: 'Educamos ciudadanos responsables con su comunidad y entorno.'
     },
 ];
@@ -64,8 +65,8 @@ export default function NosotrosPage() {
             <section className="py-16">
                 <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-8">
                     <div className="bg-neutral-50 rounded-2xl p-8 flex flex-col gap-4">
-                        <div className="h-12 w-12 bg-neutral-900 rounded-xl flex items-center justify-center text-2xl">
-                            🎯
+                        <div className="h-12 w-12 bg-neutral-900 rounded-xl flex items-center justify-center">
+                            <LuTarget className="w-6 h-6 text-white" />
                         </div>
                         <Heading level="h3">Misión</Heading>
                         <Paragraph color="muted">
@@ -76,8 +77,8 @@ export default function NosotrosPage() {
                         </Paragraph>
                     </div>
                     <div className="bg-neutral-900 rounded-2xl p-8 flex flex-col gap-4">
-                        <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-2xl">
-                            🔭
+                        <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center">
+                            <LuTelescope className="w-6 h-6 text-neutral-900" />
                         </div>
                         <Heading level="h3" className="text-white">Visión</Heading>
                         <Paragraph className="text-neutral-300">
@@ -103,7 +104,7 @@ export default function NosotrosPage() {
                         {valores.map((valor) => (
                             <div key={valor.title}
                                 className="bg-white rounded-xl p-6 flex flex-col gap-3 border border-neutral-200 hover:shadow-md transition-shadow">
-                                <span className="text-3xl">{valor.icon}</span>
+                                <valor.Icon className="w-7 h-7 text-neutral-700" />
                                 <Heading level="h5">{valor.title}</Heading>
                                 <Paragraph size="sm" color="muted">{valor.desc}</Paragraph>
                             </div>
@@ -153,23 +154,23 @@ export default function NosotrosPage() {
                         <div className="inline-flex bg-white rounded-xl border border-neutral-200 p-1 shadow-sm">
                             <button
                                 onClick={() => setJornada('manana')}
-                                className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                                className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
                                     jornada === 'manana'
                                         ? 'bg-neutral-900 text-white shadow-sm'
                                         : 'text-neutral-500 hover:text-neutral-900'
                                 }`}
                             >
-                                ☀️ Jornada Mañana
+                                <LuSun className="w-4 h-4" /> Jornada Mañana
                             </button>
                             <button
                                 onClick={() => setJornada('tarde')}
-                                className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                                className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
                                     jornada === 'tarde'
                                         ? 'bg-neutral-900 text-white shadow-sm'
                                         : 'text-neutral-500 hover:text-neutral-900'
                                 }`}
                             >
-                                🌙 Jornada Tarde
+                                <LuMoon className="w-4 h-4" /> Jornada Tarde
                             </button>
                         </div>
                     </div>

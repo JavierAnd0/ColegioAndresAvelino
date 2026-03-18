@@ -5,6 +5,7 @@ import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
 import Badge from '@/components/atoms/Badge';
 import { honorService, gradeService } from '@/services/honorService';
+import { LuSun, LuMoon } from 'react-icons/lu';
 
 const MONTHS = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -235,20 +236,20 @@ export default function HomeHonorSection() {
                 {/* Jornada selector */}
                 <div className="flex justify-center gap-2 mb-6">
                     {[
-                        { key: 'manana', label: 'Mañana', icon: '☀️' },
-                        { key: 'tarde', label: 'Tarde', icon: '🌙' },
+                        { key: 'manana', label: 'Mañana', Icon: LuSun },
+                        { key: 'tarde', label: 'Tarde', Icon: LuMoon },
                     ].map(j => (
                         <button
                             key={j.key}
                             type="button"
                             onClick={() => setJornada(j.key)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
                                 jornada === j.key
                                     ? 'bg-neutral-900 text-white shadow-md'
                                     : 'bg-white text-neutral-500 hover:bg-neutral-100 border border-neutral-200'
                             }`}
                         >
-                            {j.icon} {j.label}
+                            <j.Icon className="w-4 h-4" /> {j.label}
                         </button>
                     ))}
                 </div>

@@ -10,6 +10,7 @@ import Spinner from '@/components/atoms/Spinner';
 import AlertMessage from '@/components/molecules/AlertMessage';
 import Badge from '@/components/atoms/Badge';
 import { honorService, gradeService } from '@/services/honorService';
+import { LuSun, LuMoon, LuUser, LuTrophy } from 'react-icons/lu';
 
 const categoryVariants = {
     academico: 'info',
@@ -136,20 +137,20 @@ export default function AdminCuadroHonorPage() {
                 {/* Jornada selector */}
                 <div className="flex gap-2">
                     {[
-                        { key: 'manana', label: 'Mañana', icon: '☀️' },
-                        { key: 'tarde', label: 'Tarde', icon: '🌙' },
+                        { key: 'manana', label: 'Mañana', Icon: LuSun },
+                        { key: 'tarde', label: 'Tarde', Icon: LuMoon },
                     ].map(j => (
                         <button
                             key={j.key}
                             type="button"
                             onClick={() => setJornada(j.key)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
                                 jornada === j.key
                                     ? 'bg-neutral-900 text-white shadow-md'
                                     : 'bg-white text-neutral-500 hover:bg-neutral-100 border border-neutral-200'
                             }`}
                         >
-                            {j.icon} Jornada {j.label}
+                            <j.Icon className="w-4 h-4" /> Jornada {j.label}
                         </button>
                     ))}
                 </div>
@@ -188,7 +189,7 @@ export default function AdminCuadroHonorPage() {
                         <div className="flex justify-center py-12"><Spinner size="lg" /></div>
                     ) : filteredEntries.length === 0 ? (
                         <div className="flex flex-col items-center py-12 gap-2">
-                            <span className="text-4xl">🏆</span>
+                            <LuTrophy className="w-10 h-10 text-neutral-300" />
                             <Paragraph color="muted">No hay entradas este mes para esta jornada. ¡Crea la primera!</Paragraph>
                         </div>
                     ) : (
@@ -201,8 +202,8 @@ export default function AdminCuadroHonorPage() {
                                             <img src={entry.photo.url} alt={entry.studentName}
                                                 className="h-9 w-9 rounded-full object-cover flex-shrink-0" />
                                         ) : (
-                                            <div className="h-9 w-9 rounded-full bg-neutral-200 flex items-center justify-center text-xs flex-shrink-0">
-                                                👤
+                                            <div className="h-9 w-9 rounded-full bg-neutral-200 flex items-center justify-center flex-shrink-0">
+                                                <LuUser className="w-4 h-4 text-neutral-400" />
                                             </div>
                                         )}
                                         <div className="min-w-0">

@@ -3,12 +3,13 @@ import MainLayout from '@/components/templates/MainLayout';
 import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
 import Button from '@/components/atoms/Button';
+import { LuSchool } from 'react-icons/lu';
 
 export default function NotFound() {
     return (
         <MainLayout>
             <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 text-center gap-6">
-                <span className="text-8xl">🏫</span>
+                <LuSchool className="w-20 h-20 text-neutral-300" />
                 <div className="flex flex-col gap-3">
                     <Heading level="h1" className="text-neutral-300">404</Heading>
                     <Heading level="h3">Página no encontrada</Heading>

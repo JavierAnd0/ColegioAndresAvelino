@@ -59,12 +59,10 @@ export default function AdminDashboard() {
                     {[
                         { label: 'Posts publicados', value: stats?.totalPosts || 0, Icon: LuFileText },
                         { label: 'Eventos próximos', value: stats?.upcomingEvents?.length || 0, Icon: LuCalendar },
-                        { label: 'Esta semana', value: stats?.upcomingEvents?.length || 0, Icon: LuTrendingUp },
+                        { label: 'Esta semana', value: stats?.upcomingEvents?.length || 0, Icon: LuCalendar },
                     ].map((stat) => (
                         <div key={stat.label} className="bg-white rounded-xl border border-neutral-200 p-5 flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-xl bg-neutral-100 flex items-center justify-center">
-                                <stat.Icon className="w-6 h-6 text-neutral-700" />
-                            </div>
+                            <stat.Icon className="w-7 h-7 text-neutral-600" />
                             <div>
                                 <p className="text-2xl font-bold text-neutral-900">{stat.value}</p>
                                 <p className="text-sm text-neutral-500">{stat.label}</p>
