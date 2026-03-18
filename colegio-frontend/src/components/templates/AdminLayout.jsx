@@ -12,8 +12,8 @@ const sidebarLinks = [
     { label: 'Cuadro de Honor', href: '/admin/cuadro-honor', Icon: LuTrophy },
     { label: 'Grados', href: '/admin/grados', Icon: LuGraduationCap },
     { label: 'Eventos', href: '/admin/eventos', Icon: LuCalendar },
-    { label: 'Actividades', href: '/admin/actividades', Icon: LuBookOpen },
     { label: 'Blog', href: '/admin/blog', Icon: LuFileText },
+    { label: 'Actividades', href: '/admin/actividades', Icon: LuBookOpen },
     { label: 'Docentes', href: '/admin/docentes', Icon: LuUsers },
     { label: 'Ver sitio', href: '/', Icon: LuGlobe },
 ];

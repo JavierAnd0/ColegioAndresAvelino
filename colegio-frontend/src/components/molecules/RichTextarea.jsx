@@ -86,10 +86,10 @@ export default function RichTextarea({
             {label && <Label htmlFor={name} required={required}>{label}</Label>}
 
             {/* Toolbar */}
-            <div className="flex items-center gap-0.5 px-2 py-1.5 bg-neutral-50 border border-neutral-200 border-b-0 rounded-t-lg">
+            <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 bg-neutral-50 border border-neutral-200 border-b-0 rounded-t-lg">
                 {tools.map((tool) => {
                     if (tool.key === 'separator') {
-                        return <div key={tool.key} className="w-px h-5 bg-neutral-200 mx-1" />;
+                        return <div key={tool.key} className="w-px h-5 bg-neutral-200 mx-1 hidden sm:block" />;
                     }
                     return (
                         <button
