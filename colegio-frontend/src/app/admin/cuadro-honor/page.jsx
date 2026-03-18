@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import AdminLayout from '@/components/templates/AdminLayout';
 import HonorEntryForm from '@/components/molecules/HonorEntryForm';
 import MonthSelector from '@/components/molecules/MonthSelector';
@@ -37,15 +37,64 @@ export default function AdminCuadroHonorPage() {
     const [month, setMonth] = useState(now.getMonth() + 1);
     const [jornada, setJornada] = useState('manana');
 
+    // DataTable state
+    const [search, setSearch] = useState('');
+    const [sortField, setSortField] = useState('studentName');
+    const [sortDir, setSortDir] = useState('asc');
+
     // Filtrar grados por jornada seleccionada
     const filteredGrades = grades.filter(g => (g.jornada || 'manana') === jornada);
-
-    // Filtrar entries por jornada (usando los grados)
     const jornadaGradeIds = new Set(filteredGrades.map(g => g._id));
-    const filteredEntries = entries.filter(e => {
-        const gradeId = e.grade?._id || e.grade;
-        return jornadaGradeIds.has(gradeId);
-    });
+
+    // Filtrar, buscar y ordenar entries
+    const processedEntries = useMemo(() => {
+        let data = entries.filter(e => {
+            const gradeId = e.grade?._id || e.grade;
+            return jornadaGradeIds.has(gradeId);
+        });
+
+        if (search.trim()) {
+            const q = search.toLowerCase();
+            data = data.filter(e =>
+                e.studentName.toLowerCase().includes(q) ||
+                (e.grade?.name || '').toLowerCase().includes(q)
+            );
+        }
+
+        data.sort((a, b) => {
+            let valA = sortField === 'grade' ? (a.grade?.name || '') : (a[sortField] ?? '');
+            let valB = sortField === 'grade' ? (b.grade?.name || '') : (b[sortField] ?? '');
+            if (typeof valA === 'string') valA = valA.toLowerCase();
+            if (typeof valB === 'string') valB = valB.toLowerCase();
+            if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+            if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        return data;
+    }, [entries, search, sortField, sortDir, jornada, grades]);
+
+    // Agrupar por grado (según el orden de filteredGrades)
+    const groupedByGrade = useMemo(() => {
+        return filteredGrades.map(grade => ({
+            grade,
+            entries: processedEntries.filter(e => (e.grade?._id || e.grade) === grade._id),
+        })).filter(g => g.entries.length > 0);
+    }, [filteredGrades, processedEntries]);
+
+    const handleSort = (field) => {
+        if (sortField === field) {
+            setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDir('asc');
+        }
+    };
+
+    const SortIcon = ({ field }) => {
+        if (sortField !== field) return <span className="text-neutral-300 ml-1">↕</span>;
+        return <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>;
+    };
 
     const fetchData = async () => {
         setLoading(true);
@@ -121,7 +170,7 @@ export default function AdminCuadroHonorPage() {
                     <div>
                         <Heading level="h3">Cuadro de Honor</Heading>
                         <Paragraph color="muted" className="mt-1">
-                            {filteredEntries.length} entrada(s) este mes
+                            {processedEntries.length} entrada(s) este mes
                         </Paragraph>
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
@@ -179,57 +228,127 @@ export default function AdminCuadroHonorPage() {
                     </div>
                 )}
 
-                {/* Lista de entries */}
+                {/* DataTable */}
                 <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
-                    <div className="px-5 py-4 border-b border-neutral-100">
-                        <Heading level="h6">Entradas del mes</Heading>
+                    {/* Toolbar */}
+                    <div className="flex flex-col sm:flex-row gap-3 p-4 border-b border-neutral-100">
+                        <input
+                            type="text"
+                            placeholder="Buscar estudiante o grado..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="px-3 py-2 border border-neutral-200 rounded-lg text-sm flex-1
+                                focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                        />
                     </div>
 
                     {loading ? (
                         <div className="flex justify-center py-12"><Spinner size="lg" /></div>
-                    ) : filteredEntries.length === 0 ? (
+                    ) : processedEntries.length === 0 ? (
                         <div className="flex flex-col items-center py-12 gap-2">
                             <LuTrophy className="w-10 h-10 text-neutral-300" />
-                            <Paragraph color="muted">No hay entradas este mes para esta jornada. ¡Crea la primera!</Paragraph>
+                            <Paragraph color="muted">
+                                {search ? 'No se encontraron resultados.' : 'No hay entradas este mes para esta jornada. ¡Crea la primera!'}
+                            </Paragraph>
                         </div>
                     ) : (
-                        <div className="divide-y divide-neutral-100">
-                            {filteredEntries.map((entry) => (
-                                <div key={entry._id}
-                                    className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-neutral-50">
-                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                        {entry.photo?.url ? (
-                                            <img src={entry.photo.url} alt={entry.studentName}
-                                                className="h-9 w-9 rounded-full object-cover flex-shrink-0" />
-                                        ) : (
-                                            <div className="h-9 w-9 rounded-full bg-neutral-200 flex items-center justify-center flex-shrink-0">
-                                                <LuUser className="w-4 h-4 text-neutral-400" />
-                                            </div>
-                                        )}
-                                        <div className="min-w-0">
-                                            <p className="text-sm font-medium text-neutral-900 truncate">
-                                                {entry.studentName}
-                                            </p>
-                                            <p className="text-xs text-neutral-500">
-                                                {entry.grade?.name || 'Sin grado'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <Badge variant={categoryVariants[entry.category] || 'default'} size="sm">
-                                        {categoryLabels[entry.category] || entry.category}
-                                    </Badge>
-                                    <div className="flex items-center gap-2 flex-shrink-0">
-                                        <Button variant="outline" size="sm" onClick={() => handleEdit(entry)}>
-                                            Editar
-                                        </Button>
-                                        <Button variant="danger" size="sm"
-                                            loading={deleting === entry._id}
-                                            onClick={() => handleDelete(entry._id)}>
-                                            Eliminar
-                                        </Button>
-                                    </div>
-                                </div>
-                            ))}
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead className="bg-neutral-50 border-b border-neutral-200">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left font-medium text-neutral-600 cursor-pointer select-none"
+                                            onClick={() => handleSort('studentName')}>
+                                            Estudiante <SortIcon field="studentName" />
+                                        </th>
+                                        <th className="px-4 py-3 text-left font-medium text-neutral-600 cursor-pointer select-none"
+                                            onClick={() => handleSort('grade')}>
+                                            Grado <SortIcon field="grade" />
+                                        </th>
+                                        <th className="px-4 py-3 text-left font-medium text-neutral-600 cursor-pointer select-none"
+                                            onClick={() => handleSort('category')}>
+                                            Categoría <SortIcon field="category" />
+                                        </th>
+                                        <th className="px-4 py-3 text-right font-medium text-neutral-600">
+                                            Acciones
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {groupedByGrade.map(({ grade, entries: gradeEntries }) => (
+                                        <React.Fragment key={grade._id}>
+                                            {/* Fila separadora de grado */}
+                                            <tr className="bg-neutral-50 border-y border-neutral-200">
+                                                <td colSpan={4} className="px-4 py-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <LuTrophy className="w-3.5 h-3.5 text-neutral-400" />
+                                                        <span className="text-xs font-semibold text-neutral-600 uppercase tracking-wide">
+                                                            {grade.name}
+                                                        </span>
+                                                        <span className="text-xs text-neutral-400 ml-1">
+                                                            {gradeEntries.length} entrada(s)
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {/* Filas de estudiantes */}
+                                            {gradeEntries.map((entry) => (
+                                                <tr key={entry._id} className="hover:bg-neutral-50 transition-colors border-b border-neutral-100">
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex items-center gap-3">
+                                                            {entry.photo?.url ? (
+                                                                <img src={entry.photo.url} alt={entry.studentName}
+                                                                    className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                                                            ) : (
+                                                                <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center flex-shrink-0">
+                                                                    <LuUser className="w-4 h-4 text-neutral-400" />
+                                                                </div>
+                                                            )}
+                                                            <span className="font-medium text-neutral-900">{entry.studentName}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-neutral-600">
+                                                        {entry.grade?.name || '—'}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <Badge variant={categoryVariants[entry.category] || 'default'} size="sm">
+                                                            {categoryLabels[entry.category] || entry.category}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <button onClick={() => handleEdit(entry)}
+                                                                className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
+                                                                title="Editar">
+                                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                </svg>
+                                                            </button>
+                                                            <button onClick={() => handleDelete(entry._id)}
+                                                                disabled={deleting === entry._id}
+                                                                className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                                                                title="Eliminar">
+                                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </React.Fragment>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+
+                    {/* Footer con total */}
+                    {!loading && processedEntries.length > 0 && (
+                        <div className="px-4 py-3 border-t border-neutral-100">
+                            <p className="text-xs text-neutral-500">
+                                {processedEntries.length} resultado{processedEntries.length !== 1 ? 's' : ''}
+                                {' · '}{groupedByGrade.length} grado{groupedByGrade.length !== 1 ? 's' : ''}
+                            </p>
                         </div>
                     )}
                 </div>

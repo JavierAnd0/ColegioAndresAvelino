@@ -138,7 +138,7 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
     };
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5 max-w-3xl">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full max-w-3xl">
             {alert && (
                 <AlertMessage type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
             )}
@@ -268,7 +268,7 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
                 {/* Status como pills */}
                 <div className="flex flex-col gap-1.5">
                     <Label>Estado</Label>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         {statusOptions.map(opt => (
                             <button
                                 key={opt.value}
