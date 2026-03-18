@@ -1,5 +1,5 @@
 import BlogPost from '../models/blogpost.js';
-import { suggestBlogImages, getAutoImage } from '../services/imageSearch.js';
+import { suggestBlogImages, suggestActivityImages, getAutoImage } from '../services/imageSearch.js';
 
 // @desc    Obtener todos los posts del blog
 // @route   GET /api/blog
@@ -480,8 +480,11 @@ export const getPostsByTag = async (req, res) => {
 // @access  Private (admin/editor/author)
 export const suggestImages = async (req, res) => {
   try {
-    const { category = 'general', title = '', count = 3 } = req.query;
-    const images = await suggestBlogImages(category, title, Math.min(parseInt(count) || 3, 5));
+    const { category = 'general', title = '', count = 3, context = 'blog' } = req.query;
+    const n = Math.min(parseInt(count) || 3, 6);
+    const images = context === 'activity'
+        ? await suggestActivityImages(category, title, n)
+        : await suggestBlogImages(category, title, n);
 
     res.status(200).json({
       success: true,

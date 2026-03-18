@@ -25,6 +25,8 @@ import {
     updateRssSource,
     deleteRssSource,
     triggerFetch,
+    validateRssSource,
+    bulkCreateActivities,
 } from '../controllers/activityController.js';
 
 const router = Router();
@@ -40,12 +42,16 @@ router.get('/pending', protect, authorize('admin'), getPendingActivities);
 
 // Admin — fuentes RSS
 router.get('/sources', protect, authorize('admin'), getRssSources);
+router.post('/sources/validate', protect, authorize('admin'), validateRssSource);
 router.post('/sources', protect, authorize('admin'), validateCreateRssSource, createRssSource);
 router.put('/sources/:id', protect, authorize('admin'), validateUpdateRssSource, updateRssSource);
 router.delete('/sources/:id', protect, authorize('admin'), validateObjectId, deleteRssSource);
 
 // Admin — trigger manual de fetch
 router.post('/fetch', protect, authorize('admin'), triggerFetch);
+
+// Admin — carga masiva desde CSV (JSON array)
+router.post('/bulk', protect, authorize('admin'), bulkCreateActivities);
 
 // ---- Rutas con parámetros ----
 

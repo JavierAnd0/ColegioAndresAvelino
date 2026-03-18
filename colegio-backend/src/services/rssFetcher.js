@@ -3,45 +3,108 @@ import RssSource from '../models/rssSource.js';
 import Activity, { getWeekMonday } from '../models/activity.js';
 
 const parser = new Parser({
-    timeout: 10000,
+    timeout: 15000,
     headers: {
-        'User-Agent': 'ColegioBot/1.0 (Educational content aggregator)',
+        'User-Agent': 'Mozilla/5.0 (compatible; ColegioBot/1.0; Educational content aggregator)',
+        'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
     },
     customFields: {
         item: [
             ['media:thumbnail', 'mediaThumbnail'],
             ['media:content', 'mediaContent'],
+            ['content:encoded', 'contentEncoded'],
         ],
     },
 });
 
+// Palabras clave para auto-detectar el tipo de actividad
+const TYPE_KEYWORDS = {
+    cuento:       ['cuento', 'historia', 'fábula', 'fabula', 'cuentito', 'relato'],
+    colorear:     ['colorear', 'pintar', 'coloring', 'manualidad', 'dibujo para colorear'],
+    numeros:      ['número', 'numeros', 'números', 'matemática', 'matemáticas', 'math', 'suma', 'resta', 'contar', 'multiplicar', 'dividir', 'aritmética', 'cálculo', 'fracciones'],
+    rompecabezas: ['rompecabezas', 'puzzle', 'adivinanza', 'acertijo', 'crucigrama'],
+    juego:        ['juego', 'jugar', 'game', 'interactivo', 'actividad interactiva', 'quiz', 'concurso'],
+    lectura:      ['lectura', 'leer', 'comprensión lectora', 'reading', 'poema', 'poesía', 'poesia', 'texto'],
+};
+
 /**
- * Elimina tags HTML de un string
+ * Detecta el tipo de actividad basado en palabras clave en título y descripción.
  */
-function stripHtml(html) {
-    if (!html) return '';
-    return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+function detectType(title, description, defaultType) {
+    const text = `${title} ${description}`.toLowerCase();
+    for (const [type, keywords] of Object.entries(TYPE_KEYWORDS)) {
+        if (keywords.some((kw) => text.includes(kw))) {
+            return type;
+        }
+    }
+    return defaultType || 'otro';
 }
 
 /**
- * Intenta extraer URL de imagen del item RSS
+ * Limpia HTML y entidades HTML de un string.
+ */
+function stripHtml(html) {
+    if (!html) return '';
+    return html
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#\d+;/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+/**
+ * Extrae la URL de imagen del item RSS probando múltiples campos.
  */
 function extractImageUrl(item) {
-    // enclosure (podcast/media standard)
-    if (item.enclosure?.url) return item.enclosure.url;
-    // media:thumbnail
-    if (item.mediaThumbnail?.$.url) return item.mediaThumbnail.$.url;
-    // media:content
-    if (item.mediaContent?.$.url) return item.mediaContent.$.url;
-    // Buscar primer <img> en content
-    const content = item['content:encoded'] || item.content || '';
-    const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/);
+    if (item.enclosure?.url && /\.(jpg|jpeg|png|webp|gif)/i.test(item.enclosure.url)) {
+        return item.enclosure.url;
+    }
+    if (item.mediaThumbnail?.$?.url) return item.mediaThumbnail.$.url;
+    if (item.mediaContent?.$?.medium === 'image' && item.mediaContent.$.url) {
+        return item.mediaContent.$.url;
+    }
+    if (item.mediaContent?.$?.url) return item.mediaContent.$.url;
+
+    // Buscar primer <img> en el contenido HTML
+    const html = item.contentEncoded || item['content:encoded'] || item.content || '';
+    const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i);
     if (imgMatch) return imgMatch[1];
+
     return '';
 }
 
 /**
- * Fetch y procesa todas las fuentes RSS activas
+ * Extrae la descripción más completa disponible en el item RSS.
+ */
+function extractDescription(item) {
+    const candidates = [
+        item.contentEncoded,
+        item['content:encoded'],
+        item.content,
+        item.contentSnippet,
+        item.summary,
+        item.description,
+    ];
+
+    for (const src of candidates) {
+        if (!src) continue;
+        const clean = stripHtml(src);
+        if (clean.length > 50) {
+            return clean.slice(0, 600);
+        }
+    }
+    return '';
+}
+
+/**
+ * Fetch y procesa todas las fuentes RSS activas.
  * @returns {{ totalNew: number, totalUpdated: number, errors: string[] }}
  */
 export async function fetchAllSources() {
@@ -66,8 +129,9 @@ export async function fetchAllSources() {
             totalUpdated += result.value.updatedCount;
         } else {
             const sourceName = sources[i].name;
-            errors.push(`${sourceName}: ${result.reason.message || 'Error desconocido'}`);
-            console.error(`[RSS Fetcher] Error con "${sourceName}":`, result.reason.message);
+            const errMsg = result.reason?.message || 'Error desconocido';
+            errors.push(`${sourceName}: ${errMsg}`);
+            console.error(`[RSS Fetcher] Error con "${sourceName}":`, errMsg);
         }
     }
 
@@ -76,11 +140,11 @@ export async function fetchAllSources() {
 }
 
 /**
- * Fetch y procesa una sola fuente RSS
+ * Fetch y procesa una sola fuente RSS.
  */
 async function fetchSingleSource(source, monday) {
     const feed = await parser.parseURL(source.url);
-    const items = feed.items || [];
+    const items = (feed.items || []).filter((item) => item.link && item.title?.trim());
 
     if (items.length === 0) {
         source.lastFetched = new Date();
@@ -88,29 +152,22 @@ async function fetchSingleSource(source, monday) {
         return { newCount: 0, updatedCount: 0 };
     }
 
-    const operations = [];
-
-    for (const item of items) {
-        const externalUrl = item.link;
-        if (!externalUrl) continue;
-
-        const title = (item.title || '').trim().slice(0, 200);
-        if (!title) continue;
-
-        const rawDescription = stripHtml(item.contentSnippet || item.content || '');
-        const description = rawDescription.slice(0, 500);
+    const operations = items.map((item) => {
+        const title = item.title.trim().slice(0, 200);
+        const description = extractDescription(item);
         const imageUrl = extractImageUrl(item);
+        const type = detectType(title, description, source.defaultType);
 
-        operations.push({
+        return {
             updateOne: {
-                filter: { externalUrl },
+                filter: { externalUrl: item.link },
                 update: {
                     $setOnInsert: {
                         title,
                         description,
-                        externalUrl,
+                        externalUrl: item.link,
                         imageUrl,
-                        type: source.defaultType || 'otro',
+                        type,
                         targetGrades: source.defaultGrades || [],
                         source: source.name,
                         sourceType: 'rss',
@@ -123,8 +180,8 @@ async function fetchSingleSource(source, monday) {
                 },
                 upsert: true,
             },
-        });
-    }
+        };
+    });
 
     let newCount = 0;
     let updatedCount = 0;
@@ -139,4 +196,29 @@ async function fetchSingleSource(source, monday) {
     await source.save();
 
     return { newCount, updatedCount };
+}
+
+/**
+ * Valida y prueba una URL de feed RSS sin guardarla.
+ * @returns {{ valid: boolean, feedTitle: string, itemCount: number, sampleItems: string[], error?: string }}
+ */
+export async function validateFeedUrl(url) {
+    try {
+        const feed = await parser.parseURL(url);
+        const items = feed.items || [];
+        return {
+            valid: true,
+            feedTitle: feed.title || '',
+            itemCount: items.length,
+            sampleItems: items.slice(0, 3).map((item) => item.title || '(sin título)'),
+        };
+    } catch (err) {
+        return {
+            valid: false,
+            feedTitle: '',
+            itemCount: 0,
+            sampleItems: [],
+            error: err.message || 'No se pudo leer el feed RSS',
+        };
+    }
 }
