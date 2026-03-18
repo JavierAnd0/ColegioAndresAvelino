@@ -9,6 +9,7 @@ import Spinner from '@/components/atoms/Spinner';
 import AlertMessage from '@/components/molecules/AlertMessage';
 import Badge from '@/components/atoms/Badge';
 import { eventService } from '@/services/eventService';
+import { LuCalendar } from 'react-icons/lu';
 
 const categoryVariants = {
     academico: 'info', deportivo: 'success',
@@ -130,7 +131,7 @@ export default function AdminEventosPage() {
                         <div className="flex justify-center py-12"><Spinner size="lg" /></div>
                     ) : events.length === 0 ? (
                         <div className="flex flex-col items-center py-12 gap-2">
-                            <span className="text-4xl">📅</span>
+                            <LuCalendar className="w-10 h-10 text-neutral-300" />
                             <Paragraph color="muted">No hay eventos. ¡Crea el primero!</Paragraph>
                         </div>
                     ) : (

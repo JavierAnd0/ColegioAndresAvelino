@@ -1,22 +1,23 @@
 'use client';
 import { useEffect } from 'react';
+import { LuCircleCheck, LuCircleX, LuTriangleAlert, LuInfo, LuX } from 'react-icons/lu';
 
 const types = {
   success: {
     container: 'bg-green-50 border-green-200 text-green-800',
-    icon: '✅',
+    Icon: LuCircleCheck,
   },
   error: {
     container: 'bg-red-50 border-red-200 text-red-800',
-    icon: '❌',
+    Icon: LuCircleX,
   },
   warning: {
     container: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-    icon: '⚠️',
+    Icon: LuTriangleAlert,
   },
   info: {
     container: 'bg-blue-50 border-blue-200 text-blue-800',
-    icon: 'ℹ️',
+    Icon: LuInfo,
   },
 };
 
@@ -39,14 +40,14 @@ export default function AlertMessage({
 
   return (
     <div className={`flex items-start gap-3 p-4 rounded-lg border ${style.container} ${className}`}>
-      <span className="text-lg flex-shrink-0">{style.icon}</span>
+      <style.Icon className="w-5 h-5 flex-shrink-0" />
       <p className="text-sm font-medium flex-1">{message}</p>
       {onClose && (
         <button
           onClick={onClose}
           className="text-current opacity-60 hover:opacity-100 transition-opacity flex-shrink-0 cursor-pointer"
         >
-          ✕
+          <LuX className="w-4 h-4" />
         </button>
       )}
     </div>

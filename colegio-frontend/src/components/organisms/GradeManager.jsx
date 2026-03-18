@@ -1,20 +1,218 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Button from '@/components/atoms/Button';
 import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
 import AlertMessage from '@/components/molecules/AlertMessage';
 import Spinner from '@/components/atoms/Spinner';
 import { gradeService } from '@/services/honorService';
+import {
+    LuSun, LuMoon, LuGraduationCap,
+    LuPencil, LuTrash2,
+    LuChevronsUpDown, LuChevronUp, LuChevronDown,
+} from 'react-icons/lu';
 
+const jornadaConfig = {
+    manana: { label: 'Jornada Mañana', Icon: LuSun,  accent: 'text-amber-600',  badge: 'bg-amber-50 text-amber-700 border-amber-200' },
+    tarde:  { label: 'Jornada Tarde',  Icon: LuMoon, accent: 'text-indigo-600', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+};
+
+const inputClass = 'px-3 py-1.5 border border-neutral-200 rounded-lg text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900';
+
+/* ── Tabla por jornada ─────────────────────────────────────── */
+function JornadaTable({ jornada, grades, search, onEdit, onDelete, deleting, editingId, editForm, onEditChange, onEditSave, onEditCancel, showAdd, onShowAdd, onAddChange, addForm, onAddSave, onAddCancel }) {
+    const cfg = jornadaConfig[jornada];
+
+    const [sortField, setSortField] = useState('order');
+    const [sortDir, setSortDir]   = useState('asc');
+
+    const handleSort = (field) => {
+        if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        else { setSortField(field); setSortDir('asc'); }
+    };
+
+    const SortIcon = ({ field }) => {
+        if (sortField !== field) return <LuChevronsUpDown className="w-3.5 h-3.5 text-neutral-300 ml-1 inline" />;
+        return sortDir === 'asc'
+            ? <LuChevronUp   className="w-3.5 h-3.5 ml-1 inline" />
+            : <LuChevronDown className="w-3.5 h-3.5 ml-1 inline" />;
+    };
+
+    const filtered = useMemo(() => {
+        let data = [...grades];
+        if (search.trim()) {
+            const q = search.toLowerCase();
+            data = data.filter(g => g.name.toLowerCase().includes(q));
+        }
+        data.sort((a, b) => {
+            let vA = a[sortField] ?? '';
+            let vB = b[sortField] ?? '';
+            if (typeof vA === 'string') vA = vA.toLowerCase();
+            if (typeof vB === 'string') vB = vB.toLowerCase();
+            if (vA < vB) return sortDir === 'asc' ? -1 : 1;
+            if (vA > vB) return sortDir === 'asc' ? 1 : -1;
+            return 0;
+        });
+        return data;
+    }, [grades, search, sortField, sortDir]);
+
+    return (
+        <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden flex flex-col">
+
+            {/* Panel header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">
+                <div className="flex items-center gap-2">
+                    <cfg.Icon className={`w-5 h-5 ${cfg.accent}`} />
+                    <span className="font-semibold text-neutral-900 text-sm">{cfg.label}</span>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${cfg.badge}`}>
+                        {grades.length}
+                    </span>
+                </div>
+                {!showAdd && (
+                    <button
+                        onClick={onShowAdd}
+                        className="text-xs font-medium text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer"
+                    >
+                        + Agregar
+                    </button>
+                )}
+            </div>
+
+            {/* Form agregar */}
+            {showAdd && (
+                <div className="flex items-end gap-3 p-4 bg-neutral-50 border-b border-neutral-100 flex-wrap">
+                    <div className="flex-1 min-w-[140px]">
+                        <label className="text-xs font-medium text-neutral-500 mb-1 block">Nombre</label>
+                        <input
+                            value={addForm.name}
+                            onChange={e => onAddChange({ ...addForm, name: e.target.value })}
+                            placeholder="Ej: 1°"
+                            className={inputClass + ' w-full'}
+                        />
+                    </div>
+                    <div className="w-20">
+                        <label className="text-xs font-medium text-neutral-500 mb-1 block">Orden</label>
+                        <input
+                            type="number"
+                            value={addForm.order}
+                            onChange={e => onAddChange({ ...addForm, order: parseInt(e.target.value) || 0 })}
+                            className={inputClass + ' w-full'}
+                            min={0}
+                        />
+                    </div>
+                    <div className="flex gap-2 pb-0.5">
+                        <Button variant="primary" size="sm" onClick={onAddSave}>Guardar</Button>
+                        <Button variant="ghost"   size="sm" onClick={onAddCancel}>Cancelar</Button>
+                    </div>
+                </div>
+            )}
+
+            {/* Tabla */}
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                    <thead className="bg-neutral-50 border-b border-neutral-100">
+                        <tr>
+                            <th
+                                className="px-4 py-3 text-left font-medium text-neutral-500 cursor-pointer select-none w-16 text-xs uppercase tracking-wide"
+                                onClick={() => handleSort('order')}
+                            >
+                                Orden <SortIcon field="order" />
+                            </th>
+                            <th
+                                className="px-4 py-3 text-left font-medium text-neutral-500 cursor-pointer select-none text-xs uppercase tracking-wide"
+                                onClick={() => handleSort('name')}
+                            >
+                                Nombre <SortIcon field="name" />
+                            </th>
+                            <th className="px-4 py-3 text-right font-medium text-neutral-500 text-xs uppercase tracking-wide">
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-100">
+                        {filtered.length === 0 ? (
+                            <tr>
+                                <td colSpan={3} className="px-4 py-8 text-center">
+                                    <LuGraduationCap className="w-8 h-8 mx-auto mb-2 text-neutral-200" />
+                                    <p className="text-neutral-400 text-xs">Sin grados registrados</p>
+                                </td>
+                            </tr>
+                        ) : filtered.map(grade => (
+                            <tr key={grade._id} className="hover:bg-neutral-50 transition-colors">
+                                {editingId === grade._id ? (
+                                    <td colSpan={3} className="px-4 py-3">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <input
+                                                value={editForm.name}
+                                                onChange={e => onEditChange({ ...editForm, name: e.target.value })}
+                                                placeholder="Nombre"
+                                                className={inputClass}
+                                            />
+                                            <input
+                                                type="number"
+                                                value={editForm.order}
+                                                onChange={e => onEditChange({ ...editForm, order: parseInt(e.target.value) || 0 })}
+                                                className={inputClass + ' w-20'}
+                                                min={0}
+                                            />
+                                            <Button variant="primary" size="sm" onClick={onEditSave}>Guardar</Button>
+                                            <Button variant="ghost"   size="sm" onClick={onEditCancel}>Cancelar</Button>
+                                        </div>
+                                    </td>
+                                ) : (
+                                    <>
+                                        <td className="px-4 py-3">
+                                            <span className="font-mono text-xs text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded">
+                                                {grade.order}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 font-medium text-neutral-900">
+                                            {grade.name}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center justify-end gap-1">
+                                                <button
+                                                    onClick={() => onEdit(grade)}
+                                                    className="p-1.5 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
+                                                    title="Editar"
+                                                >
+                                                    <LuPencil className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => onDelete(grade._id)}
+                                                    disabled={deleting === grade._id}
+                                                    className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                                                    title="Eliminar"
+                                                >
+                                                    <LuTrash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </>
+                                )}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
+
+/* ── Componente principal ──────────────────────────────────── */
 export default function GradeManager() {
-    const [grades, setGrades] = useState([]);
+    const [grades, setGrades]   = useState([]);
     const [loading, setLoading] = useState(true);
-    const [alert, setAlert] = useState(null);
+    const [alert, setAlert]     = useState(null);
+    const [search, setSearch]   = useState('');
+
     const [editingId, setEditingId] = useState(null);
-    const [form, setForm] = useState({ name: '', order: 0, jornada: 'manana' });
-    const [showAdd, setShowAdd] = useState(false);
-    const [jornadaFilter, setJornadaFilter] = useState('manana');
+    const [editForm, setEditForm]   = useState({ name: '', order: 0, jornada: 'manana' });
+
+    const [showAddJornada, setShowAddJornada] = useState(null); // 'manana' | 'tarde' | null
+    const [addForm, setAddForm]               = useState({ name: '', order: 0, jornada: 'manana' });
+
+    const [deleting, setDeleting] = useState(null);
 
     const fetchGrades = async () => {
         setLoading(true);
@@ -30,6 +228,64 @@ export default function GradeManager() {
 
     useEffect(() => { fetchGrades(); }, []);
 
+    const gradesByJornada = useMemo(() => ({
+        manana: grades.filter(g => (g.jornada || 'manana') === 'manana'),
+        tarde:  grades.filter(g => g.jornada === 'tarde'),
+    }), [grades]);
+
+    /* ── Agregar ── */
+    const openAdd = (jornada) => {
+        setShowAddJornada(jornada);
+        setEditingId(null);
+        setAddForm({ name: '', order: gradesByJornada[jornada].length, jornada });
+    };
+
+    const handleAdd = async () => {
+        if (!addForm.name.trim()) return;
+        try {
+            await gradeService.create(addForm);
+            setAlert({ type: 'success', message: 'Grado creado exitosamente.' });
+            setShowAddJornada(null);
+            fetchGrades();
+        } catch (err) {
+            setAlert({ type: 'error', message: err.message || 'Error al crear el grado.' });
+        }
+    };
+
+    /* ── Editar ── */
+    const startEdit = (grade) => {
+        setEditingId(grade._id);
+        setEditForm({ name: grade.name, order: grade.order, jornada: grade.jornada || 'manana' });
+        setShowAddJornada(null);
+    };
+
+    const handleUpdate = async () => {
+        if (!editForm.name.trim()) return;
+        try {
+            await gradeService.update(editingId, editForm);
+            setAlert({ type: 'success', message: 'Grado actualizado.' });
+            setEditingId(null);
+            fetchGrades();
+        } catch (err) {
+            setAlert({ type: 'error', message: err.message || 'Error al actualizar.' });
+        }
+    };
+
+    /* ── Eliminar ── */
+    const handleDelete = async (id) => {
+        if (!confirm('¿Eliminar este grado?')) return;
+        setDeleting(id);
+        try {
+            await gradeService.delete(id);
+            setAlert({ type: 'success', message: 'Grado eliminado.' });
+            fetchGrades();
+        } catch (err) {
+            setAlert({ type: 'error', message: err.message || 'Error al eliminar.' });
+        } finally {
+            setDeleting(null);
+        }
+    };
+
     const handleSeed = async () => {
         try {
             const data = await gradeService.seed();
@@ -40,52 +296,13 @@ export default function GradeManager() {
         }
     };
 
-    const handleAdd = async () => {
-        if (!form.name.trim()) return;
-        try {
-            await gradeService.create(form);
-            setAlert({ type: 'success', message: 'Grado creado exitosamente.' });
-            setForm({ name: '', order: grades.length, jornada: jornadaFilter });
-            setShowAdd(false);
-            fetchGrades();
-        } catch (err) {
-            setAlert({ type: 'error', message: err.message || 'Error al crear el grado.' });
-        }
-    };
-
-    const handleUpdate = async () => {
-        if (!form.name.trim()) return;
-        try {
-            await gradeService.update(editingId, form);
-            setAlert({ type: 'success', message: 'Grado actualizado.' });
-            setEditingId(null);
-            setForm({ name: '', order: 0, jornada: 'manana' });
-            fetchGrades();
-        } catch (err) {
-            setAlert({ type: 'error', message: err.message || 'Error al actualizar.' });
-        }
-    };
-
-    const handleDelete = async (id) => {
-        if (!confirm('¿Eliminar este grado?')) return;
-        try {
-            await gradeService.delete(id);
-            setAlert({ type: 'success', message: 'Grado eliminado.' });
-            fetchGrades();
-        } catch (err) {
-            setAlert({ type: 'error', message: err.message || 'Error al eliminar.' });
-        }
-    };
-
-    const startEdit = (grade) => {
-        setEditingId(grade._id);
-        setForm({ name: grade.name, order: grade.order, jornada: grade.jornada || 'manana' });
-        setShowAdd(false);
-    };
-
-    const filteredGrades = grades.filter(g => (g.jornada || 'manana') === jornadaFilter);
-
-    const inputClass = 'px-3 py-1.5 border border-neutral-200 rounded-lg text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900';
+    if (loading) {
+        return (
+            <div className="flex justify-center py-12">
+                <Spinner size="lg" />
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col gap-5">
@@ -93,123 +310,52 @@ export default function GradeManager() {
                 <AlertMessage type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
             )}
 
-            <div className="flex items-center justify-between">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                     <Heading level="h5">Grados</Heading>
                     <Paragraph color="muted" className="mt-1">{grades.length} grados configurados</Paragraph>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-3">
+                    <input
+                        type="text"
+                        placeholder="Buscar grado..."
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        className="px-3 py-2 border border-neutral-200 rounded-lg text-sm w-48
+                            focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                    />
                     <Button variant="outline" size="sm" onClick={handleSeed}>
                         Cargar por defecto
                     </Button>
-                    {!showAdd && (
-                        <Button variant="primary" size="sm" onClick={() => {
-                            setShowAdd(true);
-                            setEditingId(null);
-                            setForm({ name: '', order: filteredGrades.length, jornada: jornadaFilter });
-                        }}>
-                            + Nuevo grado
-                        </Button>
-                    )}
                 </div>
             </div>
 
-            {/* Jornada filter tabs */}
-            <div className="flex gap-2">
-                {[
-                    { key: 'manana', label: 'Mañana', icon: '☀️' },
-                    { key: 'tarde', label: 'Tarde', icon: '🌙' },
-                ].map(j => (
-                    <button
-                        key={j.key}
-                        type="button"
-                        onClick={() => {
-                            setJornadaFilter(j.key);
-                            setShowAdd(false);
-                            setEditingId(null);
-                        }}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                            jornadaFilter === j.key
-                                ? 'bg-neutral-900 text-white shadow-md'
-                                : 'bg-white text-neutral-500 hover:bg-neutral-100 border border-neutral-200'
-                        }`}
-                    >
-                        {j.icon} {j.label}
-                    </button>
+            {/* Dos paneles */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {(['manana', 'tarde']).map(jornada => (
+                    <JornadaTable
+                        key={jornada}
+                        jornada={jornada}
+                        grades={gradesByJornada[jornada]}
+                        search={search}
+                        onEdit={startEdit}
+                        onDelete={handleDelete}
+                        deleting={deleting}
+                        editingId={editingId}
+                        editForm={editForm}
+                        onEditChange={setEditForm}
+                        onEditSave={handleUpdate}
+                        onEditCancel={() => setEditingId(null)}
+                        showAdd={showAddJornada === jornada}
+                        onShowAdd={() => openAdd(jornada)}
+                        addForm={addForm}
+                        onAddChange={setAddForm}
+                        onAddSave={handleAdd}
+                        onAddCancel={() => setShowAddJornada(null)}
+                    />
                 ))}
             </div>
-
-            {/* Form agregar */}
-            {showAdd && (
-                <div className="flex items-end gap-3 p-4 bg-neutral-50 rounded-lg flex-wrap">
-                    <div className="flex-1 min-w-[150px]">
-                        <label className="text-xs font-medium text-neutral-500 mb-1 block">Nombre</label>
-                        <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                            placeholder="Ej: Preescolar" className={inputClass + ' w-full'} />
-                    </div>
-                    <div className="w-24">
-                        <label className="text-xs font-medium text-neutral-500 mb-1 block">Orden</label>
-                        <input type="number" value={form.order} onChange={e => setForm(f => ({ ...f, order: parseInt(e.target.value) || 0 }))}
-                            className={inputClass + ' w-full'} min={0} />
-                    </div>
-                    <div className="w-36">
-                        <label className="text-xs font-medium text-neutral-500 mb-1 block">Jornada</label>
-                        <select value={form.jornada} onChange={e => setForm(f => ({ ...f, jornada: e.target.value }))}
-                            className={inputClass + ' w-full bg-white'}>
-                            <option value="manana">☀️ Mañana</option>
-                            <option value="tarde">🌙 Tarde</option>
-                        </select>
-                    </div>
-                    <Button variant="primary" size="sm" onClick={handleAdd}>Guardar</Button>
-                    <Button variant="ghost" size="sm" onClick={() => setShowAdd(false)}>Cancelar</Button>
-                </div>
-            )}
-
-            {/* Lista */}
-            {loading ? (
-                <div className="flex justify-center py-8"><Spinner /></div>
-            ) : filteredGrades.length === 0 ? (
-                <div className="text-center py-8">
-                    <span className="text-4xl block mb-2">🎓</span>
-                    <Paragraph color="muted">No hay grados en esta jornada. Usa "Cargar por defecto" o crea uno nuevo.</Paragraph>
-                </div>
-            ) : (
-                <div className="bg-white rounded-xl border border-neutral-200 divide-y divide-neutral-100 overflow-hidden">
-                    {filteredGrades.map(grade => (
-                        <div key={grade._id} className="flex items-center justify-between px-4 py-3 hover:bg-neutral-50">
-                            {editingId === grade._id ? (
-                                <div className="flex items-center gap-3 flex-1 flex-wrap">
-                                    <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                                        className={inputClass} />
-                                    <input type="number" value={form.order} onChange={e => setForm(f => ({ ...f, order: parseInt(e.target.value) || 0 }))}
-                                        className={inputClass + ' w-20'} min={0} />
-                                    <select value={form.jornada} onChange={e => setForm(f => ({ ...f, jornada: e.target.value }))}
-                                        className={inputClass + ' bg-white'}>
-                                        <option value="manana">☀️ Mañana</option>
-                                        <option value="tarde">🌙 Tarde</option>
-                                    </select>
-                                    <Button variant="primary" size="sm" onClick={handleUpdate}>Guardar</Button>
-                                    <Button variant="ghost" size="sm" onClick={() => setEditingId(null)}>Cancelar</Button>
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="flex items-center gap-3">
-                                        <span className="font-mono text-xs text-neutral-400 w-6 text-center">{grade.order}</span>
-                                        <span className="text-sm font-medium text-neutral-900">{grade.name}</span>
-                                        <span className="text-xs text-neutral-400">
-                                            {(grade.jornada || 'manana') === 'manana' ? '☀️' : '🌙'}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Button variant="outline" size="sm" onClick={() => startEdit(grade)}>Editar</Button>
-                                        <Button variant="danger" size="sm" onClick={() => handleDelete(grade._id)}>Eliminar</Button>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
         </div>
     );
 }

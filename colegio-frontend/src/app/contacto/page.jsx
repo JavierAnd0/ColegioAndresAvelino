@@ -9,16 +9,17 @@ import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
 import Label from '@/components/atoms/Typography/Label';
 import Textarea from '@/components/atoms/Textarea';
+import { LuMapPin, LuPhone, LuMail, LuClock } from 'react-icons/lu';
 
 const EMAILJS_SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
 const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
 const EMAILJS_PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
 
 const infoCards = [
-    { icon: '📍', title: 'Dirección', desc: 'KR 8 # 5-51, HUILA, RIVERA.' },
-    { icon: '📞', title: 'Teléfono', desc: '(+57) 000 000 0000' },
-    { icon: '✉️', title: 'Email', desc: 'contacto@colegio.edu.co' },
-    { icon: '🕐', title: 'Horario', desc: 'Lunes a Viernes: 7:00am - 5:00pm' },
+    { Icon: LuMapPin, title: 'Dirección', desc: 'KR 8 # 5-51, HUILA, RIVERA.' },
+    { Icon: LuPhone, title: 'Teléfono', desc: '(+57) 000 000 0000' },
+    { Icon: LuMail, title: 'Email', desc: 'contacto@colegio.edu.co' },
+    { Icon: LuClock, title: 'Horario', desc: 'Lunes a Viernes: 7:00am - 5:00pm' },
 ];
 
 // --- Anti-spam ---
@@ -171,7 +172,7 @@ export default function ContactoPage() {
                     {infoCards.map((card) => (
                         <div key={card.title}
                             className="bg-white rounded-xl p-4 sm:p-5 flex flex-col gap-1.5 sm:gap-2 border border-neutral-200">
-                            <span className="text-xl sm:text-2xl">{card.icon}</span>
+                            <card.Icon className="w-5 h-5 sm:w-6 sm:h-6 text-neutral-600" />
                             <p className="font-semibold text-neutral-900 text-sm sm:text-base">{card.title}</p>
                             <Paragraph size="sm" color="muted" className="text-xs sm:text-sm">{card.desc}</Paragraph>
                         </div>

@@ -4,6 +4,7 @@ import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
 import Button from '@/components/atoms/Button';
 import Link from 'next/link';
+import { LuMailOpen, LuCalendar, LuEye, LuTimer } from 'react-icons/lu';
 
 async function getPost(slug) {
     try {
@@ -27,7 +28,7 @@ export default async function BlogPostPage({ params }) {
         return (
             <MainLayout>
                 <div className="max-w-3xl mx-auto px-4 py-20 text-center">
-                    <span className="text-6xl">📭</span>
+                    <LuMailOpen className="w-16 h-16 mx-auto mt-4 text-neutral-300" />
                     <Heading level="h3" className="mt-4 text-neutral-500">Post no encontrado</Heading>
                     <Link href="/blog" className="mt-6 inline-block">
                         <Button variant="outline">← Volver al blog</Button>
@@ -68,14 +69,14 @@ export default async function BlogPostPage({ params }) {
                             </div>
                             <Paragraph size="sm" color="muted">{post.author?.name}</Paragraph>
                         </div>
-                        <Paragraph size="sm" color="muted">
-                            📅 {formatDate(post.publishedAt)}
+                        <Paragraph size="sm" color="muted" className="flex items-center gap-1.5">
+                            <LuCalendar className="w-3.5 h-3.5 flex-shrink-0" /> {formatDate(post.publishedAt)}
                         </Paragraph>
-                        <Paragraph size="sm" color="muted">
-                            👁 {post.views} vistas
+                        <Paragraph size="sm" color="muted" className="flex items-center gap-1.5">
+                            <LuEye className="w-3.5 h-3.5 flex-shrink-0" /> {post.views} vistas
                         </Paragraph>
-                        <Paragraph size="sm" color="muted">
-                            ⏱ {post.readingTime}
+                        <Paragraph size="sm" color="muted" className="flex items-center gap-1.5">
+                            <LuTimer className="w-3.5 h-3.5 flex-shrink-0" /> {post.readingTime}
                         </Paragraph>
                     </div>
                 </header>
