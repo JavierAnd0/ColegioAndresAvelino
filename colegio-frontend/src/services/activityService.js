@@ -18,8 +18,11 @@ export const activityService = {
 
     // Fuentes RSS
     getSources: () => api.get('/activities/sources').then(r => r.data),
+    validateSource: (url) => api.post('/activities/sources/validate', { url }).then(r => r.data),
     createSource: (data) => api.post('/activities/sources', data).then(r => r.data),
     updateSource: (id, data) => api.put(`/activities/sources/${id}`, data).then(r => r.data),
     deleteSource: (id) => api.delete(`/activities/sources/${id}`).then(r => r.data),
     triggerFetch: () => api.post('/activities/fetch').then(r => r.data),
+    bulkCreate: (activities) => api.post('/activities/bulk', { activities }).then(r => r.data),
+    suggestImages: (params) => api.get('/blog/suggest-images', { params }).then(r => r.data),
 };
