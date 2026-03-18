@@ -1,6 +1,15 @@
 import Activity, { getWeekMonday } from '../models/activity.js';
 import RssSource, { ACTIVITY_TYPES } from '../models/rssSource.js';
-import { fetchAllSources } from '../services/rssFetcher.js';
+import { fetchAllSources, validateFeedUrl } from '../services/rssFetcher.js';
+
+/**
+ * Normaliza targetGrades desde req.body (multer devuelve string si hay 1 solo valor).
+ */
+function parseTargetGrades(raw) {
+    if (!raw) return [];
+    const arr = Array.isArray(raw) ? raw : [raw];
+    return arr.map(Number).filter((n) => !isNaN(n) && Number.isInteger(n));
+}
 
 // =============================================
 // ACTIVIDADES — Endpoints públicos
@@ -89,14 +98,14 @@ export const getActivity = async (req, res) => {
 /** POST /api/activities */
 export const createActivity = async (req, res) => {
     try {
-        const { title, description, content, type, targetGrades, externalUrl, imageUrl } = req.body;
+        const { title, description, content, type, externalUrl, imageUrl } = req.body;
 
         const activityData = {
             title,
             description,
             content,
             type,
-            targetGrades,
+            targetGrades: parseTargetGrades(req.body.targetGrades || req.body['targetGrades[]']),
             externalUrl: externalUrl || undefined,
             imageUrl,
             source: 'Manual',
@@ -313,5 +322,59 @@ export const triggerFetch = async (req, res) => {
     } catch (error) {
         console.error('Error al ejecutar fetch manual:', error);
         res.status(500).json({ success: false, message: 'Error al obtener actividades de RSS' });
+    }
+};
+
+/** POST /api/activities/bulk — crea múltiples actividades desde un array JSON */
+export const bulkCreateActivities = async (req, res) => {
+    const { activities } = req.body;
+    if (!Array.isArray(activities) || activities.length === 0) {
+        return res.status(400).json({ success: false, message: 'Se requiere un array de actividades' });
+    }
+
+    const monday = getWeekMonday(new Date());
+    let created = 0;
+    const errors = [];
+
+    for (let i = 0; i < activities.length; i++) {
+        const act = activities[i];
+        try {
+            const rawGrades = act.targetGrades;
+            const targetGrades = Array.isArray(rawGrades)
+                ? rawGrades.map(Number).filter((n) => !isNaN(n))
+                : [];
+
+            await Activity.create({
+                title: String(act.title || '').trim(),
+                description: String(act.description || '').trim(),
+                type: act.type || 'otro',
+                targetGrades,
+                externalUrl: act.externalUrl || undefined,
+                source: 'Manual',
+                sourceType: 'manual',
+                status: 'approved',
+                weekOf: monday,
+                isActive: true,
+            });
+            created++;
+        } catch (err) {
+            errors.push(`Fila ${i + 1} ("${act.title || ''}"): ${err.message}`);
+        }
+    }
+
+    res.status(201).json({ success: true, data: { created, errors } });
+};
+
+/** POST /api/activities/sources/validate — valida una URL de feed RSS sin guardarla */
+export const validateRssSource = async (req, res) => {
+    const { url } = req.body;
+    if (!url) {
+        return res.status(400).json({ success: false, message: 'La URL es obligatoria' });
+    }
+    try {
+        const result = await validateFeedUrl(url);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error al validar el feed' });
     }
 };
