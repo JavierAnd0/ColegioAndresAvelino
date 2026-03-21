@@ -79,12 +79,6 @@ function csvRowToActivity(row) {
     return { title, description, type, targetGrades, externalUrl };
 }
 
-const CSV_TEMPLATE = `titulo,descripcion,tipo,grados,url_externa
-El patito feo,Cuento clásico para niños,cuento,"0,1,2",
-Suma del 1 al 10,Fichas de sumas básicas para primer grado,numeros,"1,2",
-Colorear animales de la selva,Fichas para colorear con animales,colorear,"0,1",
-Comprensión lectora básica,Texto corto con preguntas,lectura,"2,3",`;
-
 // ─── Componente principal ──────────────────────────────────────────────────────
 export default function AdminActividadesPage() {
     const [tab, setTab] = useState('actividades');
@@ -332,10 +326,9 @@ export default function AdminActividadesPage() {
     };
 
     const downloadTemplate = () => {
-        const blob = new Blob([CSV_TEMPLATE], { type: 'text/csv;charset=utf-8;' });
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'plantilla_actividades_docente.csv';
+        a.href = '/plantilla_actividades_docente.xlsx';
+        a.download = 'plantilla_actividades_docente.xlsx';
         a.click();
     };
 
