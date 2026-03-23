@@ -53,17 +53,22 @@ export const optionalAuth = async (req, res, next) => {
     }
 };
 
-// Verificar roles específicos
-// Uso: authorize('admin', 'editor')
+// Jerarquía de roles: superadmin > admin
+export const ROLE_LEVEL = { superadmin: 2, admin: 1 };
+
+// authorize('admin') → permite admin y superadmin
+// authorize('superadmin') → solo superadmin
 export const authorize = (...roles) => {
     return (req, res, next) => {
         if (!req.user) {
             return res.status(401).json({ success: false, message: 'No estás autenticado.' });
         }
-        if (!roles.includes(req.user.role)) {
+        const userLevel = ROLE_LEVEL[req.user.role] || 0;
+        const minRequired = Math.min(...roles.map(r => ROLE_LEVEL[r] || 99));
+        if (userLevel < minRequired) {
             return res.status(403).json({
                 success: false,
-                message: `El rol "${req.user.role}" no tiene permiso. Se requiere: ${roles.join(', ')}.`
+                message: 'No tienes permisos suficientes para esta acción.',
             });
         }
         next();

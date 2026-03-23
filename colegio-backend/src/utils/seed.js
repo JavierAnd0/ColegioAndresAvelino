@@ -5,50 +5,50 @@ import User from '../models/user.js';
 
 dotenv.config();
 
-const seedAdmin = async () => {
+const seedSuperAdmin = async () => {
     try {
         await mongoose.connect(process.env.MONGODB_URI);
         console.log('MongoDB conectado');
 
-        const adminExists = await User.findOne({ role: 'admin' });
+        const superAdminExists = await User.findOne({ role: 'superadmin' });
 
-        if (adminExists) {
-            console.log('Ya existe un usuario admin:');
-            console.log(`   Email: ${adminExists.email}`);
-            console.log('   Si olvidaste la contraseña, elimina el usuario desde MongoDB Atlas y vuelve a ejecutar este script.');
+        if (superAdminExists) {
+            console.log('');
+            console.log('Ya existe un superadmin:');
+            console.log(`   Email: ${superAdminExists.email}`);
+            console.log('   Si olvidaste la contraseña, ejecuta: npm run reset-admin');
+            console.log('');
             process.exit(0);
         }
 
-        // Tomar credenciales del .env o generar una contraseña segura
-        const adminEmail = process.env.ADMIN_EMAIL || 'admin@colegio.edu.co';
-        const adminPassword = process.env.ADMIN_PASSWORD || crypto.randomBytes(16).toString('hex');
-        const adminName = process.env.ADMIN_NAME || 'Administrador';
+        const email = process.env.SUPERADMIN_EMAIL || process.env.ADMIN_EMAIL || 'superadmin@colegio.edu.co';
+        const password = process.env.SUPERADMIN_PASSWORD || process.env.ADMIN_PASSWORD || crypto.randomBytes(16).toString('hex');
+        const name = process.env.SUPERADMIN_NAME || 'Super Administrador';
 
-        const admin = await User.create({
-            name: adminName,
-            email: adminEmail,
-            password: adminPassword,
-            role: 'admin',
-            bio: 'Administrador del sistema',
+        const superAdmin = await User.create({
+            name,
+            email,
+            password,
+            role: 'superadmin',
             isActive: true,
         });
 
         console.log('');
-        console.log('Usuario admin creado exitosamente:');
+        console.log('✓ Superadmin creado exitosamente:');
         console.log('------------------------------------');
-        console.log(`   Nombre: ${admin.name}`);
-        console.log(`   Email:  ${admin.email}`);
-        console.log(`   Pass:   ${adminPassword}`);
+        console.log(`   Nombre: ${superAdmin.name}`);
+        console.log(`   Email:  ${superAdmin.email}`);
+        console.log(`   Pass:   ${password}`);
         console.log('------------------------------------');
-        console.log('IMPORTANTE: Cambia la contraseña despues del primer login.');
-        console.log('TIP: Define ADMIN_EMAIL y ADMIN_PASSWORD en tu .env para no usar valores por defecto.');
+        console.log('IMPORTANTE: Define SUPERADMIN_EMAIL y SUPERADMIN_PASSWORD en tu .env');
+        console.log('            y cambia la contraseña después del primer login.');
         console.log('');
 
         process.exit(0);
     } catch (error) {
-        console.error('Error al crear el admin:', error.message);
+        console.error('Error al crear el superadmin:', error.message);
         process.exit(1);
     }
 };
 
-seedAdmin();
+seedSuperAdmin();
