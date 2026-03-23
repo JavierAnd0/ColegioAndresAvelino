@@ -9,11 +9,33 @@ import SelectField from '@/components/molecules/SelectField';
 import AlertMessage from '@/components/molecules/AlertMessage';
 import ImageUploader from '@/components/molecules/ImageUploader';
 import { teacherService } from '@/services/teacherService';
+import { authService } from '@/services/authService';
+import { useAuth } from '@/context/AuthContext';
+import { LuShieldCheck, LuCopy, LuRefreshCw } from 'react-icons/lu';
 
 const jornadaOptions = [
     { value: 'manana', label: 'Mañana' },
     { value: 'tarde', label: 'Tarde' },
     { value: 'ambas', label: 'Ambas jornadas' },
+];
+
+const cargoOptions = [
+    { value: 'Docente', label: 'Docente' },
+    { value: 'Docente de Matemáticas', label: 'Docente de Matemáticas' },
+    { value: 'Docente de Español y Literatura', label: 'Docente de Español y Literatura' },
+    { value: 'Docente de Ciencias Naturales', label: 'Docente de Ciencias Naturales' },
+    { value: 'Docente de Ciencias Sociales', label: 'Docente de Ciencias Sociales' },
+    { value: 'Docente de Inglés', label: 'Docente de Inglés' },
+    { value: 'Docente de Educación Física', label: 'Docente de Educación Física' },
+    { value: 'Docente de Arte', label: 'Docente de Arte' },
+    { value: 'Docente de Tecnología e Informática', label: 'Docente de Tecnología e Informática' },
+    { value: 'Docente de Música', label: 'Docente de Música' },
+    { value: 'Docente de Preescolar', label: 'Docente de Preescolar' },
+    { value: 'Coordinador(a)', label: 'Coordinador(a)' },
+    { value: 'Director(a) de Grupo', label: 'Director(a) de Grupo' },
+    { value: 'Rector(a)', label: 'Rector(a)' },
+    { value: 'Psicólogo(a)', label: 'Psicólogo(a)' },
+    { value: 'Orientador(a)', label: 'Orientador(a)' },
 ];
 
 const jornadaLabels = { manana: 'Mañana', tarde: 'Tarde', ambas: 'Ambas' };
@@ -23,9 +45,16 @@ const jornadaColors = {
     ambas: 'bg-green-100 text-green-700',
 };
 
-const emptyForm = { name: '', cargo: '', jornada: 'manana', email: '', order: 0 };
+const emptyForm = { name: '', cargo: 'Docente', jornada: 'manana', email: '', order: 0 };
+
+// Genera contraseña segura de 12 caracteres
+const generatePassword = () => {
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+    return Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+};
 
 export default function AdminDocentesPage() {
+    const { user: me, isSuperAdmin } = useAuth();
     const [teachers, setTeachers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -35,6 +64,10 @@ export default function AdminDocentesPage() {
     const [alert, setAlert] = useState(null);
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(null);
+    const [createAccount, setCreateAccount] = useState(false);
+    const [generatedPassword, setGeneratedPassword] = useState('');
+    const [credentials, setCredentials] = useState(null); // modal post-creación
+    const [copied, setCopied] = useState(false);
 
     // DataTable state
     const [search, setSearch] = useState('');
@@ -90,6 +123,12 @@ export default function AdminDocentesPage() {
         return data;
     }, [teachers, filterJornada, search, sortField, sortDir]);
 
+    // Detecta si el usuario logueado es un docente (su email coincide con un registro de docente)
+    const isDocente = useMemo(() => {
+        if (isSuperAdmin) return false;
+        return teachers.some(t => t.email && t.email.toLowerCase() === me?.email?.toLowerCase());
+    }, [teachers, me, isSuperAdmin]);
+
     const totalPages = Math.ceil(processed.length / perPage);
     const paginated = processed.slice((page - 1) * perPage, page * perPage);
 
@@ -124,12 +163,30 @@ export default function AdminDocentesPage() {
         setPhotoFile(null);
         setEditing(null);
         setShowForm(false);
+        setCreateAccount(false);
+        setGeneratedPassword('');
+    };
+
+    const handleToggleAccount = (enabled) => {
+        setCreateAccount(enabled);
+        if (enabled) setGeneratedPassword(generatePassword());
+        else setGeneratedPassword('');
+    };
+
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.name.trim() || !form.cargo.trim()) {
-            setAlert({ type: 'error', message: 'Nombre y cargo son obligatorios' });
+            setAlert({ type: 'error', message: 'Nombre y cargo son obligatorios.' });
+            return;
+        }
+        if (createAccount && !form.email.trim()) {
+            setAlert({ type: 'error', message: 'El email es obligatorio para crear una cuenta de acceso.' });
             return;
         }
 
@@ -145,15 +202,45 @@ export default function AdminDocentesPage() {
 
             if (editing) {
                 await teacherService.update(editing._id, formData);
-                setAlert({ type: 'success', message: 'Docente actualizado' });
-            } else {
-                await teacherService.create(formData);
-                setAlert({ type: 'success', message: 'Docente creado' });
+                setAlert({ type: 'success', message: 'Docente actualizado.' });
+                resetForm();
+                fetchTeachers();
+                return;
             }
+
+            // Crear docente
+            await teacherService.create(formData);
+
+            // Crear cuenta de admin si se activó el toggle
+            if (createAccount && form.email.trim()) {
+                try {
+                    await authService.createUser({
+                        name: form.name,
+                        email: form.email.trim(),
+                        password: generatedPassword,
+                        role: 'admin',
+                    });
+                    // Mostrar credenciales generadas
+                    setCredentials({
+                        name: form.name,
+                        email: form.email.trim(),
+                        password: generatedPassword,
+                    });
+                } catch (accErr) {
+                    // El docente se creó pero la cuenta falló
+                    setAlert({
+                        type: 'error',
+                        message: `Docente creado, pero la cuenta falló: ${accErr.response?.data?.message || 'Email ya existe.'}`,
+                    });
+                }
+            } else {
+                setAlert({ type: 'success', message: 'Docente creado.' });
+            }
+
             resetForm();
             fetchTeachers();
         } catch (err) {
-            setAlert({ type: 'error', message: err.message || 'Error al guardar' });
+            setAlert({ type: 'error', message: err.message || 'Error al guardar.' });
         } finally {
             setSaving(false);
         }
@@ -198,7 +285,7 @@ export default function AdminDocentesPage() {
                             {teachers.length} docentes registrados
                         </Paragraph>
                     </div>
-                    {!showForm && (
+                    {!showForm && !isDocente && (
                         <Button variant="primary" onClick={() => setShowForm(true)} className="self-start">
                             + Nuevo docente
                         </Button>
@@ -220,20 +307,18 @@ export default function AdminDocentesPage() {
                                 <FormField label="Nombre completo" name="name"
                                     value={form.name} onChange={handleChange} required
                                     placeholder="Nombre del docente" />
-                                <FormField label="Cargo" name="cargo"
-                                    value={form.cargo} onChange={handleChange} required
-                                    placeholder="Ej: Docente de Matemáticas" />
+                                <SelectField label="Cargo" name="cargo"
+                                    value={form.cargo} onChange={handleChange}
+                                    options={cargoOptions} />
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <SelectField label="Jornada" name="jornada"
                                     value={form.jornada} onChange={handleChange}
                                     options={jornadaOptions} />
                                 <FormField label="Email" name="email" type="email"
                                     value={form.email} onChange={handleChange}
                                     placeholder="email@colegio.edu.co" />
-                                <FormField label="Orden" name="order" type="number"
-                                    value={form.order} onChange={handleChange} />
                             </div>
 
                             <div className="flex flex-col gap-1.5">
@@ -253,9 +338,67 @@ export default function AdminDocentesPage() {
                                 )}
                             </div>
 
+                            {/* Toggle cuenta de acceso — solo superadmin al crear */}
+                            {!editing && isSuperAdmin && (
+                                <div className={`rounded-xl border p-4 transition-colors ${createAccount ? 'border-violet-200 bg-violet-50' : 'border-neutral-200 bg-neutral-50'}`}>
+                                    <label className="flex items-center gap-3 cursor-pointer select-none">
+                                        <button
+                                            type="button"
+                                            role="switch"
+                                            aria-checked={createAccount}
+                                            onClick={() => handleToggleAccount(!createAccount)}
+                                            className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${createAccount ? 'bg-violet-600' : 'bg-neutral-300'}`}
+                                        >
+                                            <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${createAccount ? 'translate-x-5' : 'translate-x-0'}`} />
+                                        </button>
+                                        <div>
+                                            <span className="text-sm font-medium text-neutral-800 flex items-center gap-1.5">
+                                                <LuShieldCheck className="w-4 h-4 text-violet-600" />
+                                                Crear acceso al panel administrativo
+                                            </span>
+                                            <p className="text-xs text-neutral-500 mt-0.5">
+                                                Genera una cuenta de admin para este docente. Requiere email.
+                                            </p>
+                                        </div>
+                                    </label>
+
+                                    {createAccount && (
+                                        <div className="mt-4 flex flex-col gap-2">
+                                            <label className="text-xs font-medium text-neutral-600">
+                                                Contraseña generada automáticamente
+                                            </label>
+                                            <div className="flex items-center gap-2">
+                                                <code className="flex-1 px-3 py-2 bg-white border border-violet-200 rounded-lg text-sm font-mono text-neutral-800 tracking-wider">
+                                                    {generatedPassword}
+                                                </code>
+                                                <button
+                                                    type="button"
+                                                    title="Regenerar"
+                                                    onClick={() => setGeneratedPassword(generatePassword())}
+                                                    className="p-2 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-500 transition-colors"
+                                                >
+                                                    <LuRefreshCw className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    title="Copiar"
+                                                    onClick={() => copyToClipboard(generatedPassword)}
+                                                    className="p-2 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-500 transition-colors"
+                                                >
+                                                    <LuCopy className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <p className="text-xs text-neutral-400">
+                                                Guarda esta contraseña antes de continuar. Se la deberás compartir al docente.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="flex gap-3 pt-2 border-t border-neutral-100">
                                 <Button type="submit" variant="primary" loading={saving}>
-                                    {editing ? 'Actualizar' : 'Crear docente'}
+                                    {editing ? 'Actualizar' : createAccount ? 'Crear docente y cuenta' : 'Crear docente'}
                                 </Button>
                                 <Button type="button" variant="secondary" onClick={resetForm}>
                                     Cancelar
@@ -290,8 +433,63 @@ export default function AdminDocentesPage() {
                         </select>
                     </div>
 
-                    {/* Tabla */}
-                    <div className="overflow-x-auto">
+                    {/* Vista móvil — cards */}
+                    <div className="md:hidden divide-y divide-neutral-100">
+                        {loading ? (
+                            <div className="px-4 py-8 text-center text-neutral-500">Cargando...</div>
+                        ) : paginated.length === 0 ? (
+                            <div className="px-4 py-8 text-center text-neutral-500 text-sm">No se encontraron docentes</div>
+                        ) : paginated.map((t) => (
+                            <div key={t._id} className="p-4 flex gap-3 hover:bg-neutral-50 transition-colors">
+                                {t.photo?.url ? (
+                                    <img src={t.photo.url} alt={t.name}
+                                        className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+                                ) : (
+                                    <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center flex-shrink-0">
+                                        <span className="text-base font-bold text-neutral-600">
+                                            {t.name.charAt(0).toUpperCase()}
+                                        </span>
+                                    </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-neutral-900 text-sm">{t.name}</p>
+                                    <p className="text-xs text-neutral-500 mt-0.5">{t.cargo}</p>
+                                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                        <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${jornadaColors[t.jornada]}`}>
+                                            {jornadaLabels[t.jornada]}
+                                        </span>
+                                        {t.email && (
+                                            <span className="text-xs text-neutral-400 truncate max-w-[160px]">{t.email}</span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-1.5 mt-2">
+                                        {(!isDocente || t.email?.toLowerCase() === me?.email?.toLowerCase()) && (
+                                            <button onClick={() => handleEdit(t)}
+                                                className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
+                                                title="Editar">
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                        {!isDocente && (
+                                            <button onClick={() => handleDelete(t._id)}
+                                                disabled={deleting === t._id}
+                                                className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                                                title="Eliminar">
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Vista desktop — tabla */}
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead className="bg-neutral-50 border-b border-neutral-200">
                                 <tr>
@@ -352,21 +550,25 @@ export default function AdminDocentesPage() {
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center justify-end gap-2">
-                                                <button onClick={() => handleEdit(t)}
-                                                    className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
-                                                    title="Editar">
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                </button>
-                                                <button onClick={() => handleDelete(t._id)}
-                                                    disabled={deleting === t._id}
-                                                    className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-                                                    title="Eliminar">
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
+                                                {(!isDocente || t.email?.toLowerCase() === me?.email?.toLowerCase()) && (
+                                                    <button onClick={() => handleEdit(t)}
+                                                        className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
+                                                        title="Editar">
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                                {!isDocente && (
+                                                    <button onClick={() => handleDelete(t._id)}
+                                                        disabled={deleting === t._id}
+                                                        className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                                                        title="Eliminar">
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -404,6 +606,62 @@ export default function AdminDocentesPage() {
                     )}
                 </div>
             </div>
+            {/* Modal credenciales generadas */}
+            {credentials && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-5">
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
+                                <LuShieldCheck className="w-5 h-5 text-violet-600" />
+                            </div>
+                            <div>
+                                <p className="font-semibold text-neutral-900">Cuenta creada</p>
+                                <p className="text-xs text-neutral-500">Comparte estas credenciales con el docente</p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-3">
+                            <div className="flex flex-col gap-1">
+                                <span className="text-xs font-medium text-neutral-500">Nombre</span>
+                                <span className="text-sm text-neutral-800">{credentials.name}</span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-xs font-medium text-neutral-500">Email</span>
+                                <span className="text-sm text-neutral-800">{credentials.email}</span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-xs font-medium text-neutral-500">Contraseña inicial</span>
+                                <div className="flex items-center gap-2">
+                                    <code className="flex-1 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-sm font-mono tracking-wider">
+                                        {credentials.password}
+                                    </code>
+                                    <button
+                                        onClick={() => copyToClipboard(credentials.password)}
+                                        className="p-2 rounded-lg border border-neutral-200 hover:bg-neutral-50 text-neutral-500 transition-colors"
+                                        title="Copiar contraseña"
+                                    >
+                                        {copied
+                                            ? <span className="text-xs text-emerald-600 font-medium px-1">✓</span>
+                                            : <LuCopy className="w-4 h-4" />
+                                        }
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                            Esta contraseña no se volverá a mostrar. El docente deberá cambiarla en su primer acceso.
+                        </p>
+
+                        <Button
+                            variant="primary"
+                            onClick={() => setCredentials(null)}
+                        >
+                            Entendido
+                        </Button>
+                    </div>
+                </div>
+            )}
         </AdminLayout>
     );
 }

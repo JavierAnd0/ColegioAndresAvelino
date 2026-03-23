@@ -45,6 +45,8 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
     // Estado para sugerencias de imágenes
     const [suggestions, setSuggestions] = useState([]);
     const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+    const [suggestionPage, setSuggestionPage] = useState(1);
+    const [showPicker, setShowPicker] = useState(false);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -62,18 +64,21 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
         setSuggestions([]);
     };
 
-    const handleSuggestImages = async () => {
+    const handleSuggestImages = async (page = 1) => {
         if (!form.title.trim() && !form.category) return;
         setLoadingSuggestions(true);
+        setSuggestionPage(page);
         try {
             const res = await blogService.suggestImages({
                 category: form.category,
                 title: form.title,
-                count: 3,
+                count: 6,
+                page,
             });
             setSuggestions(res.data || []);
+            setShowPicker(true);
             if ((res.data || []).length === 0) {
-                setAlert({ type: 'info', message: 'No se encontraron imágenes sugeridas. Intenta con otro título.' });
+                setAlert({ type: 'info', message: 'No se encontraron imágenes. Intenta con otro título o categoría.' });
             }
         } catch {
             setAlert({ type: 'error', message: 'Error al buscar imágenes. Verifica que PEXELS_API_KEY esté configurada.' });
@@ -88,6 +93,12 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
             featuredImage: { url: image.url, alt: form.title || image.alt },
         }));
         setSuggestions([]);
+        setShowPicker(false);
+    };
+
+    const handleClosePicker = () => {
+        setSuggestions([]);
+        setShowPicker(false);
     };
 
     const generateExcerpt = () => {
@@ -161,13 +172,13 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
 
             {/* --- Extracto con generación automática --- */}
             <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                     <Label htmlFor="excerpt" required>Extracto / Resumen</Label>
                     <button
                         type="button"
                         onClick={generateExcerpt}
                         disabled={!form.content.trim()}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium
+                        className="inline-flex flex-shrink-0 items-center gap-1.5 px-2.5 py-1 text-xs font-medium
                             text-neutral-500 hover:text-neutral-900 bg-neutral-50 hover:bg-neutral-100
                             rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                     >
@@ -190,69 +201,120 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
                     onUpload={handleImageUpload}
                     currentImage={form.featuredImage?.url}
                     endpoint="/upload/blog"
+                    actions={
+                        <button
+                            type="button"
+                            onClick={() => showPicker ? handleClosePicker() : handleSuggestImages(1)}
+                            disabled={loadingSuggestions || !form.title.trim()}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-neutral-600
+                                bg-neutral-50 border border-neutral-200 rounded-lg
+                                hover:bg-neutral-100 hover:text-neutral-900 transition-colors
+                                disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                            {loadingSuggestions ? (
+                                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                    <path d="M12 2v4m0 12v4m-7.07-3.93l2.83-2.83m8.48-8.48l2.83-2.83M2 12h4m12 0h4m-3.93 7.07l-2.83-2.83M7.76 7.76L4.93 4.93" />
+                                </svg>
+                            ) : showPicker ? (
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            ) : (
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            )}
+                            {loadingSuggestions
+                                ? 'Buscando...'
+                                : showPicker
+                                ? 'Cerrar'
+                                : 'Buscar imagen'}
+                        </button>
+                    }
                 />
 
-                {/* Botón buscar imagen automáticamente */}
-                {!form.featuredImage?.url && (
-                    <button
-                        type="button"
-                        onClick={handleSuggestImages}
-                        disabled={loadingSuggestions || !form.title.trim()}
-                        className="inline-flex items-center gap-2 px-3 py-2 text-sm text-neutral-600
-                            bg-neutral-50 border border-neutral-200 rounded-lg
-                            hover:bg-neutral-100 hover:text-neutral-900 transition-colors
-                            disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer mt-1"
-                    >
-                        {loadingSuggestions ? (
-                            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                <path d="M12 2v4m0 12v4m-7.07-3.93l2.83-2.83m8.48-8.48l2.83-2.83M2 12h4m12 0h4m-3.93 7.07l-2.83-2.83M7.76 7.76L4.93 4.93" />
-                            </svg>
-                        ) : (
-                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        )}
-                        {loadingSuggestions ? 'Buscando...' : 'Buscar imagen automáticamente'}
-                    </button>
-                )}
-
-                {/* Sugerencias de imágenes */}
-                {suggestions.length > 0 && (
-                    <div className="mt-2">
-                        <p className="text-xs text-neutral-500 mb-2">Selecciona una imagen:</p>
-                        <div className="grid grid-cols-3 gap-2">
-                            {suggestions.map((img, i) => (
-                                <button
-                                    key={i}
-                                    type="button"
-                                    onClick={() => handleSelectSuggestion(img)}
-                                    className="relative group rounded-lg overflow-hidden border-2 border-transparent
-                                        hover:border-neutral-900 transition-all cursor-pointer"
-                                >
-                                    <img
-                                        src={img.thumbnailUrl}
-                                        alt={img.alt}
-                                        className="w-full h-24 object-cover"
-                                        loading="lazy"
-                                    />
-                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors
-                                        flex items-center justify-center">
-                                        <svg className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                                            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </div>
-                                    {img.photographer && (
-                                        <div className="absolute bottom-0 left-0 right-0 px-1 py-0.5 bg-black/50 text-[0.55rem] text-white truncate">
-                                            {img.photographer}
-                                        </div>
-                                    )}
-                                </button>
-                            ))}
+                {/* Picker de imágenes */}
+                {showPicker && (
+                    <div className="mt-2 p-3 bg-neutral-50 border border-neutral-200 rounded-xl">
+                        <div className="flex items-center justify-between mb-3">
+                            <p className="text-xs font-medium text-neutral-600">
+                                Elige una foto · <span className="text-neutral-400">Página {suggestionPage}</span>
+                            </p>
                         </div>
-                        <p className="text-[0.6rem] text-neutral-400 mt-1">
-                            Fotos de Pexels (uso gratuito)
-                        </p>
+
+                        {suggestions.length > 0 ? (
+                            <>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                    {suggestions.map((img, i) => (
+                                        <button
+                                            key={i}
+                                            type="button"
+                                            onClick={() => handleSelectSuggestion(img)}
+                                            className="relative group rounded-lg overflow-hidden border-2 border-transparent
+                                                hover:border-brand-500 transition-all cursor-pointer focus:outline-none focus:border-brand-500"
+                                        >
+                                            <img
+                                                src={img.thumbnailUrl}
+                                                alt={img.alt}
+                                                className="w-full h-28 object-cover"
+                                                loading="lazy"
+                                            />
+                                            {/* Overlay con check */}
+                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors
+                                                flex items-center justify-center">
+                                                <div className="h-8 w-8 rounded-full bg-white/0 group-hover:bg-white/90 transition-all
+                                                    flex items-center justify-center scale-75 group-hover:scale-100">
+                                                    <svg className="h-4 w-4 text-brand-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            {img.photographer && (
+                                                <div className="absolute bottom-0 left-0 right-0 px-1.5 py-0.5 bg-black/50
+                                                    text-[0.55rem] text-white truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    © {img.photographer}
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Navegación de páginas */}
+                                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-neutral-200">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSuggestImages(Math.max(1, suggestionPage - 1))}
+                                        disabled={loadingSuggestions || suggestionPage <= 1}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg
+                                            border border-neutral-200 bg-white text-neutral-600
+                                            hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                                    >
+                                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                        Anteriores
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSuggestImages(suggestionPage + 1)}
+                                        disabled={loadingSuggestions}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg
+                                            border border-neutral-200 bg-white text-neutral-600
+                                            hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                                    >
+                                        Ver más opciones
+                                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <p className="text-sm text-neutral-400 text-center py-4">
+                                No se encontraron imágenes para este título.
+                            </p>
+                        )}
                     </div>
                 )}
             </div>
@@ -321,7 +383,7 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
                 />
             </section>
 
-            <div className="flex gap-3 pt-2 border-t border-neutral-100">
+            <div className="flex flex-wrap gap-3 pt-2 border-t border-neutral-100">
                 {initialData._id ? (
                     /* Editando: un solo botón que respeta el estado seleccionado */
                     <Button

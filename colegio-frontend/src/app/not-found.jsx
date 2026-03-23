@@ -1,29 +1,70 @@
 import Link from 'next/link';
 import MainLayout from '@/components/templates/MainLayout';
-import Heading from '@/components/atoms/Typography/Heading';
-import Paragraph from '@/components/atoms/Typography/Paragraph';
-import Button from '@/components/atoms/Button';
-import { LuSchool } from 'react-icons/lu';
+import { LuWrench, LuArrowRight, LuHardHat } from 'react-icons/lu';
 
 export default function NotFound() {
     return (
         <MainLayout>
-            <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 text-center gap-6">
-                <LuSchool className="w-20 h-20 text-neutral-300" />
-                <div className="flex flex-col gap-3">
-                    <Heading level="h1" className="text-neutral-300">404</Heading>
-                    <Heading level="h3">Página no encontrada</Heading>
-                    <Paragraph color="muted" className="max-w-md mx-auto">
-                        La página que buscas no existe o fue movida.
-                        Vuelve al inicio para continuar navegando.
-                    </Paragraph>
-                </div>
-                <div className="flex gap-3">
-                    <Link href="/">
-                        <Button variant="primary" size="lg">Ir al inicio</Button>
-                    </Link>
-                    <Link href="/blog">
-                        <Button variant="outline" size="lg">Ver blog</Button>
+            <div className="min-h-[85vh] flex flex-col items-center justify-center px-4 text-center relative overflow-hidden bg-white">
+
+                {/* Fondo sutil */}
+                <div className="absolute inset-0 dot-pattern opacity-20 pointer-events-none" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full opacity-30 blur-3xl pointer-events-none"
+                    style={{ background: 'radial-gradient(circle, #dcfce7, transparent 70%)' }} />
+
+                <div className="relative z-10 flex flex-col items-center gap-8 max-w-lg">
+
+                    {/* Icono animado */}
+                    <div className="relative">
+                        <div className="h-28 w-28 bg-brand-50 border-2 border-brand-100 rounded-3xl flex items-center justify-center shadow-xl shadow-brand-100">
+                            <LuHardHat className="w-14 h-14 text-brand-500" />
+                        </div>
+                        {/* Herramienta orbitando */}
+                        <div className="absolute -top-2 -right-2 h-9 w-9 bg-amber-400 rounded-xl flex items-center justify-center shadow-md animate-bounce">
+                            <LuWrench className="w-4 h-4 text-white" />
+                        </div>
+                    </div>
+
+                    {/* Texto principal */}
+                    <div className="flex flex-col gap-3">
+                        <span className="text-xs font-mono font-bold text-brand-500 uppercase tracking-widest">
+                            En mantenimiento
+                        </span>
+                        <h1 className="font-display text-4xl md:text-5xl font-black text-neutral-900 leading-tight">
+                            Trabajamos para<br />
+                            <span className="gradient-text">ti</span>
+                        </h1>
+                        <p className="text-neutral-500 text-base leading-relaxed mt-1">
+                            Esta sección está siendo mejorada para ofrecerte una experiencia aún mejor.
+                            Pronto estará disponible.
+                        </p>
+                    </div>
+
+                    {/* Barra de progreso decorativa */}
+                    <div className="w-full max-w-xs flex flex-col gap-2">
+                        <div className="flex items-center justify-between text-xs text-neutral-400 font-mono">
+                            <span>Progreso</span>
+                            <span>En curso...</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-neutral-100 rounded-full overflow-hidden">
+                            <div
+                                className="h-full rounded-full animate-shimmer"
+                                style={{
+                                    width: '65%',
+                                    background: 'linear-gradient(90deg, #16a34a, #22c55e, #eab308)',
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Acción */}
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-2 px-7 py-3 rounded-xl bg-brand-600 text-white text-sm font-semibold
+                            hover:bg-brand-700 transition-colors shadow-lg shadow-brand-600/20 group"
+                    >
+                        Volver al inicio
+                        <LuArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                 </div>
             </div>

@@ -204,17 +204,20 @@ export default function AdminBlogPage() {
                 {/* DataTable */}
                 <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
 
-                    {/* Pestañas de estado */}
-                    <div className="flex items-center gap-1 px-4 pt-3 pb-0 border-b border-neutral-100 overflow-x-auto">
+                    {/* Pestañas de estado — móvil: pills compactos, desktop: tabs con underline */}
+                    <div className="flex items-center gap-1 p-3 border-b border-neutral-100 overflow-x-auto md:px-4 md:pt-3 md:pb-0 md:gap-1">
                         {statusTabs.map((tab) => (
                             <button
                                 key={tab.key}
                                 onClick={() => { setStatusFilter(tab.key); setSearch(''); }}
-                                className={`px-3 py-2 text-sm font-medium transition-colors cursor-pointer whitespace-nowrap border-b-2 -mb-px ${
-                                    statusFilter === tab.key
-                                        ? 'border-neutral-900 text-neutral-900'
-                                        : 'border-transparent text-neutral-500 hover:text-neutral-900 hover:border-neutral-300'
-                                }`}
+                                className={`
+                                    px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer whitespace-nowrap rounded-md
+                                    md:px-3 md:py-2 md:text-sm md:rounded-none md:border-b-2 md:-mb-px
+                                    ${statusFilter === tab.key
+                                        ? 'bg-neutral-900 text-white md:bg-transparent md:text-neutral-900 md:border-neutral-900'
+                                        : 'text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 md:border-transparent md:hover:text-neutral-900 md:hover:border-neutral-300 md:hover:bg-transparent'
+                                    }
+                                `}
                             >
                                 {tab.label}
                             </button>
@@ -246,9 +249,9 @@ export default function AdminBlogPage() {
                                 {/* Thumbnail */}
                                 {post.featuredImage?.url ? (
                                     <img src={post.featuredImage.url} alt={post.title}
-                                        className="w-14 h-14 rounded-lg object-cover flex-shrink-0 mt-0.5" />
+                                        className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
                                 ) : (
-                                    <div className="w-14 h-14 rounded-lg bg-neutral-100 flex-shrink-0 flex items-center justify-center mt-0.5">
+                                    <div className="w-14 h-14 rounded-lg bg-neutral-100 flex-shrink-0 flex items-center justify-center">
                                         <svg className="w-5 h-5 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
@@ -257,30 +260,35 @@ export default function AdminBlogPage() {
 
                                 {/* Contenido */}
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-neutral-900 text-sm leading-snug line-clamp-2">
-                                        {post.title}
-                                    </p>
-                                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                    {/* Meta: estado + categoría + fecha */}
+                                    <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                                        <span className={`inline-flex px-1.5 py-0.5 rounded text-[0.65rem] font-bold
+                                            ${post.status === 'publicado' ? 'bg-green-100 text-green-700'
+                                            : post.status === 'archivado' ? 'bg-amber-100 text-amber-700'
+                                            : 'bg-neutral-100 text-neutral-500'}`}>
+                                            {post.status}
+                                        </span>
                                         {post.category && (
-                                            <span className="text-xs text-neutral-500">{post.category}</span>
+                                            <span className="text-xs text-neutral-400">{post.category}</span>
                                         )}
                                         {post.publishedAt && (
-                                            <>
-                                                <span className="text-neutral-300 text-xs">·</span>
-                                                <span className="text-xs text-neutral-400">
-                                                    {new Date(post.publishedAt).toLocaleDateString('es-CO')}
-                                                </span>
-                                            </>
+                                            <span className="text-xs text-neutral-400">
+                                                {new Date(post.publishedAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}
+                                            </span>
                                         )}
                                     </div>
 
+                                    <p className="font-medium text-neutral-900 text-sm leading-snug line-clamp-2">
+                                        {post.title}
+                                    </p>
+
                                     {/* Acciones */}
-                                    <div className="flex items-center gap-2 mt-3">
+                                    <div className="flex items-center gap-2 mt-2.5">
                                         <select
                                             value={post.status}
                                             disabled={changingStatus === post._id}
                                             onChange={(e) => handleStatusChange(post._id, e.target.value)}
-                                            className={`text-xs font-medium px-2 py-1.5 rounded-lg border cursor-pointer flex-1
+                                            className={`text-xs font-medium px-2 py-1.5 rounded-lg border cursor-pointer
                                                 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-colors
                                                 disabled:opacity-50 disabled:cursor-not-allowed
                                                 ${post.status === 'publicado'
@@ -295,8 +303,10 @@ export default function AdminBlogPage() {
                                             <option value="archivado">Archivado</option>
                                         </select>
 
+                                        <div className="w-px h-4 bg-neutral-200 flex-shrink-0" />
+
                                         <button onClick={() => handleEdit(post)}
-                                            className="p-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
+                                            className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
                                             title="Editar">
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -304,7 +314,7 @@ export default function AdminBlogPage() {
                                         </button>
                                         <button onClick={() => handleDelete(post._id)}
                                             disabled={deleting === post._id}
-                                            className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                                            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                                             title="Eliminar">
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
