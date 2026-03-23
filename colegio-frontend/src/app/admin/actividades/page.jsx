@@ -398,11 +398,11 @@ export default function AdminActividadesPage() {
 
     return (
         <AdminLayout>
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-5xl mx-auto overflow-x-hidden">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                     <Heading level="h3">Actividades Educativas</Heading>
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="flex gap-2 flex-wrap w-full sm:w-auto">
                         <Button onClick={() => { resetCreateForm(); setShowCreateForm(true); setShowBulkImport(false); }} variant="primary" size="sm">
                             + Nueva actividad
                         </Button>
@@ -620,14 +620,27 @@ export default function AdminActividadesPage() {
                 )}
 
                 {/* ── Tabs ── */}
-                <div className="flex gap-1 mb-6 bg-neutral-100 rounded-lg p-1 w-full overflow-x-auto">
+                {/* Mobile: select dropdown */}
+                <div className="mb-6 md:hidden">
+                    <select
+                        value={tab}
+                        onChange={(e) => setTab(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg bg-white text-neutral-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    >
+                        <option value="actividades">Aprobadas ({activities.length})</option>
+                        <option value="pendientes">Pendientes ({pendingActivities.length})</option>
+                        <option value="fuentes">RSS ({sources.length})</option>
+                    </select>
+                </div>
+                {/* Desktop: pill buttons */}
+                <div className="hidden md:flex gap-1 mb-6 bg-neutral-100 rounded-lg p-1">
                     {[
                         { key: 'actividades', label: `Aprobadas (${activities.length})` },
                         { key: 'pendientes', label: `Pendientes (${pendingActivities.length})` },
                         { key: 'fuentes', label: `RSS (${sources.length})` },
                     ].map((t) => (
                         <button key={t.key} type="button" onClick={() => setTab(t.key)}
-                            className={`flex-1 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors cursor-pointer whitespace-nowrap
+                            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer
                                 ${tab === t.key ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-700'}`}>
                             {t.label}
                         </button>

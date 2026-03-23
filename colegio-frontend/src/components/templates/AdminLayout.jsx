@@ -189,7 +189,7 @@ export default function AdminLayout({ children }) {
             </aside>
 
             {/* Main content */}
-            <div className="flex-1 md:ml-60">
+            <div className="flex-1 md:ml-60 min-w-0 overflow-x-hidden">
                 <main className="p-4 pt-18 md:p-6 md:pt-6">{children}</main>
             </div>
         </div>
