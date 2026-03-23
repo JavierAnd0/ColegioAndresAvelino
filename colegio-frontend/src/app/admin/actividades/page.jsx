@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import * as XLSX from 'xlsx';
 import AdminLayout from '@/components/templates/AdminLayout';
 import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
@@ -30,9 +31,9 @@ const gradeLabels = {
 
 const statusConfig = {
     approved: { label: 'Aprobada', variant: 'success' },
-    pending:  { label: 'Pendiente', variant: 'warning' },
+    pending: { label: 'Pendiente', variant: 'warning' },
     rejected: { label: 'Rechazada', variant: 'danger' },
-    draft:    { label: 'Borrador',  variant: 'default' },
+    draft: { label: 'Borrador', variant: 'default' },
 };
 
 // Tipos que soportan PDF adjunto
@@ -77,12 +78,6 @@ function csvRowToActivity(row) {
     const externalUrl = row.url_externa || row.url || '';
     return { title, description, type, targetGrades, externalUrl };
 }
-
-const CSV_TEMPLATE = `titulo,descripcion,tipo,grados,url_externa
-El patito feo,Cuento clásico para niños,cuento,"0,1,2",
-Suma del 1 al 10,Fichas de sumas básicas para primer grado,numeros,"1,2",
-Colorear animales de la selva,Fichas para colorear con animales,colorear,"0,1",
-Comprensión lectora básica,Texto corto con preguntas,lectura,"2,3",`;
 
 // ─── Componente principal ──────────────────────────────────────────────────────
 export default function AdminActividadesPage() {
@@ -281,16 +276,34 @@ export default function AdminActividadesPage() {
         }
     };
 
-    // ── CSV Bulk Import ──
+    // ── Bulk Import (CSV o Excel) ──
     const handleCSVFile = (e) => {
         const file = e.target.files[0];
         if (!file) return;
+        const isExcel = /\.(xlsx|xls)$/i.test(file.name);
         const reader = new FileReader();
         reader.onload = (ev) => {
-            const rows = parseCSV(ev.target.result).map(csvRowToActivity);
-            setCsvRows(rows);
+            if (isExcel) {
+                const workbook = XLSX.read(ev.target.result, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+                // Normalizar claves a minúsculas para que funcione csvRowToActivity
+                const rows = json.map((row) => {
+                    const normalized = {};
+                    for (const k of Object.keys(row)) normalized[k.toLowerCase().trim()] = String(row[k]);
+                    return csvRowToActivity(normalized);
+                }).filter((r) => r.title);
+                setCsvRows(rows);
+            } else {
+                const rows = parseCSV(ev.target.result).map(csvRowToActivity);
+                setCsvRows(rows);
+            }
         };
-        reader.readAsText(file, 'UTF-8');
+        if (isExcel) {
+            reader.readAsArrayBuffer(file);
+        } else {
+            reader.readAsText(file, 'UTF-8');
+        }
     };
 
     const handleBulkImport = async () => {
@@ -313,10 +326,9 @@ export default function AdminActividadesPage() {
     };
 
     const downloadTemplate = () => {
-        const blob = new Blob([CSV_TEMPLATE], { type: 'text/csv;charset=utf-8;' });
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'plantilla_actividades.csv';
+        a.href = '/plantilla_actividades_docente.xlsx';
+        a.download = 'plantilla_actividades_docente.xlsx';
         a.click();
     };
 
@@ -386,11 +398,11 @@ export default function AdminActividadesPage() {
 
     return (
         <AdminLayout>
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-5xl mx-auto overflow-x-hidden">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                    <Heading level="h1">Actividades Educativas</Heading>
-                    <div className="flex gap-2 flex-wrap">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                    <Heading level="h3">Actividades Educativas</Heading>
+                    <div className="flex gap-2 flex-wrap w-full sm:w-auto">
                         <Button onClick={() => { resetCreateForm(); setShowCreateForm(true); setShowBulkImport(false); }} variant="primary" size="sm">
                             + Nueva actividad
                         </Button>
@@ -407,22 +419,22 @@ export default function AdminActividadesPage() {
 
                 {/* ── Importación CSV ── */}
                 {showBulkImport && (
-                    <div className="bg-white border border-neutral-200 rounded-xl p-5 mb-6 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <Heading level="h3">Importar actividades desde CSV</Heading>
+                    <div className="bg-white border border-neutral-200 rounded-xl p-4 sm:p-5 mb-6 space-y-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <Heading level="h5">Importar actividades desde CSV</Heading>
                             <button type="button" onClick={downloadTemplate}
-                                className="text-xs text-blue-600 hover:underline cursor-pointer">
+                                className="text-xs text-blue-600 hover:underline cursor-pointer flex-shrink-0">
                                 Descargar plantilla
                             </button>
                         </div>
 
                         <p className="text-sm text-neutral-500">
-                            El CSV debe tener las columnas: <code className="bg-neutral-100 px-1 rounded text-xs">titulo, descripcion, tipo, grados, url_externa</code>.
-                            Los grados van separados por coma dentro de comillas: <code className="bg-neutral-100 px-1 rounded text-xs">"1,2,3"</code>.
+                            El archivo debe tener las columnas: <code className="bg-neutral-100 px-1 rounded text-xs">titulo, descripcion, tipo, grados, url_externa</code>.
+                            Los grados van separados por coma: <code className="bg-neutral-100 px-1 rounded text-xs">1,2,3</code>.
                             Tipos válidos: {VALID_TYPES.join(', ')}.
                         </p>
 
-                        <input ref={csvFileRef} type="file" accept=".csv,text/csv"
+                        <input ref={csvFileRef} type="file" accept=".csv,.xlsx,.xls,text/csv"
                             onChange={handleCSVFile}
                             className="text-sm text-neutral-500 file:mr-4 file:py-2 file:px-4
                                 file:rounded-lg file:border-0 file:text-sm file:font-medium
@@ -474,8 +486,8 @@ export default function AdminActividadesPage() {
 
                 {/* ── Formulario crear actividad ── */}
                 {showCreateForm && (
-                    <form onSubmit={handleCreateSubmit} className="bg-white border border-neutral-200 rounded-xl p-5 mb-6 space-y-4">
-                        <Heading level="h3">Nueva Actividad</Heading>
+                    <form onSubmit={handleCreateSubmit} className="bg-white border border-neutral-200 rounded-xl p-4 sm:p-5 mb-6 space-y-4">
+                        <Heading level="h5">Nueva Actividad</Heading>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField label="Título" value={createForm.title} required maxLength={200}
@@ -524,7 +536,7 @@ export default function AdminActividadesPage() {
                                     {imgSuggestions.length > 0 && (
                                         <div>
                                             <p className="text-xs text-neutral-500 mb-2">Selecciona una imagen:</p>
-                                            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                                 {imgSuggestions.map((img, i) => (
                                                     <button key={i} type="button"
                                                         onClick={() => { setCreateForm((f) => ({ ...f, imageUrl: img.url })); setImgSuggestions([]); }}
@@ -608,14 +620,27 @@ export default function AdminActividadesPage() {
                 )}
 
                 {/* ── Tabs ── */}
-                <div className="flex gap-1 mb-6 bg-neutral-100 rounded-lg p-1 w-full sm:w-fit overflow-x-auto">
+                {/* Mobile: select dropdown */}
+                <div className="mb-6 md:hidden">
+                    <select
+                        value={tab}
+                        onChange={(e) => setTab(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg bg-white text-neutral-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    >
+                        <option value="actividades">Aprobadas ({activities.length})</option>
+                        <option value="pendientes">Pendientes ({pendingActivities.length})</option>
+                        <option value="fuentes">RSS ({sources.length})</option>
+                    </select>
+                </div>
+                {/* Desktop: pill buttons */}
+                <div className="hidden md:flex gap-1 mb-6 bg-neutral-100 rounded-lg p-1">
                     {[
                         { key: 'actividades', label: `Aprobadas (${activities.length})` },
-                        { key: 'pendientes',  label: `Pendientes (${pendingActivities.length})` },
-                        { key: 'fuentes',     label: `RSS (${sources.length})` },
+                        { key: 'pendientes', label: `Pendientes (${pendingActivities.length})` },
+                        { key: 'fuentes', label: `RSS (${sources.length})` },
                     ].map((t) => (
                         <button key={t.key} type="button" onClick={() => setTab(t.key)}
-                            className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors cursor-pointer whitespace-nowrap flex-1 sm:flex-none
+                            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer
                                 ${tab === t.key ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-700'}`}>
                             {t.label}
                         </button>
@@ -655,33 +680,31 @@ export default function AdminActividadesPage() {
                         ) : (
                             <div className="space-y-2">
                                 {pendingActivities.map((act) => (
-                                    <div key={act._id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg border border-yellow-200 bg-yellow-50/50">
-                                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-neutral-100 overflow-hidden shrink-0">
-                                                {act.imageUrl
-                                                    ? <img src={act.imageUrl} alt="" className="w-full h-full object-cover" />
-                                                    : <PlaceholderIcon />}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-neutral-900 truncate">{act.title}</p>
-                                                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                                    <Badge variant="warning" size="sm">Pendiente</Badge>
-                                                    <Badge variant="info" size="sm">
-                                                        {typeOptions.find((t) => t.value === act.type)?.label || act.type}
-                                                    </Badge>
-                                                </div>
-                                            </div>
+                                    <div key={act._id} className="flex gap-3 p-3 rounded-lg border border-yellow-200 bg-yellow-50/50">
+                                        <div className="w-10 h-10 rounded-lg bg-neutral-100 overflow-hidden shrink-0 self-start mt-0.5">
+                                            {act.imageUrl
+                                                ? <img src={act.imageUrl} alt="" className="w-full h-full object-cover" />
+                                                : <PlaceholderIcon />}
                                         </div>
-                                        <div className="flex items-center gap-1.5 shrink-0 ml-13 sm:ml-0">
-                                            <button type="button" onClick={() => handleApprove(act._id)}
-                                                className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700 transition-colors cursor-pointer">
-                                                Aprobar
-                                            </button>
-                                            <button type="button" onClick={() => handleReject(act._id)}
-                                                className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100 transition-colors cursor-pointer">
-                                                Rechazar
-                                            </button>
-                                            {act.externalUrl && <ExternalLink href={act.externalUrl} />}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-neutral-900 truncate">{act.title}</p>
+                                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                <Badge variant="warning" size="sm">Pendiente</Badge>
+                                                <Badge variant="info" size="sm">
+                                                    {typeOptions.find((t) => t.value === act.type)?.label || act.type}
+                                                </Badge>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 mt-2">
+                                                <button type="button" onClick={() => handleApprove(act._id)}
+                                                    className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700 transition-colors cursor-pointer">
+                                                    Aprobar
+                                                </button>
+                                                <button type="button" onClick={() => handleReject(act._id)}
+                                                    className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100 transition-colors cursor-pointer">
+                                                    Rechazar
+                                                </button>
+                                                {act.externalUrl && <ExternalLink href={act.externalUrl} />}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -700,8 +723,8 @@ export default function AdminActividadesPage() {
                         </div>
 
                         {showSourceForm && (
-                            <form onSubmit={handleSourceSubmit} className="bg-white border border-neutral-200 rounded-xl p-5 mb-6 space-y-4">
-                                <Heading level="h3">{editingSource ? 'Editar fuente' : 'Nueva fuente RSS'}</Heading>
+                            <form onSubmit={handleSourceSubmit} className="bg-white border border-neutral-200 rounded-xl p-4 sm:p-5 mb-6 space-y-4">
+                                <Heading level="h5">{editingSource ? 'Editar fuente' : 'Nueva fuente RSS'}</Heading>
 
                                 <FormField label="Nombre" value={sourceForm.name} required
                                     onChange={(e) => setSourceForm((f) => ({ ...f, name: e.target.value }))}
@@ -709,15 +732,15 @@ export default function AdminActividadesPage() {
 
                                 <div className="flex flex-col gap-1.5">
                                     <label className="block text-sm font-medium text-neutral-700">URL del feed RSS</label>
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-wrap gap-2">
                                         <input type="url" value={sourceForm.url} required
                                             onChange={(e) => { setSourceForm((f) => ({ ...f, url: e.target.value })); setValidateResult(null); }}
                                             placeholder="https://ejemplo.com/feed"
-                                            className="flex-1 px-3 py-2 border border-neutral-200 rounded-lg text-sm
+                                            className="flex-1 min-w-0 px-3 py-2 border border-neutral-200 rounded-lg text-sm
                                                 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent" />
                                         <button type="button" onClick={handleValidateUrl}
                                             disabled={validating || !sourceForm.url.trim()}
-                                            className="px-3 py-2 text-sm font-medium bg-neutral-100 text-neutral-700 rounded-lg
+                                            className="flex-shrink-0 px-3 py-2 text-sm font-medium bg-neutral-100 text-neutral-700 rounded-lg
                                                 hover:bg-neutral-200 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap">
                                             {validating ? 'Probando...' : 'Probar URL'}
                                         </button>
@@ -854,38 +877,34 @@ function ExternalLink({ href }) {
 
 function ActivityRow({ activity: act, onToggleActive, onDelete }) {
     return (
-        <div className={`flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg border transition-colors
-            ${act.isActive ? 'bg-white border-neutral-200' : 'bg-neutral-50 border-neutral-100 opacity-60'}`}>
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-neutral-100 overflow-hidden shrink-0">
-                    {act.imageUrl ? <img src={act.imageUrl} alt="" className="w-full h-full object-cover" /> : <PlaceholderIcon />}
-                </div>
-                <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-neutral-900 truncate">{act.title}</p>
-                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                        <Badge variant={statusConfig[act.status]?.variant || 'default'} size="sm">
-                            {statusConfig[act.status]?.label || act.status}
-                        </Badge>
-                        <Badge variant="info" size="sm">
-                            {typeOptions.find((t) => t.value === act.type)?.label || act.type}
-                        </Badge>
-                        <span className="text-[0.65rem] text-neutral-400">{act.sourceType === 'rss' ? 'RSS' : 'Manual'}</span>
-                        {act.fileUrl && <Badge variant="warning" size="sm">PDF</Badge>}
-                    </div>
+        <div className={`flex items-center gap-4 p-4 bg-white border rounded-lg transition-colors
+            ${act.isActive ? 'border-neutral-200' : 'border-neutral-100 opacity-60'}`}>
+
+            <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-neutral-900 truncate">{act.title}</p>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <Badge variant={act.isActive ? 'success' : 'default'} size="sm">
+                        {act.isActive ? 'Activa' : 'Inactiva'}
+                    </Badge>
+                    <Badge variant="info" size="sm">
+                        {typeOptions.find((t) => t.value === act.type)?.label || act.type}
+                    </Badge>
+                    <span className="text-[0.65rem] text-neutral-400">{act.sourceType === 'rss' ? 'RSS' : 'Manual'}</span>
+                    {act.fileUrl && <Badge variant="warning" size="sm">PDF</Badge>}
                 </div>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0 ml-13 sm:ml-0">
+
+            <div className="flex items-center gap-1 shrink-0">
                 <button type="button" onClick={onToggleActive} title={act.isActive ? 'Desactivar' : 'Activar'}
-                    className={`p-1.5 rounded cursor-pointer transition-colors ${act.isActive ? 'text-green-500' : 'text-neutral-300 hover:text-green-400'}`}>
+                    className={`p-1.5 rounded cursor-pointer transition-colors ${act.isActive ? 'text-green-500 hover:text-green-600' : 'text-neutral-300 hover:text-green-400'}`}>
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         {act.isActive
                             ? <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            : <path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        }
+                            : <path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />}
                     </svg>
                 </button>
                 <button type="button" onClick={onDelete} title="Eliminar"
-                    className="p-1.5 rounded text-neutral-300 hover:text-red-500 cursor-pointer transition-colors">
+                    className="p-1.5 rounded text-neutral-400 hover:text-red-500 cursor-pointer transition-colors">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>

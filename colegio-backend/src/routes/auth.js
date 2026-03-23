@@ -10,6 +10,9 @@ import {
     updateUser,
     deleteUser,
     verifyToken,
+    forgotPassword,
+    resetPassword,
+    adminResetPassword,
 } from '../controllers/authController.js';
 import { protect, authorize } from '../middleware/auth.js';
 import { loginLimiter } from '../middleware/rateLimit.js';
@@ -23,20 +26,23 @@ import {
 
 const router = express.Router();
 
-// Rutas públicas (login con rate limit + validación)
+// Públicas
 router.post('/login', loginLimiter, validateLogin, login);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password/:token', resetPassword);
 
-// Rutas privadas - perfil propio
+// Perfil propio
 router.get('/me', protect, getMe);
 router.get('/verify', protect, verifyToken);
 router.put('/profile', protect, validateUpdateProfile, updateProfile);
 router.put('/change-password', protect, validateChangePassword, changePassword);
 
-// Rutas solo admin
+// Gestión de usuarios (admin o superior)
 router.post('/register', protect, authorize('admin'), validateRegister, register);
 router.get('/users', protect, authorize('admin'), getAllUsers);
 router.get('/users/:id', protect, authorize('admin'), validateObjectId, getUserById);
 router.put('/users/:id', protect, authorize('admin'), validateObjectId, updateUser);
 router.delete('/users/:id', protect, authorize('admin'), validateObjectId, deleteUser);
+router.put('/users/:id/reset-password', protect, authorize('admin'), validateObjectId, adminResetPassword);
 
 export default router;

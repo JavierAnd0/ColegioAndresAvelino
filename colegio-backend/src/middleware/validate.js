@@ -19,7 +19,7 @@ export const validateLogin = [
     .trim()
     .notEmpty().withMessage('El email es obligatorio')
     .isEmail().withMessage('Ingresa un email válido')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false, gmail_remove_subaddress: false }),
   body('password')
     .notEmpty().withMessage('La contraseña es obligatoria'),
   runValidation,
@@ -36,13 +36,13 @@ export const validateRegister = [
     .trim()
     .notEmpty().withMessage('El email es obligatorio')
     .isEmail().withMessage('Ingresa un email válido')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false, gmail_remove_subaddress: false }),
   body('password')
     .notEmpty().withMessage('La contraseña es obligatoria')
     .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
   body('role')
     .optional()
-    .isIn(['admin', 'editor', 'author']).withMessage('Rol no válido'),
+    .isIn(['superadmin', 'admin']).withMessage('Rol no válido. Debe ser: superadmin o admin'),
   runValidation,
 ];
 
@@ -57,7 +57,7 @@ export const validateUpdateProfile = [
     .optional()
     .trim()
     .isEmail().withMessage('Ingresa un email válido')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false, gmail_remove_subaddress: false }),
   body('bio')
     .optional()
     .trim()

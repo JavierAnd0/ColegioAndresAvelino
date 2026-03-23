@@ -9,6 +9,8 @@ import {
     uploadBlogImage,
     uploadAvatar,
     uploadHonorImage,
+    uploadCarouselImage,
+    uploadHeroImage,
 } from '../config/cloudinary.js';
 import { cloudinary } from '../config/cloudinary.js';
 import { protect, authorize } from '../middleware/auth.js';
@@ -50,6 +52,50 @@ router.post(
             });
         } catch (error) {
             res.status(500).json({ success: false, message: 'Error al subir la foto' });
+        }
+    }
+);
+
+// Subir imagen para el carousel del home
+router.post(
+    '/carousel',
+    protect,
+    authorize('admin'),
+    uploadCarouselImage.single('image'),
+    async (req, res) => {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ success: false, message: 'No se proporcionó ninguna imagen.' });
+            }
+            res.json({
+                success: true,
+                message: 'Imagen subida exitosamente',
+                data: { url: req.file.path, publicId: req.file.filename },
+            });
+        } catch {
+            res.status(500).json({ success: false, message: 'Error al subir la imagen' });
+        }
+    }
+);
+
+// Subir imagen para el hero del home
+router.post(
+    '/hero',
+    protect,
+    authorize('admin'),
+    uploadHeroImage.single('image'),
+    async (req, res) => {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ success: false, message: 'No se proporcionó ninguna imagen.' });
+            }
+            res.json({
+                success: true,
+                message: 'Imagen subida exitosamente',
+                data: { url: req.file.path, publicId: req.file.filename },
+            });
+        } catch {
+            res.status(500).json({ success: false, message: 'Error al subir la imagen' });
         }
     }
 );

@@ -5,21 +5,29 @@ import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import Button from '@/components/atoms/Button';
 import Spinner from '@/components/atoms/Spinner';
-import { LuLayoutDashboard, LuTrophy, LuGraduationCap, LuCalendar, LuBookOpen, LuFileText, LuUsers, LuGlobe } from 'react-icons/lu';
+import { LuLayoutDashboard, LuTrophy, LuGraduationCap, LuCalendar, LuBookOpen, LuFileText, LuUsers, LuGlobe, LuImages } from 'react-icons/lu';
 
 const sidebarLinks = [
-    { label: 'Dashboard', href: '/admin', Icon: LuLayoutDashboard },
+    { label: 'Dashboard',       href: '/admin',              Icon: LuLayoutDashboard },
+    { label: 'Carousel',        href: '/admin/carousel',     Icon: LuImages },
     { label: 'Cuadro de Honor', href: '/admin/cuadro-honor', Icon: LuTrophy },
-    { label: 'Grados', href: '/admin/grados', Icon: LuGraduationCap },
-    { label: 'Eventos', href: '/admin/eventos', Icon: LuCalendar },
-    { label: 'Blog', href: '/admin/blog', Icon: LuFileText },
-    { label: 'Actividades', href: '/admin/actividades', Icon: LuBookOpen },
-    { label: 'Docentes', href: '/admin/docentes', Icon: LuUsers },
-    { label: 'Ver sitio', href: '/', Icon: LuGlobe },
+    { label: 'Grados',          href: '/admin/grados',       Icon: LuGraduationCap },
+    { label: 'Eventos',         href: '/admin/eventos',      Icon: LuCalendar },
+    { label: 'Blog',            href: '/admin/blog',         Icon: LuFileText },
+    { label: 'Actividades',     href: '/admin/actividades',  Icon: LuBookOpen },
+    { label: 'Docentes',        href: '/admin/docentes',     Icon: LuUsers },
+    { label: 'Ver sitio',       href: '/',                   Icon: LuGlobe },
 ];
 
+const ROLE_LABELS = {
+    superadmin: { label: 'Super Admin', className: 'bg-violet-100 text-violet-700' },
+    admin:      { label: 'Docente',     className: 'bg-neutral-200 text-neutral-600' },
+};
+
 export default function AdminLayout({ children }) {
-    const { user, loading, isAuthenticated, logout } = useAuth();
+    const { user, loading, isAuthenticated, isAdmin, isSuperAdmin, logout } = useAuth();
+
+    const allLinks = sidebarLinks;
     const router = useRouter();
     const pathname = usePathname();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -52,7 +60,9 @@ export default function AdminLayout({ children }) {
             <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-neutral-200 h-14 flex items-center justify-between px-4">
                 <Link href="/" className="flex items-center gap-2">
                     <div className="h-7 w-7 bg-neutral-900 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-xs">C</span>
+                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
                     </div>
                     <span className="font-bold text-neutral-900 text-sm">Admin</span>
                 </Link>
@@ -88,7 +98,7 @@ export default function AdminLayout({ children }) {
                 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
                 <nav className="flex-1 px-3 py-4 flex flex-col gap-1">
-                    {sidebarLinks.map((link) => (
+                    {allLinks.map((link) => (
                         <Link
                             key={link.href}
                             href={link.href}
@@ -115,7 +125,9 @@ export default function AdminLayout({ children }) {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-neutral-900 truncate">{user.name}</p>
-                                <p className="text-xs text-neutral-500 truncate">{user.role}</p>
+                                <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${ROLE_LABELS[user.role]?.className || 'bg-neutral-100 text-neutral-500'}`}>
+                                    {ROLE_LABELS[user.role]?.label || user.role}
+                                </span>
                             </div>
                         </div>
                         <Button variant="ghost" size="sm" className="w-full" onClick={logout}>
@@ -137,7 +149,7 @@ export default function AdminLayout({ children }) {
                 </div>
 
                 <nav className="flex-1 px-3 py-4 flex flex-col gap-1">
-                    {sidebarLinks.map((link) => (
+                    {allLinks.map((link) => (
                         <Link
                             key={link.href}
                             href={link.href}
@@ -164,7 +176,9 @@ export default function AdminLayout({ children }) {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-neutral-900 truncate">{user.name}</p>
-                                <p className="text-xs text-neutral-500 truncate">{user.role}</p>
+                                <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${ROLE_LABELS[user.role]?.className || 'bg-neutral-100 text-neutral-500'}`}>
+                                    {ROLE_LABELS[user.role]?.label || user.role}
+                                </span>
                             </div>
                         </div>
                         <Button variant="ghost" size="sm" className="w-full" onClick={logout}>
@@ -175,7 +189,7 @@ export default function AdminLayout({ children }) {
             </aside>
 
             {/* Main content */}
-            <div className="flex-1 md:ml-60">
+            <div className="flex-1 md:ml-60 min-w-0 overflow-x-hidden">
                 <main className="p-4 pt-18 md:p-6 md:pt-6">{children}</main>
             </div>
         </div>

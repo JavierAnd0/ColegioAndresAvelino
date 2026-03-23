@@ -2,6 +2,7 @@
 import EventCard from '@/components/molecules/EventCard';
 import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
+import { LuCalendarOff } from 'react-icons/lu';
 
 export default function EventDetailPanel({ date, events = [], onClose }) {
     if (!date) return null;
@@ -36,7 +37,7 @@ export default function EventDetailPanel({ date, events = [], onClose }) {
             <div className="p-5">
                 {events.length === 0 ? (
                     <div className="text-center py-8">
-                        <span className="text-3xl block mb-2">📭</span>
+                        <LuCalendarOff className="w-8 h-8 text-neutral-300 mx-auto mb-2" />
                         <Paragraph color="muted">Sin eventos programados para este día.</Paragraph>
                     </div>
                 ) : (

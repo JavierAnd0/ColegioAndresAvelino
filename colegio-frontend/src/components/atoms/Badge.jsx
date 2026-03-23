@@ -1,9 +1,11 @@
 const variants = {
-  default: 'bg-neutral-100 text-neutral-700',
-  success: 'bg-green-100 text-green-700',
-  warning: 'bg-yellow-100 text-yellow-700',
-  danger: 'bg-red-100 text-red-700',
-  info: 'bg-blue-100 text-blue-700',
+  default:  'bg-neutral-100 text-neutral-600',
+  success:  'bg-brand-100 text-brand-700',
+  warning:  'bg-yellow-100 text-yellow-700',
+  danger:   'bg-red-100 text-red-700',
+  info:     'bg-blue-100 text-blue-700',
+  brand:    'bg-brand-600 text-white',
+  yellow:   'bg-yellow-400 text-yellow-900',
 };
 
 const sizes = {
@@ -20,7 +22,7 @@ export default function Badge({
   return (
     <span
       className={`
-        inline-flex items-center font-mono font-medium rounded-full uppercase tracking-wide
+        inline-flex items-center font-mono font-bold rounded-full uppercase tracking-wide
         ${variants[variant]}
         ${sizes[size]}
         ${className}

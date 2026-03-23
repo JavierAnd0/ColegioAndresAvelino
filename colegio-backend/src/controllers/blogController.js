@@ -146,7 +146,7 @@ export const createPost = async (req, res) => {
 
     // Auto-asignar imagen si no se subió una
     if (!req.body.featuredImage?.url) {
-      const autoImg = await getAutoImage(req.body.category, req.body.title);
+      const autoImg = await getAutoImage(req.body.category, req.body.title, req.body.excerpt || '');
       if (autoImg) {
         req.body.featuredImage = autoImg;
       }
@@ -480,11 +480,16 @@ export const getPostsByTag = async (req, res) => {
 // @access  Private (admin/editor/author)
 export const suggestImages = async (req, res) => {
   try {
+<<<<<<< HEAD
     const { category = 'general', title = '', count = 3, context = 'blog' } = req.query;
     const n = Math.min(parseInt(count) || 3, 6);
     const images = context === 'activity'
         ? await suggestActivityImages(category, title, n)
         : await suggestBlogImages(category, title, n);
+=======
+    const { category = 'general', title = '', count = 6, page = 1 } = req.query;
+    const images = await suggestBlogImages(category, title, Math.min(parseInt(count) || 6, 9), Math.max(parseInt(page) || 1, 1));
+>>>>>>> ad7b6f99f1149fa8ce3ad2dfaf8d5ad181e0d831
 
     res.status(200).json({
       success: true,
