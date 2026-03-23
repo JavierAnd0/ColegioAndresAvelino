@@ -40,14 +40,14 @@ export function AuthProvider({ children }) {
     };
 
     const isAuthenticated = !!token && !!user;
-    const isAdmin = user?.role === 'admin';
-    const isEditor = user?.role === 'editor' || isAdmin;
+    const isSuperAdmin = user?.role === 'superadmin';
+    const isAdmin = user?.role === 'admin' || isSuperAdmin;
 
     return (
         <AuthContext.Provider value={{
             user, token, loading,
             login, logout,
-            isAuthenticated, isAdmin, isEditor,
+            isAuthenticated, isAdmin, isSuperAdmin,
         }}>
             {children}
         </AuthContext.Provider>

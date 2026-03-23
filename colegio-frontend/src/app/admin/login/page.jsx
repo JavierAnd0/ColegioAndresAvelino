@@ -58,6 +58,11 @@ export default function AdminLoginPage() {
                         <FormField label="Contraseña" name="password" type="password"
                             placeholder="••••••••"
                             value={form.password} onChange={handleChange} required />
+                        <div className="flex justify-end">
+                            <Link href="/admin/login/forgot-password" className="text-xs text-neutral-500 hover:text-neutral-800">
+                                ¿Olvidaste tu contraseña?
+                            </Link>
+                        </div>
                         <Button type="submit" variant="primary" size="lg"
                             loading={loading} className="w-full mt-2">
                             {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}

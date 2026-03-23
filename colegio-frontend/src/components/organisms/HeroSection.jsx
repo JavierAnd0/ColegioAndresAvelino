@@ -1,71 +1,112 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Button from '@/components/atoms/Button';
-import Heading from '@/components/atoms/Typography/Heading';
-import Paragraph from '@/components/atoms/Typography/Paragraph';
+import { heroService } from '@/services/heroService';
+import { LuBookOpen, LuClipboardList, LuMonitor } from 'react-icons/lu';
+
+const quickLinks = [
+    { label: 'Ingreso Académico',    Icon: LuBookOpen,      href: '/admisiones' },
+    { label: 'Manual de Convivencia', Icon: LuClipboardList, href: '/manual-convivencia' },
+    { label: 'Plataforma de Notas',  Icon: LuMonitor,       href: '/notas' },
+];
 
 export default function HeroSection({
-    title = 'Bienvenidos a Nuestro Colegio',
-    subtitle = 'Formando líderes del futuro con valores, conocimiento y compromiso social.',
-    primaryCTA = { label: 'Ver Blog', href: '/blog' },
-    secondaryCTA = { label: 'Ver Calendario', href: '/calendario' },
+    subtitle = 'Una institución educativa comprometida con la excelencia, los valores y el desarrollo integral de cada estudiante.',
 }) {
+    const [heroImg, setHeroImg]     = useState('');
+    const [imgLoaded, setImgLoaded] = useState(false);
+
+    useEffect(() => {
+        heroService.get()
+            .then(res => { if (res.data?.image?.url) setHeroImg(res.data.image.url); })
+            .catch(() => {});
+    }, []);
+
     return (
-        <section className="min-h-[90vh] flex items-center bg-neutral-50">
-            <div className="max-w-6xl mx-auto px-4 py-20 grid md:grid-cols-2 gap-12 items-center">
+        <section className="relative min-h-screen flex flex-col overflow-hidden bg-neutral-950">
 
-                {/* Texto */}
-                <div className="flex flex-col gap-6">
-                    <span className="inline-flex items-center gap-2 text-xs font-mono font-medium text-neutral-500 bg-neutral-100 px-3 py-1.5 rounded-full w-fit uppercase tracking-wide">
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                        Institución Educativa
-                    </span>
+            {/* ── Imagen de fondo ── */}
+            {heroImg && (
+                <img
+                    src={heroImg}
+                    alt=""
+                    aria-hidden
+                    onLoad={() => setImgLoaded(true)}
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000
+                        ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                />
+            )}
 
-                    <Heading level="h1" className="leading-tight">
-                        {title}
-                    </Heading>
+            {/* ── Gradientes de legibilidad ── */}
+            <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/80 to-neutral-950/25 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-transparent to-neutral-950/50 pointer-events-none" />
 
-                    <Paragraph size="lg" color="muted">
-                        {subtitle}
-                    </Paragraph>
+            {/* ── Patrón de puntos ── */}
+            <div className="absolute inset-0 dot-pattern opacity-[0.04] pointer-events-none" />
 
-                    <div className="flex flex-wrap gap-3 pt-2">
-                        <Link href={primaryCTA.href}>
-                            <Button variant="primary" size="lg">
-                                {primaryCTA.label}
-                            </Button>
-                        </Link>
-                        <Link href={secondaryCTA.href}>
-                            <Button variant="outline" size="lg">
-                                {secondaryCTA.label}
-                            </Button>
-                        </Link>
-                    </div>
+            {/* ── Blobs de color (solo sin imagen) ── */}
+            {!heroImg && (
+                <>
+                    <div className="absolute -top-60 right-0 w-[700px] h-[700px] bg-brand-700 rounded-full opacity-[0.10] blur-3xl pointer-events-none" />
+                    <div className="absolute bottom-0 -left-40 w-[500px] h-[500px] bg-brand-900 rounded-full opacity-25 blur-3xl pointer-events-none" />
+                </>
+            )}
 
-                    {/* Stats */}
-                    <div className="flex flex-wrap gap-6 pt-4 border-t border-neutral-200">
-                        {[
-                            { value: '+500', label: 'Estudiantes' },
-                            { value: '+40', label: 'Docentes' },
-                            { value: '25+', label: 'Años de experiencia' },
-                        ].map((stat) => (
-                            <div key={stat.label} className="flex flex-col">
-                                <span className="text-2xl font-mono font-bold text-neutral-900">{stat.value}</span>
-                                <span className="text-sm text-neutral-500">{stat.label}</span>
+            {/* ── Contenido principal ── */}
+            <div className="flex-1 flex items-center relative z-10">
+                <div className="max-w-6xl mx-auto px-6 py-28 w-full">
+                    <div className="max-w-2xl flex flex-col gap-8">
+
+                        {/* Título */}
+                        <div className="animate-fade-in-up flex flex-col gap-5">
+                            <h1 className="font-display font-black leading-[1.02] tracking-tight"
+                                style={{ fontSize: 'clamp(2.8rem, 6vw, 5.5rem)' }}>
+                                <span className="text-white">Andres Avelino </span>
+                                <span className="gradient-text">Longas</span>
+                            </h1>
+                            <div className="flex items-center gap-2">
+                                <div className="h-[3px] w-14 bg-brand-500 rounded-full" />
+                                <div className="h-[3px] w-7  bg-yellow-400 rounded-full" />
+                                <div className="h-[3px] w-3.5 bg-brand-800 rounded-full" />
                             </div>
+                        </div>
+
+                        {/* Subtítulo */}
+                        <p className="animate-fade-in-up-d2 text-neutral-300 leading-relaxed"
+                            style={{ fontSize: 'clamp(1rem, 1.5vw, 1.2rem)' }}>
+                            {subtitle}
+                        </p>
+
+
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Accesos rápidos ── */}
+            <div className="relative z-10 border-t border-white/[0.08] bg-neutral-950/65 backdrop-blur-md">
+                <div className="max-w-6xl mx-auto px-6 py-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {quickLinks.map(({ label, Icon, href }) => (
+                            <Link key={label} href={href}
+                                className="group flex flex-col items-center justify-center gap-2 rounded-xl px-4 py-4 border border-white/[0.08] hover:border-brand-500/40 hover:bg-white/[0.04] transition-all duration-200 text-center">
+                                <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center group-hover:bg-brand-500/20 transition-colors">
+                                    <Icon className="w-5 h-5 text-brand-400" />
+                                </div>
+                                <p className="font-display font-bold text-white text-sm leading-snug">{label}</p>
+                            </Link>
                         ))}
                     </div>
                 </div>
-
-                {/* Imagen / Placeholder visual */}
-                <div className="relative hidden md:flex items-center justify-center">
-                    <div className="w-full aspect-square max-w-md bg-neutral-200 rounded-2xl flex items-center justify-center">
-                        <Paragraph color="muted">
-                            Imagen del colegio
-                        </Paragraph>
-                    </div>
-
-                </div>
             </div>
+
+            {/* ── Wave de salida ── */}
+            <div className="relative z-10 leading-[0]">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 56" className="w-full fill-neutral-950">
+                    <path d="M0,56 L0,28 C240,56 480,0 720,20 C960,40 1200,8 1440,28 L1440,56 Z" />
+                </svg>
+            </div>
+
         </section>
     );
 }

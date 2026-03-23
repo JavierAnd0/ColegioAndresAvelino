@@ -114,27 +114,40 @@ export default function EventCalendar({
             {/* Header del calendario */}
             <div className="flex flex-col gap-6 mb-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <Heading level="h2">Calendario de Eventos</Heading>
+                    <div>
+                        <span className="text-xs font-mono font-bold text-brand-600 uppercase tracking-widest block mb-1">
+                            Agenda mensual
+                        </span>
+                        <Heading level="h2">Eventos</Heading>
+                    </div>
 
                     <div className="flex items-center gap-3 flex-wrap">
                         {/* Toggle de vista */}
                         <ViewToggle viewMode={viewMode} onChange={handleViewChange} />
 
                         {/* Navegación de mes */}
-                        <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm" onClick={handlePrevMonth}>
+                        <div className="flex items-center gap-2 bg-white border border-neutral-200 rounded-xl p-1">
+                            <button
+                                onClick={handlePrevMonth}
+                                className="h-8 w-8 rounded-lg flex items-center justify-center text-neutral-500
+                                    hover:bg-neutral-100 hover:text-neutral-900 transition-colors cursor-pointer"
+                            >
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                     <path d="M10 4l-4 4 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
-                            </Button>
-                            <span className="font-mono text-sm font-semibold text-neutral-900 min-w-32 text-center">
+                            </button>
+                            <span className="font-mono text-sm font-bold text-neutral-900 min-w-36 text-center">
                                 {MONTHS[currentMonth]} {currentYear}
                             </span>
-                            <Button variant="outline" size="sm" onClick={handleNextMonth}>
+                            <button
+                                onClick={handleNextMonth}
+                                className="h-8 w-8 rounded-lg flex items-center justify-center text-neutral-500
+                                    hover:bg-neutral-100 hover:text-neutral-900 transition-colors cursor-pointer"
+                            >
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                     <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
-                            </Button>
+                            </button>
                         </div>
                     </div>
                 </div>

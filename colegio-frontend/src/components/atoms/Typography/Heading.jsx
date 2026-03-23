@@ -15,7 +15,7 @@ export default function Heading({
     const Tag = level;
 
     return (
-        <Tag className={`font-mono text-neutral-900 leading-tight tracking-tight ${sizes[level]} ${className}`}>
+        <Tag className={`font-display text-neutral-900 leading-tight tracking-tight ${sizes[level]} ${className}`}>
             {children}
         </Tag>
     );

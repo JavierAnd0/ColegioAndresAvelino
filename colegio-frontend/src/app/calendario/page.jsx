@@ -6,8 +6,6 @@ import { eventService } from '@/services/eventService';
 
 export default function CalendarioPage() {
     const now = new Date();
-
-    // Guardamos mes como 1-12 (no 0-11)
     const [month, setMonth] = useState(now.getMonth() + 1);
     const [year, setYear] = useState(now.getFullYear());
     const [events, setEvents] = useState([]);
@@ -17,10 +15,7 @@ export default function CalendarioPage() {
     const fetchEvents = async (y, m) => {
         setLoading(true);
         try {
-            console.log(`Fetching events for ${y}/${m}`); // ← debug
             const data = await eventService.getByMonth(y, m);
-            console.log('Events received:', data);         // ← debug
-
             let filtered = data.data || [];
             if (activeCategory !== 'all') {
                 filtered = filtered.filter(e => e.category === activeCategory);
@@ -33,13 +28,8 @@ export default function CalendarioPage() {
         }
     };
 
-    // Cargar eventos cuando cambie mes, año o categoría
-    useEffect(() => {
-        fetchEvents(year, month);
-    }, [month, year, activeCategory]);
+    useEffect(() => { fetchEvents(year, month); }, [month, year, activeCategory]);
 
-    // EventCalendar llama esto con (monthIndex 0-11, year)
-    // Nosotros guardamos mes como 1-12, así que sumamos 1
     const handleMonthChange = (monthIndex, newYear) => {
         setMonth(monthIndex + 1);
         setYear(newYear);
@@ -47,6 +37,31 @@ export default function CalendarioPage() {
 
     return (
         <MainLayout>
+            {/* ── Hero ── */}
+            <section className="relative bg-neutral-950 overflow-hidden py-24">
+                <div className="absolute inset-0 dot-pattern opacity-10 pointer-events-none" />
+                <div className="absolute -top-32 -right-32 w-96 h-96 bg-brand-900 opacity-20 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-yellow-900 opacity-10 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="max-w-6xl mx-auto px-4 relative z-10">
+                    <span className="text-xs font-mono font-bold text-brand-400 uppercase tracking-widest block mb-4">
+                        Agenda institucional
+                    </span>
+                    <h1 className="font-display text-5xl md:text-6xl font-black text-white mb-5">
+                        Calendario de <span className="gradient-text">Eventos</span>
+                    </h1>
+                    <p className="text-neutral-400 text-lg max-w-xl">
+                        Consulta todos los eventos, reuniones y actividades programadas por nuestra institución.
+                    </p>
+                </div>
+
+                <div className="absolute bottom-0 left-0 right-0 pointer-events-none leading-[0]">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 60" className="w-full fill-white">
+                        <path d="M0,60 L0,30 C360,0 720,60 1080,30 C1260,15 1380,30 1440,20 L1440,60 Z" />
+                    </svg>
+                </div>
+            </section>
+
             <EventCalendar
                 events={events}
                 loading={loading}
