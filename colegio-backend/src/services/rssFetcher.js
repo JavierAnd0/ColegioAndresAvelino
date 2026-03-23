@@ -1,11 +1,12 @@
 import Parser from 'rss-parser';
 import RssSource from '../models/rssSource.js';
 import Activity, { getWeekMonday } from '../models/activity.js';
+import { getActivityImagePool } from './imageSearch.js';
 
 const parser = new Parser({
     timeout: 10000,
     headers: {
-        'User-Agent': 'ColegioBot/1.0 (Educational content aggregator)',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     },
     customFields: {
         item: [
@@ -88,6 +89,11 @@ async function fetchSingleSource(source, monday) {
         return { newCount: 0, updatedCount: 0 };
     }
 
+    // Pre-fetch un pool de imágenes de Pexels para repartir entre items sin imagen propia.
+    // Así cada ítem recibe una foto diferente en lugar de repetir la misma.
+    const fallbackPool = await getActivityImagePool(source.defaultType || 'otro', 5);
+    let poolIndex = 0;
+
     const operations = [];
 
     for (const item of items) {
@@ -99,7 +105,8 @@ async function fetchSingleSource(source, monday) {
 
         const rawDescription = stripHtml(item.contentSnippet || item.content || '');
         const description = rawDescription.slice(0, 500);
-        const imageUrl = extractImageUrl(item);
+        const rssImage    = extractImageUrl(item);
+        const imageUrl    = rssImage || (fallbackPool.length > 0 ? fallbackPool[poolIndex++ % fallbackPool.length] : '');
 
         operations.push({
             updateOne: {

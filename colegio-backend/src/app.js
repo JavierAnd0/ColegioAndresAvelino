@@ -11,6 +11,8 @@ import honorRoutes from './routes/honor.js';
 import gradeRoutes from './routes/grades.js';
 import activityRoutes from './routes/activities.js';
 import teacherRoutes from './routes/teachers.js';
+import carouselRoutes from './routes/carousel.js';
+import heroRoutes from './routes/hero.js';
 
 const app = express();
 
@@ -69,6 +71,8 @@ app.use('/api/honor', honorRoutes);
 app.use('/api/grades', gradeRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/teachers', teacherRoutes);
+app.use('/api/carousel', carouselRoutes);
+app.use('/api/hero', heroRoutes);
 
 // 404
 app.use((req, res) => {

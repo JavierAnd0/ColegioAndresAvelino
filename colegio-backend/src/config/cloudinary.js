@@ -87,10 +87,36 @@ const teacherStorage = new CloudinaryStorage({
     },
 });
 
+// Configurar storage para el carousel del home
+const carouselStorage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder: 'colegio/carousel',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        transformation: [
+            { width: 1000, height: 500, crop: 'fit', quality: 'auto:best' }
+        ],
+    },
+});
+
+// Configurar storage para la imagen del hero (sin recorte, alta calidad)
+const heroStorage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder: 'colegio/hero',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        transformation: [
+            { width: 1920, crop: 'limit', quality: 'auto:best', fetch_format: 'auto' }
+        ],
+    },
+});
+
 // Exportar middlewares de multer
 export const uploadBlogImage = multer({ storage: blogStorage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB
 export const uploadAvatar = multer({ storage: avatarStorage, fileFilter, limits: { fileSize: 2 * 1024 * 1024 } }); // 2MB
 export const uploadHonorImage = multer({ storage: honorStorage, fileFilter, limits: { fileSize: 3 * 1024 * 1024 } }); // 3MB
 export const uploadActivityFile = multer({ storage: activityStorage, fileFilter: activityFileFilter, limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB
 export const uploadTeacherPhoto = multer({ storage: teacherStorage, fileFilter, limits: { fileSize: 3 * 1024 * 1024 } }); // 3MB
+export const uploadCarouselImage = multer({ storage: carouselStorage, fileFilter, limits: { fileSize: 8 * 1024 * 1024 } }); // 8MB
+export const uploadHeroImage = multer({ storage: heroStorage, fileFilter, limits: { fileSize: 15 * 1024 * 1024 } }); // 15MB
 export { cloudinary };

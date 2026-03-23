@@ -1,5 +1,7 @@
+import crypto from 'crypto';
 import User from '../models/user.js';
 import jwt from 'jsonwebtoken';
+import { ROLE_LEVEL } from '../middleware/auth.js';
 
 // Función helper para generar JWT
 const generateToken = (id) => {
@@ -8,64 +10,55 @@ const generateToken = (id) => {
   });
 };
 
-// @desc    Registrar nuevo usuario (solo admin puede crear usuarios)
+// @desc    Registrar nuevo usuario
 // @route   POST /api/auth/register
-// @access  Private (solo admin)
+// @access  superadmin → puede crear admin y superadmin
+//          admin      → solo puede crear admin
 export const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
-    // Verificar que el usuario que hace la petición es admin
-    if (!req.user || req.user.role !== 'admin') {
+    const requestedRole = role || 'admin';
+
+    // Solo superadmin puede crear cualquier usuario
+    // Un admin NO puede crear otro admin ni superadmin
+    if (req.user.role !== 'superadmin') {
       return res.status(403).json({
         success: false,
-        message: 'Solo los administradores pueden crear nuevos usuarios',
+        message: 'Solo el superadmin puede crear nuevos usuarios.',
       });
     }
 
-    // Verificar si el email ya existe
-    const userExists = await User.findByEmail(email);
+    // El superadmin no puede crear un rol superior al suyo (no aplica actualmente, pero es defensa)
+    if ((ROLE_LEVEL[requestedRole] || 0) > (ROLE_LEVEL[req.user.role] || 0)) {
+      return res.status(403).json({
+        success: false,
+        message: 'No puedes crear un usuario con un rol superior al tuyo.',
+      });
+    }
 
+    const userExists = await User.findByEmail(email);
     if (userExists) {
       return res.status(400).json({
         success: false,
-        message: 'Ya existe un usuario con ese email',
+        message: 'Ya existe un usuario con ese email.',
       });
     }
 
-    // Crear usuario
-    const user = await User.create({
-      name,
-      email,
-      password,
-      role: role || 'author',
-    });
+    const user = await User.create({ name, email, password, role: requestedRole });
 
     res.status(201).json({
       success: true,
-      message: 'Usuario creado exitosamente',
-      data: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      message: 'Usuario creado exitosamente.',
+      data: { id: user._id, name: user.name, email: user.email, role: user.role },
     });
   } catch (error) {
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        success: false,
-        message: 'Error de validación',
-        errors: messages,
-      });
+      return res.status(400).json({ success: false, message: 'Error de validación', errors: messages });
     }
-
     console.error('Error al registrar usuario:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error al registrar usuario',
-    });
+    res.status(500).json({ success: false, message: 'Error al registrar usuario.' });
   }
 };
 
@@ -278,19 +271,11 @@ export const changePassword = async (req, res) => {
   }
 };
 
-// @desc    Obtener todos los usuarios (solo admin)
+// @desc    Obtener todos los usuarios
 // @route   GET /api/auth/users
-// @access  Private (solo admin)
+// @access  admin o superior (authorize en ruta)
 export const getAllUsers = async (req, res) => {
   try {
-    // Verificar que sea admin
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'No tienes permisos para ver todos los usuarios',
-      });
-    }
-
     const users = await User.find()
       .select('-password')
       .sort({ createdAt: -1 });
@@ -304,174 +289,237 @@ export const getAllUsers = async (req, res) => {
     console.error('Error al obtener usuarios:', error);
     res.status(500).json({
       success: false,
-      message: 'Error al obtener usuarios',
+      message: 'Error al obtener usuarios.',
     });
   }
 };
 
-// @desc    Obtener un usuario por ID (solo admin)
+// @desc    Obtener un usuario por ID
 // @route   GET /api/auth/users/:id
-// @access  Private (solo admin)
+// @access  admin o superior
 export const getUserById = async (req, res) => {
   try {
-    // Verificar que sea admin
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'No tienes permisos para ver este usuario',
-      });
-    }
-
-    const user = await User.findById(req.params.id)
-      .populate('postsCount')
-      .populate('eventsCount');
+    const user = await User.findById(req.params.id).select('-password');
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Usuario no encontrado',
-      });
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
     }
 
-    res.status(200).json({
-      success: true,
-      data: user,
-    });
+    res.status(200).json({ success: true, data: user });
   } catch (error) {
     if (error.name === 'CastError') {
-      return res.status(400).json({
-        success: false,
-        message: 'ID de usuario no válido',
-      });
+      return res.status(400).json({ success: false, message: 'ID de usuario no válido.' });
     }
-
     console.error('Error al obtener usuario:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error al obtener usuario',
-    });
+    res.status(500).json({ success: false, message: 'Error al obtener usuario.' });
   }
 };
 
-// @desc    Actualizar usuario (solo admin)
+// @desc    Actualizar usuario
 // @route   PUT /api/auth/users/:id
-// @access  Private (solo admin)
+// @access  Solo puede actualizar usuarios con nivel ESTRICTAMENTE inferior al propio
 export const updateUser = async (req, res) => {
   try {
-    // Verificar que sea admin
-    if (req.user.role !== 'admin') {
+    const target = await User.findById(req.params.id).select('-password');
+
+    if (!target) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
+    }
+
+    // No puede editar su propio perfil por esta ruta (usar /profile)
+    if (target._id.toString() === req.user.id) {
+      return res.status(400).json({ success: false, message: 'Usa /profile para editar tu propia información.' });
+    }
+
+    // Solo puede modificar usuarios con nivel inferior al suyo
+    if ((ROLE_LEVEL[target.role] || 0) >= (ROLE_LEVEL[req.user.role] || 0)) {
       return res.status(403).json({
         success: false,
-        message: 'No tienes permisos para actualizar usuarios',
+        message: 'No puedes modificar a un usuario con el mismo nivel o superior al tuyo.',
       });
     }
 
-    // Campos permitidos para actualizar
-    const allowedFields = ['name', 'email', 'role', 'isActive', 'avatar', 'bio'];
+    const allowedFields = ['name', 'email', 'isActive', 'avatar', 'bio'];
+    // Solo superadmin puede cambiar roles
+    if (req.user.role === 'superadmin') allowedFields.push('role');
+
     const updates = {};
-
     Object.keys(req.body).forEach(key => {
-      if (allowedFields.includes(key)) {
-        updates[key] = req.body[key];
-      }
+      if (allowedFields.includes(key)) updates[key] = req.body[key];
     });
 
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      updates,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    const updated = await User.findByIdAndUpdate(req.params.id, updates, {
+      new: true,
+      runValidators: true,
+    }).select('-password');
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Usuario no encontrado',
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'Usuario actualizado exitosamente',
-      data: user,
-    });
+    res.status(200).json({ success: true, message: 'Usuario actualizado.', data: updated });
   } catch (error) {
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        success: false,
-        message: 'Error de validación',
-        errors: messages,
-      });
+      return res.status(400).json({ success: false, message: 'Error de validación.', errors: messages });
     }
-
     if (error.name === 'CastError') {
-      return res.status(400).json({
-        success: false,
-        message: 'ID de usuario no válido',
-      });
+      return res.status(400).json({ success: false, message: 'ID de usuario no válido.' });
     }
-
     console.error('Error al actualizar usuario:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error al actualizar usuario',
-    });
+    res.status(500).json({ success: false, message: 'Error al actualizar usuario.' });
   }
 };
 
-// @desc    Eliminar usuario (solo admin)
+// @desc    Eliminar usuario
 // @route   DELETE /api/auth/users/:id
-// @access  Private (solo admin)
+// @access  superadmin puede eliminar admins, admin no puede eliminar superadmins ni otros admins
 export const deleteUser = async (req, res) => {
   try {
-    // Verificar que sea admin
-    if (req.user.role !== 'admin') {
+    if (req.params.id === req.user.id) {
+      return res.status(400).json({ success: false, message: 'No puedes eliminar tu propia cuenta.' });
+    }
+
+    const target = await User.findById(req.params.id);
+    if (!target) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
+    }
+
+    // Solo se puede eliminar a alguien de nivel inferior
+    if ((ROLE_LEVEL[target.role] || 0) >= (ROLE_LEVEL[req.user.role] || 0)) {
       return res.status(403).json({
         success: false,
-        message: 'No tienes permisos para eliminar usuarios',
+        message: 'No puedes eliminar a un usuario con el mismo nivel o superior al tuyo.',
       });
     }
 
-    // No permitir que el admin se elimine a sí mismo
+    await User.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({ success: true, message: 'Usuario eliminado exitosamente.' });
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({ success: false, message: 'ID de usuario no válido.' });
+    }
+    console.error('Error al eliminar usuario:', error);
+    res.status(500).json({ success: false, message: 'Error al eliminar usuario.' });
+  }
+};
+
+// @desc    Admin resetea la contraseña de un usuario subordinado
+// @route   PUT /api/auth/users/:id/reset-password
+// @access  superadmin → puede resetear admins; admin → no puede resetear otros admins
+export const adminResetPassword = async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'La contraseña debe tener al menos 6 caracteres.' });
+    }
+
+    const target = await User.findById(req.params.id);
+    if (!target) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
+    }
+
     if (req.params.id === req.user.id) {
-      return res.status(400).json({
+      return res.status(400).json({ success: false, message: 'Usa "cambiar contraseña" para modificar tu propia contraseña.' });
+    }
+
+    if ((ROLE_LEVEL[target.role] || 0) >= (ROLE_LEVEL[req.user.role] || 0)) {
+      return res.status(403).json({
         success: false,
-        message: 'No puedes eliminar tu propia cuenta',
+        message: 'No puedes resetear la contraseña de un usuario con el mismo nivel o superior al tuyo.',
       });
     }
 
-    const user = await User.findById(req.params.id);
+    target.password = newPassword;
+    await target.save();
+
+    res.status(200).json({ success: true, message: `Contraseña de ${target.name} actualizada correctamente.` });
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({ success: false, message: 'ID de usuario no válido.' });
+    }
+    console.error('Error al resetear contraseña:', error);
+    res.status(500).json({ success: false, message: 'Error al resetear contraseña.' });
+  }
+};
+
+// @desc    Solicitar recuperación de contraseña (genera token)
+// @route   POST /api/auth/forgot-password
+// @access  Public
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'El email es obligatorio.' });
+    }
+
+    const user = await User.findByEmail(email);
+
+    // Respuesta genérica para no revelar si el email existe
+    const genericResponse = {
+      success: true,
+      message: 'Si el email existe en el sistema, recibirás el enlace de recuperación.',
+    };
+
+    if (!user || !user.isActive) {
+      return res.status(200).json(genericResponse);
+    }
+
+    const resetToken = user.createPasswordResetToken();
+    await user.save({ validateBeforeSave: false });
+
+    // En desarrollo retornamos el token para que el frontend lo envíe por EmailJS
+    // En producción se configura un servidor SMTP
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/reset-password/${resetToken}`;
+
+    res.status(200).json({
+      ...genericResponse,
+      ...(process.env.NODE_ENV !== 'production' && {
+        resetUrl,
+        resetToken,
+        userName: user.name,   // para personalizar el email en el frontend
+      }),
+    });
+  } catch (error) {
+    console.error('Error en forgot-password:', error);
+    res.status(500).json({ success: false, message: 'Error al procesar la solicitud.' });
+  }
+};
+
+// @desc    Resetear contraseña con token
+// @route   POST /api/auth/reset-password/:token
+// @access  Public
+export const resetPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password || password.length < 6) {
+      return res.status(400).json({ success: false, message: 'La contraseña debe tener al menos 6 caracteres.' });
+    }
+
+    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() },
+    });
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'Usuario no encontrado',
-      });
+      return res.status(400).json({ success: false, message: 'El enlace de recuperación es inválido o ha expirado.' });
     }
 
-    await user.deleteOne();
+    user.password = password;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    const token = generateToken(user._id);
 
     res.status(200).json({
       success: true,
-      message: 'Usuario eliminado exitosamente',
-      data: {},
+      message: 'Contraseña restablecida correctamente.',
+      token,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
     });
   } catch (error) {
-    if (error.name === 'CastError') {
-      return res.status(400).json({
-        success: false,
-        message: 'ID de usuario no válido',
-      });
-    }
-
-    console.error('Error al eliminar usuario:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error al eliminar usuario',
-    });
+    console.error('Error al resetear contraseña:', error);
+    res.status(500).json({ success: false, message: 'Error al resetear contraseña.' });
   }
 };
 
