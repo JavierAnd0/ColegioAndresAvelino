@@ -30,10 +30,10 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: {
-        values: ['admin', 'editor', 'author'],
+        values: ['superadmin', 'admin'],
         message: '{VALUE} no es un rol válido',
       },
-      default: 'author',
+      default: 'admin',
     },
     avatar: {
       type: String,

@@ -10,7 +10,7 @@ const tools = [
     { key: 'underline', label: 'U', syntax: ['<u>', '</u>'], title: 'Subrayado', className: 'underline' },
     { key: 'separator', label: '|' },
     { key: 'ul', label: '• Lista', syntax: ['- ', ''], title: 'Lista', block: true },
-    { key: 'link', label: '🔗', syntax: ['[', '](url)'], title: 'Enlace' },
+    { key: 'link', label: 'Link', syntax: ['[', '](url)'], title: 'Enlace' },
 ];
 
 export default function RichTextarea({

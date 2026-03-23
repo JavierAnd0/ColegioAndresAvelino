@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import EventCard from '@/components/molecules/EventCard';
 import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
+import { LuCalendarX } from 'react-icons/lu';
 
 const categoryDotColors = {
     academico: 'bg-blue-500',
@@ -42,7 +43,7 @@ export default function EventTimeline({ events = [], currentMonth, currentYear }
     if (events.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-                <span className="text-5xl">📅</span>
+                <LuCalendarX className="w-12 h-12 text-neutral-300" />
                 <Heading level="h4" className="text-neutral-500">
                     Sin eventos este mes
                 </Heading>

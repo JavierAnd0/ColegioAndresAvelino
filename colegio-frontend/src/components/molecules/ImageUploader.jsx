@@ -1,19 +1,25 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Button from '@/components/atoms/Button';
 import Spinner from '@/components/atoms/Spinner';
 import api from '@/services/api';
+import { LuImage } from 'react-icons/lu';
 
 export default function ImageUploader({
     onUpload,
     currentImage = '',
     endpoint = '/upload/blog',
     className = '',
+    actions = null,
 }) {
     const [preview, setPreview] = useState(currentImage);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const inputRef = useRef(null);
+
+    useEffect(() => {
+        setPreview(currentImage);
+    }, [currentImage]);
 
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
@@ -85,7 +91,7 @@ export default function ImageUploader({
                     </>
                 ) : (
                     <>
-                        <span className="text-3xl">🖼️</span>
+                        <LuImage className="w-8 h-8 text-neutral-400" />
                         <p className="text-sm text-neutral-500 text-center px-4">
                             Click para subir imagen
                         </p>
@@ -102,7 +108,7 @@ export default function ImageUploader({
             )}
 
             {/* Botones */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
                 <Button
                     type="button"
                     variant="outline"
@@ -122,6 +128,7 @@ export default function ImageUploader({
                         Eliminar
                     </Button>
                 )}
+                {actions}
             </div>
 
             {/* Input oculto */}

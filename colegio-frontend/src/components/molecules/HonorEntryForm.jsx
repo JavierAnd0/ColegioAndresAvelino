@@ -4,11 +4,12 @@ import Button from '@/components/atoms/Button';
 import Label from '@/components/atoms/Typography/Label';
 import Spinner from '@/components/atoms/Spinner';
 import { honorService } from '@/services/honorService';
+import { LuCamera } from 'react-icons/lu';
 
 const CATEGORIES = [
-    { value: 'academico', label: '📚 Mejor rendimiento académico', short: 'Académico' },
-    { value: 'valores', label: '🌟 Mejores valores', short: 'Valores' },
-    { value: 'reciclaje', label: '♻️ Mayor aporte al reciclaje', short: 'Reciclaje' },
+    { value: 'academico', label: 'Mejor rendimiento académico', short: 'Académico' },
+    { value: 'valores', label: 'Mejores valores', short: 'Valores' },
+    { value: 'reciclaje', label: 'Mayor aporte al reciclaje', short: 'Reciclaje' },
 ];
 
 export default function HonorEntryForm({ onSubmit, initialData = {}, grades = [], loading = false }) {
@@ -203,7 +204,7 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
                             </>
                         ) : (
                             <>
-                                <span className="text-3xl">📷</span>
+                                <LuCamera className="w-8 h-8 text-neutral-400" />
                                 <p className="text-sm text-neutral-500 text-center px-4">
                                     Click o arrastra para subir foto
                                 </p>
