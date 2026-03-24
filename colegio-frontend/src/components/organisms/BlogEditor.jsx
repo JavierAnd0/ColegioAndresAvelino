@@ -355,19 +355,6 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
                                             {currentCrop.hint}
                                         </span>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-[0.58rem] font-mono font-bold uppercase tracking-widest
-                                            text-neutral-500 flex-shrink-0 w-12">Alt</span>
-                                        <input type="text" value={form.featuredImage.alt}
-                                            onChange={e => setForm(prev => ({
-                                                ...prev,
-                                                featuredImage: { ...prev.featuredImage, alt: e.target.value },
-                                            }))}
-                                            placeholder="Describe la imagen para accesibilidad..."
-                                            className="flex-1 bg-neutral-900 border border-neutral-800 rounded-lg
-                                                px-3 py-1.5 text-xs text-neutral-200 placeholder-neutral-600
-                                                focus:outline-none focus:border-neutral-600 transition-colors" />
-                                    </div>
                                 </div>
                             </div>
                         )}
