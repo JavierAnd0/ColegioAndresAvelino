@@ -6,12 +6,8 @@ import { getActivityImagePool } from './imageSearch.js';
 const parser = new Parser({
     timeout: 15000,
     headers: {
-<<<<<<< HEAD
-        'User-Agent': 'Mozilla/5.0 (compatible; ColegioBot/1.0; Educational content aggregator)',
-        'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
-=======
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
->>>>>>> ad7b6f99f1149fa8ce3ad2dfaf8d5ad181e0d831
+        'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
     },
     customFields: {
         item: [
@@ -157,13 +153,6 @@ async function fetchSingleSource(source, monday) {
         return { newCount: 0, updatedCount: 0 };
     }
 
-<<<<<<< HEAD
-    const operations = items.map((item) => {
-        const title = item.title.trim().slice(0, 200);
-        const description = extractDescription(item);
-        const imageUrl = extractImageUrl(item);
-        const type = detectType(title, description, source.defaultType);
-=======
     // Pre-fetch un pool de imágenes de Pexels para repartir entre items sin imagen propia.
     // Así cada ítem recibe una foto diferente en lugar de repetir la misma.
     const fallbackPool = await getActivityImagePool(source.defaultType || 'otro', 5);
@@ -178,20 +167,19 @@ async function fetchSingleSource(source, monday) {
         const title = (item.title || '').trim().slice(0, 200);
         if (!title) continue;
 
-        const rawDescription = stripHtml(item.contentSnippet || item.content || '');
-        const description = rawDescription.slice(0, 500);
-        const rssImage    = extractImageUrl(item);
-        const imageUrl    = rssImage || (fallbackPool.length > 0 ? fallbackPool[poolIndex++ % fallbackPool.length] : '');
->>>>>>> ad7b6f99f1149fa8ce3ad2dfaf8d5ad181e0d831
+        const description = extractDescription(item);
+        const rssImage = extractImageUrl(item);
+        const imageUrl = rssImage || (fallbackPool.length > 0 ? fallbackPool[poolIndex++ % fallbackPool.length] : '');
+        const type = detectType(title, description, source.defaultType);
 
-        return {
+        operations.push({
             updateOne: {
-                filter: { externalUrl: item.link },
+                filter: { externalUrl },
                 update: {
                     $setOnInsert: {
                         title,
                         description,
-                        externalUrl: item.link,
+                        externalUrl,
                         imageUrl,
                         type,
                         targetGrades: source.defaultGrades || [],
@@ -206,8 +194,8 @@ async function fetchSingleSource(source, monday) {
                 },
                 upsert: true,
             },
-        };
-    });
+        });
+    }
 
     let newCount = 0;
     let updatedCount = 0;
