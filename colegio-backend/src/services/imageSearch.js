@@ -9,50 +9,6 @@
 const PEXELS_API_KEY = process.env.PEXELS_API_KEY;
 const PEXELS_BASE    = 'https://api.pexels.com/v1';
 
-<<<<<<< HEAD
-// Mapeo categoría de blog → búsqueda optimizada en inglés
-const categorySearchMap = {
-    noticias: 'school news education',
-    eventos: 'school event celebration children',
-    actividades: 'kids learning classroom activity',
-    logros: 'achievement trophy students celebration',
-    anuncios: 'school announcement bulletin board',
-    general: 'elementary school children education',
-};
-
-// Mapeo tipo de actividad → query especializado para Pexels
-const activityTypeMap = {
-    cuento:       'children storybook fairy tale illustration colorful',
-    colorear:     'children coloring drawing art craft crayons',
-    numeros:      'children math numbers counting learning colorful',
-    rompecabezas: 'children puzzle game pieces colorful fun',
-    juego:        'children playing game fun learning activity',
-    lectura:      'children reading book library story',
-    otro:         'kids education learning activity school fun',
-};
-
-// Traducción de términos educativos comunes español→inglés para mejorar el query
-const esEnDict = {
-    // animales
-    animales: 'animals', perro: 'dog', gato: 'cat', leon: 'lion', elefante: 'elephant',
-    pajaro: 'bird', pez: 'fish', mariposa: 'butterfly',
-    // naturaleza
-    flores: 'flowers', arboles: 'trees', mar: 'sea', rio: 'river', bosque: 'forest',
-    // números y matemáticas
-    suma: 'addition', resta: 'subtraction', multiplicacion: 'multiplication',
-    numeros: 'numbers', formas: 'shapes', colores: 'colors',
-    // personajes y cuentos
-    princesa: 'princess', principe: 'prince', dragon: 'dragon', hada: 'fairy',
-    bruja: 'witch', castillo: 'castle', pirata: 'pirate', robot: 'robot',
-    // lugares
-    selva: 'jungle', granja: 'farm', ciudad: 'city', espacio: 'space', oceano: 'ocean',
-    // conceptos
-    familia: 'family', amigos: 'friends', escuela: 'school', comida: 'food',
-    musica: 'music', deporte: 'sport', arte: 'art',
-};
-
-const stopWords = new Set([
-=======
 // ─────────────────────────────────────────────────────────────────────────────
 // ANCLAS DE CATEGORÍA  (2-3 palabras, muy genéricas → siempre dan resultados)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -239,7 +195,6 @@ const SEMANTIC = {
     cosecha:         'harvest garden',
     semilla:         'seeds planting',
     tierra:          'soil earth',
-    campo:           'field nature',
     montaña:         'mountain nature',
     montana:         'mountain landscape',
     sol:             'sun outdoor',
@@ -386,8 +341,6 @@ const SEMANTIC = {
     escuela:         'school children',
     institucion:     'school institution',
     plantel:         'school campus',
-    salon:           'classroom school',
-    laboratorio:     'science lab',
     remodelacion:    'school renovation',
     obra:            'construction building',
     parque:          'school playground',
@@ -429,65 +382,12 @@ const ACTIVITY_TYPE_ANCHORS = {
 // PALABRAS VACÍAS EN ESPAÑOL
 // ─────────────────────────────────────────────────────────────────────────────
 const STOP_WORDS = new Set([
->>>>>>> ad7b6f99f1149fa8ce3ad2dfaf8d5ad181e0d831
     'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas',
     'de', 'del', 'en', 'con', 'por', 'para', 'al', 'que',
     'se', 'su', 'sus', 'es', 'son', 'y', 'o', 'a', 'e',
     'como', 'mas', 'muy', 'no', 'si', 'ya', 'fue', 'ha',
     'este', 'esta', 'estos', 'estas', 'ese', 'esa',
     'nuestro', 'nuestra', 'nuestros', 'nuestras',
-<<<<<<< HEAD
-    'del', 'al', 'lo', 'le', 'les', 'nos',
-]);
-
-/**
- * Extrae keywords del título priorizando traducción al inglés via diccionario.
- * Las palabras traducidas dan mejores resultados en Pexels.
- */
-function extractKeywords(title) {
-    const normalized = title
-        .toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
-    const words = normalized.split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
-
-    const translated = [];
-    const untranslated = [];
-
-    for (const w of words) {
-        if (esEnDict[w]) {
-            translated.push(esEnDict[w]);
-        } else {
-            untranslated.push(w);
-        }
-    }
-
-    // Priorizar palabras traducidas; completar con originales si hace falta
-    return [...translated, ...untranslated].slice(0, 3);
-}
-
-/**
- * Construye el query para búsqueda de imágenes de blog (categoría genérica).
- */
-function buildSearchQuery(category, title) {
-    const base = categorySearchMap[category] || categorySearchMap.general;
-    const keywords = extractKeywords(title || '');
-    return keywords.length > 0 ? `${base} ${keywords.join(' ')}` : base;
-}
-
-/**
- * Construye el query para búsqueda de imágenes de actividades educativas.
- * Usa queries especializados por tipo y prioriza contexto infantil/educativo.
- */
-function buildActivityQuery(type, title) {
-    const base = activityTypeMap[type] || activityTypeMap.otro;
-    const keywords = extractKeywords(title || '');
-    // Para actividades solo agregar las keywords traducidas (inglés)
-    // para no contaminar el query con palabras en español
-    const translated = keywords.filter(k => /^[a-z]/.test(k));
-    return translated.length > 0 ? `${base} ${translated.join(' ')}` : base;
-}
-=======
     'nuevo', 'nueva', 'gran', 'grandes', 'entre', 'sobre',
     'todo', 'todos', 'cada', 'dos', 'tres', 'ano', 'mes',
     'primer', 'primera', 'sera', 'ser', 'hay', 'han',
@@ -517,7 +417,6 @@ function extractSemanticTerms(text, maxHits = 3) {
     for (let i = 0; i < words.length && hits.length < maxHits; i++) {
         const word   = words[i];
         const bigram = i < words.length - 1 ? word + words[i + 1] : null;
->>>>>>> ad7b6f99f1149fa8ce3ad2dfaf8d5ad181e0d831
 
         if (bigram && SEMANTIC[bigram] && !seen.has(bigram)) {
             seen.add(bigram);
@@ -600,31 +499,6 @@ async function tryCandidates(candidates, count = 6, page = 1) {
     return [];
 }
 
-<<<<<<< HEAD
-/**
- * Busca imágenes sugeridas para una actividad educativa.
- * Usa queries especializados por tipo de actividad (cuento, numeros, colorear, etc.)
- * @param {string} type - Tipo de actividad
- * @param {string} title - Título de la actividad
- * @param {number} count - Cantidad de sugerencias
- */
-export async function suggestActivityImages(type, title, count = 6) {
-    const query = buildActivityQuery(type, title);
-    return searchImages(query, count);
-}
-
-/**
- * Obtiene una imagen automática para un post sin imagen.
- * Devuelve la primera imagen encontrada.
- */
-export async function getAutoImage(category, title) {
-    const images = await suggestBlogImages(category, title, 1);
-    if (images.length > 0) {
-        return {
-            url: images[0].url,
-            alt: title || category,
-        };
-=======
 // ─────────────────────────────────────────────────────────────────────────────
 // API PÚBLICA
 // ─────────────────────────────────────────────────────────────────────────────
@@ -633,7 +507,6 @@ export async function searchImages(query, count = 6) {
     if (!PEXELS_API_KEY) {
         console.warn('[ImageSearch] PEXELS_API_KEY no configurada.');
         return [];
->>>>>>> ad7b6f99f1149fa8ce3ad2dfaf8d5ad181e0d831
     }
     return fetchPexels(query, count);
 }
