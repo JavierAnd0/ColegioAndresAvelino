@@ -2,6 +2,7 @@ import { DM_Sans, Syne, Martian_Mono } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/next';
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -67,6 +68,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           {children}
           <SpeedInsights />
+          <Analytics />
         </AuthProvider>
       </body>
     </html>

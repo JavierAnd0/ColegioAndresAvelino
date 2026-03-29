@@ -13,6 +13,7 @@
     "@emailjs/browser": "^4.4.1",
     "@iconify/tailwind": "^1.2.0",
     "@iconify/tailwind4": "^1.2.3",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "axios": "^1.13.4",
     "date-fns": "^4.1.0",
