@@ -1,4 +1,5 @@
 'use client';
+import * as Sentry from '@sentry/nextjs';
 import { useState, useEffect } from 'react';
 import MainLayout from '@/components/templates/MainLayout';
 import BlogList from '@/components/organisms/BlogList';
@@ -25,7 +26,7 @@ export default function BlogPage() {
             setTotal(data.total || 0);
             setPages(data.pages || 1);
         } catch (error) {
-            console.error('Error cargando posts:', error);
+            Sentry.captureException(error);
         } finally {
             setLoading(false);
         }

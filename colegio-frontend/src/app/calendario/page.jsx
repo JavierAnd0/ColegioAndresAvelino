@@ -1,4 +1,5 @@
 'use client';
+import * as Sentry from '@sentry/nextjs';
 import { useState, useEffect } from 'react';
 import MainLayout from '@/components/templates/MainLayout';
 import EventCalendar from '@/components/organisms/EventCalendar';
@@ -22,7 +23,7 @@ export default function CalendarioPage() {
             }
             setEvents(filtered);
         } catch (error) {
-            console.error('Error cargando eventos:', error);
+            Sentry.captureException(error);
         } finally {
             setLoading(false);
         }

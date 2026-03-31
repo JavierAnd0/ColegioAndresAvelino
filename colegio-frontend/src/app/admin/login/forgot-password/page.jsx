@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import * as Sentry from '@sentry/nextjs';
 import emailjs from '@emailjs/browser';
 import { authService } from '@/services/authService';
 import Button from '@/components/atoms/Button';
@@ -23,7 +24,7 @@ export default function ForgotPasswordPage() {
                 { email: recipientEmail, name, reset_link: url, expiry: '10 minutos' },
             );
         } catch (e) {
-            console.warn('[EmailJS] Error:', e?.text || e?.message || e);
+            Sentry.captureException(e);
         }
     };
 
