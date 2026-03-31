@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import mongoose from 'mongoose';
 
 const connectDB = async () => {
@@ -24,19 +25,7 @@ const connectDB = async () => {
     }
     
   } catch (error) {
-    console.error(`❌ Error conectando a MongoDB:`);
-    console.error(`   Mensaje: ${error.message}`);
-    
-    // Si es error de autenticación
-    if (error.message.includes('authentication')) {
-      console.error('   💡 Verifica tu usuario y contraseña en el .env');
-    }
-    
-    // Si es error de red/IP
-    if (error.message.includes('ENOTFOUND') || error.message.includes('timeout')) {
-      console.error('   💡 Verifica tu conexión a internet y la IP whitelist en MongoDB Atlas');
-    }
-    
+    Sentry.captureException(error);
     process.exit(1);
   }
 };
@@ -47,7 +36,7 @@ mongoose.connection.on('disconnected', () => {
 });
 
 mongoose.connection.on('error', (err) => {
-  console.error(`❌ Error de MongoDB: ${err.message}`);
+  Sentry.captureException(err);
 });
 
 export default connectDB;

@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import Activity, { getWeekMonday } from '../models/activity.js';
 import RssSource, { ACTIVITY_TYPES } from '../models/rssSource.js';
 import { fetchAllSources, validateFeedUrl } from '../services/rssFetcher.js';
@@ -47,7 +48,7 @@ export const getActivities = async (req, res) => {
             data,
         });
     } catch (error) {
-        console.error('Error al obtener actividades:', error);
+        Sentry.captureException(error);
         res.status(500).json({ success: false, message: 'Error interno del servidor' });
     }
 };
@@ -65,7 +66,7 @@ export const getThisWeekActivities = async (req, res) => {
 
         res.json({ success: true, count: data.length, data });
     } catch (error) {
-        console.error('Error al obtener actividades de la semana:', error);
+        Sentry.captureException(error);
         res.status(500).json({ success: false, message: 'Error interno del servidor' });
     }
 };
@@ -129,7 +130,7 @@ export const createActivity = async (req, res) => {
             const messages = Object.values(error.errors).map((e) => e.message);
             return res.status(400).json({ success: false, message: 'Error de validación', errors: messages });
         }
-        console.error('Error al crear actividad:', error);
+        Sentry.captureException(error);
         res.status(500).json({ success: false, message: 'Error interno del servidor' });
     }
 };
@@ -320,7 +321,7 @@ export const triggerFetch = async (req, res) => {
         const result = await fetchAllSources();
         res.json({ success: true, data: result });
     } catch (error) {
-        console.error('Error al ejecutar fetch manual:', error);
+        Sentry.captureException(error);
         res.status(500).json({ success: false, message: 'Error al obtener actividades de RSS' });
     }
 };

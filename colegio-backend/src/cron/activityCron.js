@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import cron from 'node-cron';
 import { fetchAllSources } from '../services/rssFetcher.js';
 
@@ -12,11 +13,8 @@ export function startActivityCron() {
         try {
             const result = await fetchAllSources();
             console.log(`[Activity Cron] Resultado: ${result.totalNew} nuevas, ${result.totalUpdated} actualizadas`);
-            if (result.errors.length > 0) {
-                console.warn('[Activity Cron] Errores:', result.errors);
-            }
         } catch (error) {
-            console.error('[Activity Cron] Error fatal:', error.message);
+            Sentry.captureException(error);
         }
     });
 
