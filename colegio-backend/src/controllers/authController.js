@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import crypto from 'crypto';
 import User from '../models/user.js';
 import jwt from 'jsonwebtoken';
@@ -57,7 +58,7 @@ export const register = async (req, res) => {
       const messages = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({ success: false, message: 'Error de validación', errors: messages });
     }
-    console.error('Error al registrar usuario:', error);
+    Sentry.captureException(error);
     res.status(500).json({ success: false, message: 'Error al registrar usuario.' });
   }
 };
@@ -125,7 +126,7 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error al iniciar sesión:', error);
+    Sentry.captureException(error);
     res.status(500).json({
       success: false,
       message: 'Error al iniciar sesión',
@@ -147,7 +148,7 @@ export const getMe = async (req, res) => {
       data: user,
     });
   } catch (error) {
-    console.error('Error al obtener perfil:', error);
+    Sentry.captureException(error);
     res.status(500).json({
       success: false,
       message: 'Error al obtener perfil de usuario',
@@ -206,7 +207,7 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    console.error('Error al actualizar perfil:', error);
+    Sentry.captureException(error);
     res.status(500).json({
       success: false,
       message: 'Error al actualizar perfil',
@@ -263,7 +264,7 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    console.error('Error al cambiar contraseña:', error);
+    Sentry.captureException(error);
     res.status(500).json({
       success: false,
       message: 'Error al cambiar contraseña',
@@ -286,7 +287,7 @@ export const getAllUsers = async (req, res) => {
       data: users,
     });
   } catch (error) {
-    console.error('Error al obtener usuarios:', error);
+    Sentry.captureException(error);
     res.status(500).json({
       success: false,
       message: 'Error al obtener usuarios.',
@@ -310,7 +311,7 @@ export const getUserById = async (req, res) => {
     if (error.name === 'CastError') {
       return res.status(400).json({ success: false, message: 'ID de usuario no válido.' });
     }
-    console.error('Error al obtener usuario:', error);
+    Sentry.captureException(error);
     res.status(500).json({ success: false, message: 'Error al obtener usuario.' });
   }
 };
@@ -362,7 +363,7 @@ export const updateUser = async (req, res) => {
     if (error.name === 'CastError') {
       return res.status(400).json({ success: false, message: 'ID de usuario no válido.' });
     }
-    console.error('Error al actualizar usuario:', error);
+    Sentry.captureException(error);
     res.status(500).json({ success: false, message: 'Error al actualizar usuario.' });
   }
 };
@@ -396,7 +397,7 @@ export const deleteUser = async (req, res) => {
     if (error.name === 'CastError') {
       return res.status(400).json({ success: false, message: 'ID de usuario no válido.' });
     }
-    console.error('Error al eliminar usuario:', error);
+    Sentry.captureException(error);
     res.status(500).json({ success: false, message: 'Error al eliminar usuario.' });
   }
 };
@@ -435,7 +436,7 @@ export const adminResetPassword = async (req, res) => {
     if (error.name === 'CastError') {
       return res.status(400).json({ success: false, message: 'ID de usuario no válido.' });
     }
-    console.error('Error al resetear contraseña:', error);
+    Sentry.captureException(error);
     res.status(500).json({ success: false, message: 'Error al resetear contraseña.' });
   }
 };
@@ -478,7 +479,7 @@ export const forgotPassword = async (req, res) => {
       }),
     });
   } catch (error) {
-    console.error('Error en forgot-password:', error);
+    Sentry.captureException(error);
     res.status(500).json({ success: false, message: 'Error al procesar la solicitud.' });
   }
 };
@@ -518,7 +519,7 @@ export const resetPassword = async (req, res) => {
       user: { id: user._id, name: user.name, email: user.email, role: user.role },
     });
   } catch (error) {
-    console.error('Error al resetear contraseña:', error);
+    Sentry.captureException(error);
     res.status(500).json({ success: false, message: 'Error al resetear contraseña.' });
   }
 };
@@ -540,7 +541,7 @@ export const verifyToken = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error al verificar token:', error);
+    Sentry.captureException(error);
     res.status(500).json({
       success: false,
       message: 'Error al verificar token',

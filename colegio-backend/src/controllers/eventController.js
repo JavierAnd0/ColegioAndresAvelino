@@ -320,8 +320,6 @@ export const getEventsByMonth = async (req, res) => {
     const startOfMonth = new Date(yearNum, monthNum - 1, 1);
     const endOfMonth = new Date(yearNum, monthNum, 0, 23, 59, 59);
 
-    console.log(`Buscando eventos: ${startOfMonth} → ${endOfMonth}`); // debug
-
     const events = await Event.find({
       startDate: { $gte: startOfMonth, $lte: endOfMonth },
       isPublic: true,

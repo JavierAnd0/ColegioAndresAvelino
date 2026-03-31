@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -79,10 +80,11 @@ app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Ruta no encontrada' });
 });
 
+// Sentry captura los errores antes del error handler personalizado
+Sentry.setupExpressErrorHandler(app);
+
 // Error global - nunca exponer detalles internos en producción
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-
   // Error de CORS
   if (err.message === 'Origen no permitido por CORS') {
     return res.status(403).json({ success: false, message: 'Origen no permitido' });

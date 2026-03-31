@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import Parser from 'rss-parser';
 import RssSource from '../models/rssSource.js';
 import Activity, { getWeekMonday } from '../models/activity.js';
@@ -132,7 +133,7 @@ export async function fetchAllSources() {
             const sourceName = sources[i].name;
             const errMsg = result.reason?.message || 'Error desconocido';
             errors.push(`${sourceName}: ${errMsg}`);
-            console.error(`[RSS Fetcher] Error con "${sourceName}":`, errMsg);
+            Sentry.captureException(result.reason, { extra: { source: sourceName } });
         }
     }
 
