@@ -5,11 +5,11 @@ const SITE_NAME = 'Institución Educativa';
 export const defaultMetadata = {
     metadataBase: new URL(BASE_URL),
     title: {
-        default: `${SITE_NAME} - Formando líderes del futuro`,
+        default: `${SITE_NAME} - Andres avelino longas Rivera`,
         template: `%s | ${SITE_NAME}`,
     },
-    description: 'Sitio web oficial de la Institución Educativa. Calendario de eventos, noticias y más.',
-    keywords: ['colegio', 'educación', 'institución educativa', 'Colombia'],
+    description: 'Sitio web oficial de la Institución Educativa Andres Avelino Longas Rivera Huila. Calendario de eventos, noticias y más.',
+    keywords: ['colegio', 'educación', 'institución educativa andres avelino longas', 'rivera', 'Colombia'],
     authors: [{ name: SITE_NAME }],
     creator: SITE_NAME,
     robots: {
@@ -22,7 +22,7 @@ export const defaultMetadata = {
         url: BASE_URL,
         siteName: SITE_NAME,
         title: `${SITE_NAME} - Formando líderes del futuro`,
-        description: 'Sitio web oficial de la Institución Educativa.',
+        description: 'Sitio web oficial de la Institución Educativa Andres Avelino Longas Rivera Huila. Calendario de eventos, noticias y más.',
         images: [{
             url: '/og-image.jpg',
             width: 1200,
@@ -32,8 +32,8 @@ export const defaultMetadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: `${SITE_NAME} - Formando líderes del futuro`,
-        description: 'Sitio web oficial de la Institución Educativa.',
+        title: `${SITE_NAME} - Formando líderes del futuro Andres Avelino Longas sede Rivera Huila`,
+        description: 'Sitio web oficial de la Institución Educativa Andres Avelino Longas Rivera Huila. Calendario de eventos, noticias y más.',
         images: ['/og-image.jpg'],
     },
 };
