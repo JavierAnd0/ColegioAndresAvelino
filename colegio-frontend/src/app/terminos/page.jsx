@@ -2,7 +2,7 @@ import MainLayout from '@/components/templates/MainLayout';
 import Link from 'next/link';
 import {
     LuFileText, LuShieldCheck, LuGlobe, LuAlertTriangle,
-    LuScale, LuMail, LuBookOpen, LuLink,
+    LuScale, LuMail, LuBookOpen, LuLink, LuTriangleAlert,
 } from 'react-icons/lu';
 
 const sections = [
@@ -50,7 +50,7 @@ const sections = [
     },
     {
         id: 'responsabilidad',
-        Icon: LuAlertTriangle,
+        Icon: LuTriangleAlert,
         title: '5. Limitación de Responsabilidad',
         content: [
             'El Colegio Andrés Avelino realiza todos los esfuerzos razonables para mantener la información actualizada y correcta, pero no garantiza la ausencia de errores, interrupciones técnicas ni la disponibilidad continua del servicio.',
