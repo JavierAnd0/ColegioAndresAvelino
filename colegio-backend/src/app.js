@@ -13,6 +13,7 @@ import activityRoutes from './routes/activities.js';
 import teacherRoutes from './routes/teachers.js';
 import carouselRoutes from './routes/carousel.js';
 import heroRoutes from './routes/hero.js';
+import heroSlidesRoutes from './routes/heroSlides.js';
 
 const app = express();
 
@@ -73,6 +74,7 @@ app.use('/api/activities', activityRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/carousel', carouselRoutes);
 app.use('/api/hero', heroRoutes);
+app.use('/api/hero-slides', heroSlidesRoutes);
 
 // 404
 app.use((req, res) => {
