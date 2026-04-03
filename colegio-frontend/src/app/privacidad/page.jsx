@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {
     LuShieldCheck, LuDatabase, LuUsers, LuLock,
     LuBell, LuUserCheck, LuMail, LuFileText,
-    LuRefreshCw, LuAlertTriangle,
+    LuRefreshCw, LuTriangleAlert,
 } from 'react-icons/lu';
 
 const derechosTitular = [
@@ -140,7 +140,7 @@ const sections = [
     },
     {
         id: 'menores',
-        Icon: LuAlertTriangle,
+        Icon: LuTriangleAlert,
         title: '9. Tratamiento de Datos de Menores de Edad',
         content: [
             'El tratamiento de datos personales de menores de edad se realizará únicamente con la autorización de sus padres o representantes legales, y garantizando en todo momento el respeto por los derechos prevalentes de los niños, niñas y adolescentes, conforme a la Ley 1098 de 2006 (Código de la Infancia y la Adolescencia) y el artículo 7 de la Ley 1581 de 2012.',
