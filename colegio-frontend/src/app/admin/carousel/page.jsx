@@ -5,20 +5,27 @@ import AdminLayout from '@/components/templates/AdminLayout';
 import CarouselImageUploader from '@/components/molecules/CarouselImageUploader';
 import HeroImageUploader from '@/components/molecules/HeroImageUploader';
 import { carouselService } from '@/services/carouselService';
-import { heroService } from '@/services/heroService';
+import { heroSlidesService } from '@/services/heroSlidesService';
 import {
     LuPlus, LuTrash2, LuPencil, LuCheck, LuX,
     LuChevronUp, LuChevronDown, LuImages, LuEye, LuEyeOff,
     LuLayoutTemplate,
 } from 'react-icons/lu';
 
-const EMPTY_FORM = {
-    image:      { url: '', publicId: '' },
-    title:      '',
-    subtitle:   '',
-    linkUrl:    '',
-    linkLabel:  'Ver más',
-    active:     true,
+const EMPTY_CAROUSEL_FORM = {
+    image:     { url: '', publicId: '' },
+    title:     '',
+    subtitle:  '',
+    linkUrl:   '',
+    linkLabel: 'Ver más',
+    active:    true,
+};
+
+const EMPTY_HERO_FORM = {
+    image:    { url: '', publicId: '' },
+    title:    '',
+    subtitle: '',
+    active:   true,
 };
 
 function Alert({ type, message, onClose }) {
@@ -34,9 +41,8 @@ function Alert({ type, message, onClose }) {
     );
 }
 
-function SlideForm({ initial, onSave, onCancel, saving }) {
-    const [form, setForm] = useState(initial || EMPTY_FORM);
-
+function CarouselSlideForm({ initial, onSave, onCancel, saving }) {
+    const [form, setForm] = useState(initial || EMPTY_CAROUSEL_FORM);
     const set = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
 
     const handleSubmit = (e) => {
@@ -51,7 +57,6 @@ function SlideForm({ initial, onSave, onCancel, saving }) {
                 {initial?._id ? 'Editar slide' : 'Nuevo slide'}
             </h3>
 
-            {/* Imagen */}
             <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Imagen <span className="text-red-500">*</span>
@@ -62,7 +67,6 @@ function SlideForm({ initial, onSave, onCancel, saving }) {
                 />
             </div>
 
-            {/* Título y subtítulo */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-neutral-700 mb-1">Título</label>
@@ -90,7 +94,6 @@ function SlideForm({ initial, onSave, onCancel, saving }) {
                 </div>
             </div>
 
-            {/* Link */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-neutral-700 mb-1">URL del botón</label>
@@ -117,7 +120,6 @@ function SlideForm({ initial, onSave, onCancel, saving }) {
                 </div>
             </div>
 
-            {/* Activo */}
             <label className="flex items-center gap-3 cursor-pointer w-fit">
                 <div
                     onClick={() => set('active', !form.active)}
@@ -130,7 +132,96 @@ function SlideForm({ initial, onSave, onCancel, saving }) {
                 <span className="text-sm font-medium text-neutral-700">Visible en el sitio</span>
             </label>
 
-            {/* Acciones */}
+            <div className="flex gap-3 pt-2 border-t border-neutral-200">
+                <button
+                    type="submit"
+                    disabled={saving || !form.image.url}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700
+                        text-white text-sm font-semibold transition-all duration-200 cursor-pointer
+                        disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <LuCheck className="w-4 h-4" />
+                    {saving ? 'Guardando...' : 'Guardar'}
+                </button>
+                <button
+                    type="button"
+                    onClick={onCancel}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-neutral-200
+                        text-neutral-600 text-sm font-semibold hover:bg-neutral-100 transition-all duration-200 cursor-pointer"
+                >
+                    <LuX className="w-4 h-4" />
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    );
+}
+
+function HeroSlideForm({ initial, onSave, onCancel, saving }) {
+    const [form, setForm] = useState(initial || EMPTY_HERO_FORM);
+    const set = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!form.image.url) return;
+        onSave(form);
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="bg-neutral-50 rounded-2xl border border-neutral-200 p-6 flex flex-col gap-5">
+            <h3 className="font-display font-bold text-neutral-900 text-base">
+                {initial?._id ? 'Editar slide del hero' : 'Nuevo slide del hero'}
+            </h3>
+
+            <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Imagen <span className="text-red-500">*</span>
+                </label>
+                <HeroImageUploader
+                    currentImage={form.image.url}
+                    onUpload={(data) => set('image', data ? { url: data.url, publicId: data.publicId || '' } : { url: '', publicId: '' })}
+                />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-1">Título del slide</label>
+                    <input
+                        type="text"
+                        value={form.title}
+                        onChange={e => set('title', e.target.value)}
+                        placeholder="Ej: Matrículas abiertas 2026"
+                        maxLength={120}
+                        className="w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg outline-none
+                            focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all bg-white"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-1">Subtítulo del slide</label>
+                    <input
+                        type="text"
+                        value={form.subtitle}
+                        onChange={e => set('subtitle', e.target.value)}
+                        placeholder="Ej: A partir del 1 de Septiembre"
+                        maxLength={250}
+                        className="w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg outline-none
+                            focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 transition-all bg-white"
+                    />
+                </div>
+            </div>
+
+            <label className="flex items-center gap-3 cursor-pointer w-fit">
+                <div
+                    onClick={() => set('active', !form.active)}
+                    className={`relative w-10 h-6 rounded-full transition-colors duration-200 cursor-pointer
+                        ${form.active ? 'bg-brand-600' : 'bg-neutral-300'}`}
+                >
+                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200
+                        ${form.active ? 'translate-x-5' : 'translate-x-1'}`} />
+                </div>
+                <span className="text-sm font-medium text-neutral-700">Visible en el sitio</span>
+            </label>
+
             <div className="flex gap-3 pt-2 border-t border-neutral-200">
                 <button
                     type="submit"
@@ -161,7 +252,6 @@ function CollapsibleSection({ icon: Icon, title, description, badge, children, d
 
     return (
         <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden">
-            {/* Header — clickeable para abrir/cerrar (div, no button, para evitar button>button) */}
             <div
                 role="button"
                 tabIndex={0}
@@ -197,7 +287,6 @@ function CollapsibleSection({ icon: Icon, title, description, badge, children, d
                 </div>
             </div>
 
-            {/* Contenido colapsable */}
             {open && (
                 <div className="px-6 pb-6 border-t border-neutral-100 pt-5 flex flex-col gap-5">
                     {children}
@@ -207,152 +296,217 @@ function CollapsibleSection({ icon: Icon, title, description, badge, children, d
     );
 }
 
-function HeroImageSection({ onAlert }) {
-    const [image, setImage]   = useState({ url: '', publicId: '' });
-    const [saving, setSaving] = useState(false);
-    const [loaded, setLoaded] = useState(false);
-
-    useEffect(() => {
-        heroService.get()
-            .then(res => {
-                if (res.data?.image?.url) setImage(res.data.image);
-            })
-            .catch(() => {})
-            .finally(() => setLoaded(true));
-    }, []);
-
-    const handleSave = async () => {
-        if (!image.url) return;
-        setSaving(true);
-        try {
-            await heroService.update(image);
-            onAlert({ type: 'success', message: 'Imagen del hero actualizada' });
-        } catch {
-            onAlert({ type: 'error', message: 'Error al guardar la imagen del hero' });
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    return (
-        <CollapsibleSection
-            icon={LuLayoutTemplate}
-            title="Imagen del Hero"
-            description="Se muestra en la columna derecha de la sección principal"
-            defaultOpen={false}
-        >
-            {!loaded ? (
-                <div className="w-full rounded-xl bg-neutral-100 animate-pulse" style={{ aspectRatio: '2/1' }} />
-            ) : (
-                <HeroImageUploader
-                    currentImage={image.url}
-                    onUpload={(data) => setImage(data ? { url: data.url, publicId: data.publicId || '' } : { url: '', publicId: '' })}
-                />
-            )}
-
-            <div className="border-t border-neutral-100 pt-3">
-                <button
-                    onClick={handleSave}
-                    disabled={saving || !image.url}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700
-                        text-white text-sm font-semibold transition-all duration-200 cursor-pointer
-                        disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <LuCheck className="w-4 h-4" />
-                    {saving ? 'Guardando...' : 'Guardar imagen'}
-                </button>
+function SlideList({ slides, loading, onEdit, onDelete, onToggle, onMove, deleting }) {
+    if (loading) {
+        return (
+            <div className="flex flex-col gap-3">
+                {[1, 2].map(i => (
+                    <div key={i} className="bg-neutral-100 rounded-xl h-20 animate-pulse" />
+                ))}
             </div>
-        </CollapsibleSection>
+        );
+    }
+    if (slides.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
+                <div className="w-14 h-14 bg-neutral-100 rounded-2xl flex items-center justify-center">
+                    <LuImages className="w-7 h-7 text-neutral-300" />
+                </div>
+                <div>
+                    <p className="font-semibold text-neutral-600 text-sm">No hay slides aún</p>
+                    <p className="text-xs text-neutral-400 mt-0.5">Crea el primero con el botón de arriba</p>
+                </div>
+            </div>
+        );
+    }
+    return (
+        <div className="flex flex-col gap-2">
+            {slides.map((slide, index) => (
+                <div
+                    key={slide._id}
+                    className={`flex gap-3 bg-neutral-50 rounded-xl border p-3 transition-all duration-200
+                        ${slide.active ? 'border-neutral-200' : 'border-neutral-100 opacity-60'}`}
+                >
+                    <div className="w-20 h-12 rounded-lg overflow-hidden bg-neutral-200 flex-shrink-0 self-start">
+                        <img
+                            src={slide.image.url}
+                            alt={slide.title || `Slide ${index + 1}`}
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+
+                    <div className="flex-1 min-w-0 flex flex-col gap-2">
+                        <div className="flex items-start justify-between gap-2">
+                            <p className="font-semibold text-neutral-900 text-sm truncate">
+                                {slide.title || <span className="text-neutral-400 italic font-normal">Sin título</span>}
+                            </p>
+                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0
+                                ${slide.active ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-500'}`}>
+                                {slide.active ? 'Visible' : 'Oculto'}
+                            </span>
+                        </div>
+
+                        <div className="flex items-center gap-0.5">
+                            <div className="flex flex-col">
+                                <button
+                                    onClick={() => onMove(index, -1)}
+                                    disabled={index === 0}
+                                    className="p-1 rounded text-neutral-400 hover:text-neutral-700 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                                >
+                                    <LuChevronUp className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                    onClick={() => onMove(index, 1)}
+                                    disabled={index === slides.length - 1}
+                                    className="p-1 rounded text-neutral-400 hover:text-neutral-700 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                                >
+                                    <LuChevronDown className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+
+                            <button
+                                onClick={() => onToggle(slide)}
+                                title={slide.active ? 'Ocultar' : 'Mostrar'}
+                                className="p-2 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-200 transition-colors cursor-pointer"
+                            >
+                                {slide.active ? <LuEyeOff className="w-4 h-4" /> : <LuEye className="w-4 h-4" />}
+                            </button>
+
+                            <button
+                                onClick={() => onEdit(slide)}
+                                className="p-2 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 transition-colors cursor-pointer"
+                            >
+                                <LuPencil className="w-4 h-4" />
+                            </button>
+
+                            <button
+                                onClick={() => onDelete(slide._id)}
+                                disabled={deleting === slide._id}
+                                className="p-2 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-50"
+                            >
+                                <LuTrash2 className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
     );
 }
 
-export default function CarouselAdminPage() {
+function useSlidesAdmin(service) {
     const [slides, setSlides]   = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editing, setEditing]   = useState(null);
     const [saving, setSaving]     = useState(false);
     const [deleting, setDeleting] = useState(null);
-    const [alert, setAlert]       = useState({ type: '', message: '' });
 
-    const fetchSlides = async () => {
+    const fetch = async (onError) => {
         setLoading(true);
         try {
-            const res = await carouselService.getAdmin();
+            const res = await service.getAdmin();
             setSlides(res.data || []);
         } catch {
-            setAlert({ type: 'error', message: 'Error al cargar los slides' });
+            onError?.({ type: 'error', message: 'Error al cargar los slides' });
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => { fetchSlides(); }, []);
-
-    const handleSave = async (form) => {
+    const save = async (form, onAlert) => {
         setSaving(true);
         try {
             if (editing?._id) {
-                await carouselService.update(editing._id, form);
-                setAlert({ type: 'success', message: 'Slide actualizado correctamente' });
+                await service.update(editing._id, form);
+                onAlert({ type: 'success', message: 'Slide actualizado correctamente' });
             } else {
-                await carouselService.create(form);
-                setAlert({ type: 'success', message: 'Slide creado correctamente' });
+                await service.create(form);
+                onAlert({ type: 'success', message: 'Slide creado correctamente' });
             }
             setShowForm(false);
             setEditing(null);
-            await fetchSlides();
+            await fetch(onAlert);
         } catch {
-            setAlert({ type: 'error', message: 'Error al guardar el slide' });
+            onAlert({ type: 'error', message: 'Error al guardar el slide' });
         } finally {
             setSaving(false);
         }
     };
 
-    const handleDelete = async (id) => {
+    const remove = async (id, onAlert) => {
         if (!confirm('¿Eliminar este slide?')) return;
         setDeleting(id);
         try {
-            await carouselService.delete(id);
-            setAlert({ type: 'success', message: 'Slide eliminado' });
-            await fetchSlides();
+            await service.delete(id);
+            onAlert({ type: 'success', message: 'Slide eliminado' });
+            await fetch(onAlert);
         } catch {
-            setAlert({ type: 'error', message: 'Error al eliminar el slide' });
+            onAlert({ type: 'error', message: 'Error al eliminar el slide' });
         } finally {
             setDeleting(null);
         }
     };
 
-    const handleToggleActive = async (slide) => {
+    const toggleActive = async (slide, onAlert) => {
         try {
-            await carouselService.update(slide._id, { active: !slide.active });
-            await fetchSlides();
+            await service.update(slide._id, { active: !slide.active });
+            await fetch(onAlert);
         } catch {
-            setAlert({ type: 'error', message: 'Error al actualizar visibilidad' });
+            onAlert({ type: 'error', message: 'Error al actualizar visibilidad' });
         }
     };
 
-    const handleMove = async (index, direction) => {
+    const move = async (index, direction, onAlert) => {
         const newSlides = [...slides];
         const target = index + direction;
         if (target < 0 || target >= newSlides.length) return;
         [newSlides[index], newSlides[target]] = [newSlides[target], newSlides[index]];
         setSlides(newSlides);
         try {
-            await carouselService.reorder(newSlides.map(s => s._id));
+            await service.reorder(newSlides.map(s => s._id));
         } catch {
-            setAlert({ type: 'error', message: 'Error al reordenar' });
-            await fetchSlides();
+            onAlert({ type: 'error', message: 'Error al reordenar' });
+            await fetch(onAlert);
         }
     };
 
-    const openNew  = () => { setEditing(null); setShowForm(true); };
-    const openEdit = (slide) => { setEditing(slide); setShowForm(true); };
-    const closeForm = () => { setShowForm(false); setEditing(null); };
+    return {
+        slides, loading, showForm, editing, saving, deleting,
+        fetch,
+        save,
+        remove,
+        toggleActive,
+        move,
+        openNew:   () => { setEditing(null); setShowForm(true); },
+        openEdit:  (slide) => { setEditing(slide); setShowForm(true); },
+        closeForm: () => { setShowForm(false); setEditing(null); },
+    };
+}
 
-    const slidesAction = !showForm && (
+export default function CarouselAdminPage() {
+    const [alert, setAlert] = useState({ type: '', message: '' });
+
+    const hero = useSlidesAdmin(heroSlidesService);
+    const carousel = useSlidesAdmin(carouselService);
+
+    useEffect(() => { hero.fetch(setAlert); }, []);
+    useEffect(() => { carousel.fetch(setAlert); }, []);
+
+    const heroAction = !hero.showForm && (
         <button
-            onClick={openNew}
+            onClick={hero.openNew}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700
+                text-white text-sm font-semibold transition-all duration-200 cursor-pointer"
+        >
+            <LuPlus className="w-4 h-4" />
+            Nuevo slide
+        </button>
+    );
+
+    const carouselAction = !carousel.showForm && (
+        <button
+            onClick={carousel.openNew}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700
                 text-white text-sm font-semibold transition-all duration-200 cursor-pointer"
         >
@@ -365,137 +519,68 @@ export default function CarouselAdminPage() {
         <AdminLayout>
             <div className="flex flex-col gap-6">
 
-                {/* Header */}
                 <div>
                     <h1 className="font-display text-2xl font-bold text-neutral-900">Imágenes del Home</h1>
                     <p className="text-sm text-neutral-500 mt-1">
-                        Gestiona la imagen del hero y los slides del carousel
+                        Gestiona los slides del hero y el carousel del home
                     </p>
                 </div>
 
-                {/* Alert */}
                 <Alert type={alert.type} message={alert.message} onClose={() => setAlert({ type: '', message: '' })} />
 
-                {/* Sección: Imagen del Hero */}
-                <HeroImageSection onAlert={setAlert} />
+                {/* Sección: Slides del Hero */}
+                <CollapsibleSection
+                    icon={LuLayoutTemplate}
+                    title="Slides del Hero"
+                    description="Imágenes que rotan en la sección principal (pantalla completa)"
+                    badge={hero.slides.length > 0 ? `${hero.slides.length} slide${hero.slides.length !== 1 ? 's' : ''}` : undefined}
+                    action={heroAction}
+                    defaultOpen={true}
+                >
+                    {hero.showForm && (
+                        <HeroSlideForm
+                            initial={hero.editing}
+                            onSave={(form) => hero.save(form, setAlert)}
+                            onCancel={hero.closeForm}
+                            saving={hero.saving}
+                        />
+                    )}
+                    <SlideList
+                        slides={hero.slides}
+                        loading={hero.loading}
+                        onEdit={hero.openEdit}
+                        onDelete={(id) => hero.remove(id, setAlert)}
+                        onToggle={(slide) => hero.toggleActive(slide, setAlert)}
+                        onMove={(i, d) => hero.move(i, d, setAlert)}
+                        deleting={hero.deleting}
+                    />
+                </CollapsibleSection>
 
                 {/* Sección: Slides del Carousel */}
                 <CollapsibleSection
                     icon={LuImages}
                     title="Slides del Carousel"
                     description="Imágenes que rotan automáticamente entre el cuadro de honor y las noticias"
-                    badge={slides.length > 0 ? `${slides.length} slide${slides.length !== 1 ? 's' : ''}` : undefined}
-                    action={slidesAction}
+                    badge={carousel.slides.length > 0 ? `${carousel.slides.length} slide${carousel.slides.length !== 1 ? 's' : ''}` : undefined}
+                    action={carouselAction}
                 >
-                    {/* Formulario de nuevo/editar slide */}
-                    {showForm && (
-                        <SlideForm
-                            initial={editing}
-                            onSave={handleSave}
-                            onCancel={closeForm}
-                            saving={saving}
+                    {carousel.showForm && (
+                        <CarouselSlideForm
+                            initial={carousel.editing}
+                            onSave={(form) => carousel.save(form, setAlert)}
+                            onCancel={carousel.closeForm}
+                            saving={carousel.saving}
                         />
                     )}
-
-                    {/* Lista */}
-                    {loading ? (
-                        <div className="flex flex-col gap-3">
-                            {[1, 2].map(i => (
-                                <div key={i} className="bg-neutral-100 rounded-xl h-20 animate-pulse" />
-                            ))}
-                        </div>
-                    ) : slides.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
-                            <div className="w-14 h-14 bg-neutral-100 rounded-2xl flex items-center justify-center">
-                                <LuImages className="w-7 h-7 text-neutral-300" />
-                            </div>
-                            <div>
-                                <p className="font-semibold text-neutral-600 text-sm">No hay slides aún</p>
-                                <p className="text-xs text-neutral-400 mt-0.5">Crea el primero con el botón de arriba</p>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col gap-2">
-                            {slides.map((slide, index) => (
-                                <div
-                                    key={slide._id}
-                                    className={`flex gap-3 bg-neutral-50 rounded-xl border p-3 transition-all duration-200
-                                        ${slide.active ? 'border-neutral-200' : 'border-neutral-100 opacity-60'}`}
-                                >
-                                    {/* Miniatura */}
-                                    <div className="w-20 h-12 rounded-lg overflow-hidden bg-neutral-200 flex-shrink-0 self-start">
-                                        <img
-                                            src={slide.image.url}
-                                            alt={slide.title || `Slide ${index + 1}`}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
-
-                                    {/* Info + controles apilados */}
-                                    <div className="flex-1 min-w-0 flex flex-col gap-2">
-                                        {/* Fila: título + estado */}
-                                        <div className="flex items-start justify-between gap-2">
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-semibold text-neutral-900 text-sm truncate">
-                                                    {slide.title || <span className="text-neutral-400 italic font-normal">Sin título</span>}
-                                                </p>
-                                                {slide.linkUrl && (
-                                                    <p className="text-xs text-brand-600 font-mono mt-0.5 truncate">{slide.linkUrl}</p>
-                                                )}
-                                            </div>
-                                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0
-                                                ${slide.active ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-500'}`}>
-                                                {slide.active ? 'Visible' : 'Oculto'}
-                                            </span>
-                                        </div>
-
-                                        {/* Fila: acciones */}
-                                        <div className="flex items-center gap-0.5">
-                                            <div className="flex flex-col">
-                                                <button
-                                                    onClick={() => handleMove(index, -1)}
-                                                    disabled={index === 0}
-                                                    className="p-1 rounded text-neutral-400 hover:text-neutral-700 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
-                                                >
-                                                    <LuChevronUp className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleMove(index, 1)}
-                                                    disabled={index === slides.length - 1}
-                                                    className="p-1 rounded text-neutral-400 hover:text-neutral-700 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
-                                                >
-                                                    <LuChevronDown className="w-3.5 h-3.5" />
-                                                </button>
-                                            </div>
-
-                                            <button
-                                                onClick={() => handleToggleActive(slide)}
-                                                title={slide.active ? 'Ocultar' : 'Mostrar'}
-                                                className="p-2 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-200 transition-colors cursor-pointer"
-                                            >
-                                                {slide.active ? <LuEyeOff className="w-4 h-4" /> : <LuEye className="w-4 h-4" />}
-                                            </button>
-
-                                            <button
-                                                onClick={() => openEdit(slide)}
-                                                className="p-2 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 transition-colors cursor-pointer"
-                                            >
-                                                <LuPencil className="w-4 h-4" />
-                                            </button>
-
-                                            <button
-                                                onClick={() => handleDelete(slide._id)}
-                                                disabled={deleting === slide._id}
-                                                className="p-2 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-50"
-                                            >
-                                                <LuTrash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                    <SlideList
+                        slides={carousel.slides}
+                        loading={carousel.loading}
+                        onEdit={carousel.openEdit}
+                        onDelete={(id) => carousel.remove(id, setAlert)}
+                        onToggle={(slide) => carousel.toggleActive(slide, setAlert)}
+                        onMove={(i, d) => carousel.move(i, d, setAlert)}
+                        deleting={carousel.deleting}
+                    />
                 </CollapsibleSection>
 
             </div>
