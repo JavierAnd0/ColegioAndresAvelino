@@ -36,7 +36,8 @@ async function getRecentPosts() {
    METADATA
 ══════════════════════════════════════ */
 export async function generateMetadata({ params }) {
-    const post = await getPost(params.slug);
+    const { slug } = await params;
+    const post = await getPost(slug);
     if (!post) return { title: 'Post no encontrado' };
     return {
         title: post.seo?.metaTitle || post.title,

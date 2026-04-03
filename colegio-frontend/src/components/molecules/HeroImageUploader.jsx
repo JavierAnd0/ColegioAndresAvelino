@@ -74,12 +74,6 @@ export default function HeroImageUploader({ onUpload, currentImage = '' }) {
                             <>
                                 <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/85 via-neutral-950/50 to-neutral-950/10" />
                                 <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/70 via-transparent to-neutral-950/30" />
-                                {/* Texto de ejemplo */}
-                                <div className="absolute bottom-0 left-0 p-4 flex flex-col gap-1">
-                                    <p className="text-[0.6rem] font-mono text-brand-400 uppercase tracking-widest">Vista previa del hero</p>
-                                    <p className="text-white font-bold text-sm leading-tight">Formando los líderes del mañana</p>
-                                    <p className="text-white/60 text-[0.6rem]">Así se verá el texto sobre tu imagen</p>
-                                </div>
                             </>
                         )}
 
