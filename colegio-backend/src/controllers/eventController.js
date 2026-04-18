@@ -1,4 +1,5 @@
 import Event from '../models/event.js';
+import { ROLE_LEVEL } from '../middleware/auth.js';
 
 // @desc    Obtener todos los eventos
 // @route   GET /api/events
@@ -139,8 +140,8 @@ export const updateEvent = async (req, res) => {
       });
     }
 
-    // Verificar permisos: solo el creador o admin pueden editar
-    if (event.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
+    // Verificar permisos: solo el creador o admin/superadmin pueden editar
+    if (event.createdBy.toString() !== req.user.id && (ROLE_LEVEL[req.user.role] || 0) < ROLE_LEVEL['admin']) {
       return res.status(403).json({
         success: false,
         message: 'No tienes permisos para editar este evento',
@@ -200,8 +201,8 @@ export const deleteEvent = async (req, res) => {
       });
     }
 
-    // Verificar permisos: solo el creador o admin pueden eliminar
-    if (event.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
+    // Verificar permisos: solo el creador o admin/superadmin pueden eliminar
+    if (event.createdBy.toString() !== req.user.id && (ROLE_LEVEL[req.user.role] || 0) < ROLE_LEVEL['admin']) {
       return res.status(403).json({
         success: false,
         message: 'No tienes permisos para eliminar este evento',

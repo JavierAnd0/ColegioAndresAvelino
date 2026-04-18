@@ -40,10 +40,21 @@ export const register = async (req, res) => {
 
     const userExists = await User.findByEmail(email);
     if (userExists) {
-      return res.status(400).json({
-        success: false,
-        message: 'Ya existe un usuario con ese email.',
-      });
+      // Un superadmin puede reemplazar una cuenta admin huérfana (ej: docente eliminado
+      // cuyo User no fue borrado) siempre que no sea superadmin ni su propia cuenta.
+      const canReplace =
+        req.user.role === 'superadmin' &&
+        userExists._id.toString() !== req.user.id &&
+        (ROLE_LEVEL[userExists.role] || 0) < ROLE_LEVEL['superadmin'];
+
+      if (!canReplace) {
+        return res.status(400).json({
+          success: false,
+          message: 'Ya existe un usuario con ese email.',
+        });
+      }
+
+      await User.findByIdAndDelete(userExists._id);
     }
 
     const user = await User.create({ name, email, password, role: requestedRole });

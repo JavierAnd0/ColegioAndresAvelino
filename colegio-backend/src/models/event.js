@@ -12,7 +12,7 @@ const eventSchema = new mongoose.Schema(
       type: String,
       required: [true, 'La descripción del evento es obligatoria'],
       trim: true,
-      maxlength: [1000, 'La descripción no puede tener más de 1000 caracteres'],
+      maxlength: [500, 'La descripción no puede tener más de 500 caracteres'],
     },
     startDate: {
       type: Date,
@@ -93,7 +93,7 @@ eventSchema.set('toObject', { virtuals: true });
 eventSchema.pre('save', function(next) {
   // Asegurar que startDate es antes que endDate
   if (this.startDate > this.endDate) {
-    next(new Error('La fecha de inicio debe ser anterior a la fecha de fin'));
+    return next(new Error('La fecha de inicio debe ser anterior a la fecha de fin'));
   }
   next();
 });

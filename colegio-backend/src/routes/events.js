@@ -29,8 +29,8 @@ router.get('/month/:year/:month', validateEventMonth, getEventsByMonth);
 router.get('/:id', validateObjectId, getEventById);
 
 // Rutas privadas (requieren autenticación)
-router.post('/', protect, authorize('admin', 'editor'), validateCreateEvent, createEvent);
-router.put('/:id', protect, authorize('admin', 'editor'), validateUpdateEvent, updateEvent);
-router.delete('/:id', protect, authorize('admin', 'editor'), validateObjectId, deleteEvent);
+router.post('/', protect, authorize('admin'), validateCreateEvent, createEvent);
+router.put('/:id', protect, authorize('admin'), validateUpdateEvent, updateEvent);
+router.delete('/:id', protect, authorize('admin'), validateObjectId, deleteEvent);
 
 export default router;

@@ -1,4 +1,5 @@
 import Teacher from '../models/teacher.js';
+import User from '../models/user.js';
 import { cloudinary } from '../config/cloudinary.js';
 
 // @desc    Obtener todos los docentes
@@ -102,6 +103,11 @@ export const deleteTeacher = async (req, res) => {
 
         if (teacher.photo?.publicId) {
             try { await cloudinary.uploader.destroy(teacher.photo.publicId); } catch {}
+        }
+
+        // Eliminar la cuenta de usuario vinculada por email (si existe)
+        if (teacher.email) {
+            await User.findOneAndDelete({ email: teacher.email.toLowerCase() });
         }
 
         await teacher.deleteOne();
