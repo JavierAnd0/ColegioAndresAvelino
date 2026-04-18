@@ -1,7 +1,48 @@
 import { v2 as cloudinary } from 'cloudinary';
-import pkg from 'multer-storage-cloudinary';
-const { CloudinaryStorage } = pkg;
 import multer from 'multer';
+
+/**
+ * Storage engine para Multer que sube archivos a Cloudinary v2.
+ * Reemplaza multer-storage-cloudinary (que sólo soportaba cloudinary v1).
+ */
+class CloudinaryStorage {
+    constructor({ cloudinary: cld, params }) {
+        this._cloudinary = cld;
+        this._params = params;
+    }
+
+    async _handleFile(req, file, cb) {
+        try {
+            const params = typeof this._params === 'function'
+                ? await this._params(req, file)
+                : { ...this._params };
+
+            const uploadStream = this._cloudinary.uploader.upload_stream(
+                params,
+                (error, result) => {
+                    if (error) return cb(error);
+                    cb(null, {
+                        path: result.secure_url,
+                        filename: result.public_id,
+                        size: result.bytes,
+                        format: result.format,
+                    });
+                }
+            );
+            file.stream.pipe(uploadStream);
+        } catch (error) {
+            cb(error);
+        }
+    }
+
+    _removeFile(req, file, cb) {
+        if (file.filename) {
+            this._cloudinary.uploader.destroy(file.filename, (error) => cb(error));
+        } else {
+            cb(null);
+        }
+    }
+}
 
 // Configurar Cloudinary con las credenciales
 cloudinary.config({

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import * as XLSX from 'xlsx';
+import readXlsxFile from 'read-excel-file';
 import AdminLayout from '@/components/templates/AdminLayout';
 import Heading from '@/components/atoms/Typography/Heading';
 import Paragraph from '@/components/atoms/Typography/Paragraph';
@@ -277,31 +277,27 @@ export default function AdminActividadesPage() {
     };
 
     // ── Bulk Import (CSV o Excel) ──
-    const handleCSVFile = (e) => {
+    const handleCSVFile = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
         const isExcel = /\.(xlsx|xls)$/i.test(file.name);
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            if (isExcel) {
-                const workbook = XLSX.read(ev.target.result, { type: 'array' });
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                const json = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-                // Normalizar claves a minúsculas para que funcione csvRowToActivity
-                const rows = json.map((row) => {
-                    const normalized = {};
-                    for (const k of Object.keys(row)) normalized[k.toLowerCase().trim()] = String(row[k]);
-                    return csvRowToActivity(normalized);
-                }).filter((r) => r.title);
-                setCsvRows(rows);
-            } else {
+        if (isExcel) {
+            const xlsxRows = await readXlsxFile(file);
+            if (!xlsxRows || xlsxRows.length < 2) { setCsvRows([]); return; }
+            // Primera fila = encabezados normalizados
+            const headers = xlsxRows[0].map(h => (h != null ? String(h).toLowerCase().trim() : ''));
+            const rows = xlsxRows.slice(1).map(row => {
+                const normalized = {};
+                headers.forEach((h, i) => { normalized[h] = row[i] != null ? String(row[i]) : ''; });
+                return csvRowToActivity(normalized);
+            }).filter(r => r.title);
+            setCsvRows(rows);
+        } else {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
                 const rows = parseCSV(ev.target.result).map(csvRowToActivity);
                 setCsvRows(rows);
-            }
-        };
-        if (isExcel) {
-            reader.readAsArrayBuffer(file);
-        } else {
+            };
             reader.readAsText(file, 'UTF-8');
         }
     };

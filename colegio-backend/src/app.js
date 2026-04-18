@@ -18,6 +18,10 @@ import heroSlidesRoutes from './routes/heroSlides.js';
 
 const app = express();
 
+// Necesario para que express-rate-limit detecte correctamente la IP
+// cuando el servidor está detrás de un proxy (nginx, Vercel, etc.)
+app.set('trust proxy', 1);
+
 // Headers de seguridad HTTP (protege contra XSS, clickjacking, sniffing, etc.)
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
