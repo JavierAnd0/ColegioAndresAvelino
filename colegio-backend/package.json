@@ -5,7 +5,10 @@
   "main": "src/server.js",
   "type": "module",
   "nodemonConfig": {
-    "nodeArgs": ["--import", "./src/instrument.mjs"]
+    "nodeArgs": [
+      "--import",
+      "./src/instrument.mjs"
+    ]
   },
   "scripts": {
     "start": "node --import ./src/instrument.mjs src/server.js",
@@ -38,7 +41,8 @@
     "mongoose": "^8.0.0",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
-    "rss-parser": "^3.13.0"
+    "rss-parser": "^3.13.0",
+    "sanitize-html": "^2.17.3"
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",

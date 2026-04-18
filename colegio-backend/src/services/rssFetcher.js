@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/node';
+import sanitizeHtml from 'sanitize-html';
 import Parser from 'rss-parser';
 import RssSource from '../models/rssSource.js';
 import Activity, { getWeekMonday } from '../models/activity.js';
@@ -43,22 +44,12 @@ function detectType(title, description, defaultType) {
 }
 
 /**
- * Limpia HTML y entidades HTML de un string.
+ * Limpia HTML de un string usando un parser real (no regex).
  */
 function stripHtml(html) {
     if (!html) return '';
-    return html
-        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-        .replace(/<[^>]*>/g, ' ')
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#\d+;/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
+    const clean = sanitizeHtml(html, { allowedTags: [], allowedAttributes: {} });
+    return clean.replace(/\s+/g, ' ').trim();
 }
 
 /**
