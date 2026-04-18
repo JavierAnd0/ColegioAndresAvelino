@@ -28,6 +28,7 @@ export default function AdminBlogPage() {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editing, setEditing] = useState(null);
+    const [savedPost, setSavedPost] = useState(null);
     const [alert, setAlert] = useState(null);
     const [deleting, setDeleting] = useState(null);
     const [changingStatus, setChangingStatus] = useState(null);
@@ -106,9 +107,9 @@ export default function AdminBlogPage() {
 
     const handleCreate = async (formData) => {
         try {
-            await blogService.create(formData);
+            const res = await blogService.create(formData);
+            setSavedPost(res.data);
             setAlert({ type: 'success', message: 'Post creado exitosamente.' });
-            setShowForm(false);
             fetchPosts();
         } catch (err) {
             throw err;
@@ -117,10 +118,9 @@ export default function AdminBlogPage() {
 
     const handleUpdate = async (formData) => {
         try {
-            await blogService.update(editing._id, formData);
+            const res = await blogService.update(editing._id, formData);
+            setSavedPost(res.data);
             setAlert({ type: 'success', message: 'Post actualizado.' });
-            setEditing(null);
-            setShowForm(false);
             fetchPosts();
         } catch (err) {
             throw err;
@@ -157,6 +157,7 @@ export default function AdminBlogPage() {
 
     const handleEdit = (post) => {
         setEditing(post);
+        setSavedPost(null);
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -174,7 +175,7 @@ export default function AdminBlogPage() {
                         </Paragraph>
                     </div>
                     {!showForm && (
-                        <Button variant="primary" onClick={() => setShowForm(true)} className="self-start">
+                        <Button variant="primary" onClick={() => { setSavedPost(null); setShowForm(true); }} className="self-start">
                             + Nuevo post
                         </Button>
                     )}
@@ -193,9 +194,10 @@ export default function AdminBlogPage() {
                         <BlogEditor
                             initialData={editing || {}}
                             onSubmit={editing ? handleUpdate : handleCreate}
+                            savedPost={savedPost}
                         />
                         <Button variant="ghost" size="sm" className="mt-3"
-                            onClick={() => { setEditing(null); setShowForm(false); }}>
+                            onClick={() => { setEditing(null); setShowForm(false); setSavedPost(null); }}>
                             Cancelar
                         </Button>
                     </div>

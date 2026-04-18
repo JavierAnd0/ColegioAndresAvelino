@@ -130,7 +130,8 @@ export default function ContactoPage() {
             setAlert({ type: 'success', message: '¡Mensaje enviado! Nos pondremos en contacto contigo pronto.' });
             setForm({ nombre: '', email: '', telefono: '', asunto: '', mensaje: '', botcheck: '' });
             setStartTime(Date.now());
-        } catch {
+        } catch (err) {
+            console.error('[EmailJS] Error al enviar mensaje de contacto:', err);
             setAlert({ type: 'error', message: 'Error al enviar el mensaje. Intenta de nuevo o contáctanos por teléfono.' });
         } finally {
             setLoading(false);

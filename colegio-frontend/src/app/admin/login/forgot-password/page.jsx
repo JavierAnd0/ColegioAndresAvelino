@@ -24,7 +24,9 @@ export default function ForgotPasswordPage() {
                 { email: recipientEmail, name, reset_link: url, expiry: '10 minutos' },
             );
         } catch (e) {
+            console.error('[EmailJS] Error al enviar correo de recuperación:', e);
             Sentry.captureException(e);
+            throw e;
         }
     };
 
@@ -37,7 +39,7 @@ export default function ForgotPasswordPage() {
         try {
             const data = await authService.forgotPassword(email);
             if (data.resetUrl) {
-                sendEmailjs(data.resetUrl, email, data.userName || '');
+                await sendEmailjs(data.resetUrl, email, data.userName || '');
             }
             setSent(true);
         } catch (err) {

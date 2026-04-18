@@ -13,7 +13,7 @@ import { blogService } from '@/services/blogService';
 import api from '@/services/api';
 import {
     LuImage, LuSearch, LuX, LuCheck, LuChevronLeft, LuChevronRight,
-    LuUpload, LuSparkles, LuPencil, LuStar, LuGlobe, LuArchive, LuPenLine,
+    LuUpload, LuSparkles, LuPencil, LuStar, LuGlobe, LuArchive, LuPenLine, LuExternalLink,
 } from 'react-icons/lu';
 
 /* ══════════════════════════════════════
@@ -104,7 +104,7 @@ function CropRatioIcon({ w, h, active }) {
 /* ══════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════ */
-export default function BlogEditor({ onSubmit, initialData = {}, loading = false }) {
+export default function BlogEditor({ onSubmit, initialData = {}, loading = false, savedPost = null }) {
     const fileInputRef = useRef(null);
 
     const [form, setForm] = useState({
@@ -517,7 +517,7 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
 
                     {/* Acciones — solo visibles en mobile (xl oculta, se muestran en sidebar) */}
                     <div className="flex flex-wrap gap-3 pt-4 border-t border-neutral-100 xl:hidden">
-                        <ActionButtons initialData={initialData} loading={loading} handleSubmit={handleSubmit} />
+                        <ActionButtons initialData={initialData} loading={loading} handleSubmit={handleSubmit} savedPost={savedPost} />
                     </div>
                 </div>
 
@@ -630,7 +630,7 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
 
                             {/* Acciones del sidebar */}
                             <div className="flex flex-col gap-2 pt-1">
-                                <ActionButtons initialData={initialData} loading={loading} handleSubmit={handleSubmit} />
+                                <ActionButtons initialData={initialData} loading={loading} handleSubmit={handleSubmit} savedPost={savedPost} />
                             </div>
                         </div>
                     </div>
@@ -641,22 +641,41 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
 }
 
 /* Botones reutilizables en mobile y sidebar */
-function ActionButtons({ initialData, loading, handleSubmit }) {
-    return initialData._id ? (
-        <Button type="button" variant="primary" size="md" loading={loading}
-            onClick={(e) => handleSubmit(e)} className="w-full justify-center">
-            Guardar cambios
-        </Button>
-    ) : (
+function ActionButtons({ initialData, loading, handleSubmit, savedPost }) {
+    const previewSlug = savedPost?.slug || initialData?.slug;
+    const isPublished = (savedPost?.status || initialData?.status) === 'publicado';
+
+    return (
         <>
-            <Button type="button" variant="primary" size="md" loading={loading}
-                onClick={(e) => handleSubmit(e, 'publicado')} className="w-full justify-center">
-                Publicar
-            </Button>
-            <Button type="button" variant="secondary" size="md"
-                onClick={(e) => handleSubmit(e, 'borrador')} className="w-full justify-center">
-                Guardar borrador
-            </Button>
+            {initialData._id ? (
+                <Button type="button" variant="primary" size="md" loading={loading}
+                    onClick={(e) => handleSubmit(e)} className="w-full justify-center">
+                    Guardar cambios
+                </Button>
+            ) : (
+                <>
+                    <Button type="button" variant="primary" size="md" loading={loading}
+                        onClick={(e) => handleSubmit(e, 'publicado')} className="w-full justify-center">
+                        Publicar
+                    </Button>
+                    <Button type="button" variant="secondary" size="md"
+                        onClick={(e) => handleSubmit(e, 'borrador')} className="w-full justify-center">
+                        Guardar borrador
+                    </Button>
+                </>
+            )}
+
+            {previewSlug && isPublished && (
+                <a
+                    href={`/blog/${previewSlug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-emerald-500 text-emerald-600 text-sm font-medium hover:bg-emerald-50 transition-colors"
+                >
+                    <LuExternalLink className="w-4 h-4" />
+                    Ver entrada publicada
+                </a>
+            )}
         </>
     );
 }
