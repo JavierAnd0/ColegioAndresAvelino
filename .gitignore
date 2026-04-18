@@ -17,6 +17,9 @@ Thumbs.db
 
 # Claude
 .claude/
+.agents/
+CLAUDE.md
+skills-lock.json
 
 # Logs
 *.log
