@@ -9,6 +9,7 @@ import { authService } from '@/services/authService';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/services/api';
 import { safeImageUrl } from '@/lib/safeImageUrl';
+import Link from 'next/link';
 import { LuEye, LuEyeOff, LuCamera, LuCheck } from 'react-icons/lu';
 
 const ROLE_LABELS = {
@@ -216,8 +217,8 @@ export default function PerfilPage() {
                     {/* Tabs */}
                     <div className="flex border-b border-neutral-200">
                         {[
-                            { key: 'account',  label: 'Account' },
-                            { key: 'security', label: 'Security' },
+                            { key: 'account',  label: 'Cuenta' },
+                            { key: 'security', label: 'Seguridad' },
                         ].map(({ key, label }) => (
                             <button
                                 key={key}
@@ -417,6 +418,17 @@ export default function PerfilPage() {
                                     Reset
                                 </Button>
                             </div>
+
+                            {/* Forgot password */}
+                            <p className="text-center text-xs text-neutral-400">
+                                ¿No recuerdas tu contraseña actual?{' '}
+                                <Link
+                                    href="/admin/login/forgot-password"
+                                    className="text-brand-600 hover:text-brand-700 font-medium transition-colors"
+                                >
+                                    Olvidé mi contraseña
+                                </Link>
+                            </p>
                         </form>
                     )}
                 </div>
