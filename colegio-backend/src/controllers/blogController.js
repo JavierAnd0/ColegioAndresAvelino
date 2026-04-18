@@ -1,5 +1,9 @@
+import mongoose from 'mongoose';
 import BlogPost from '../models/blogpost.js';
 import { suggestBlogImages, getAutoImage } from '../services/imageSearch.js';
+
+const VALID_STATUSES = ['publicado', 'borrador', 'archivado', 'all'];
+const VALID_CATEGORIES = ['noticias', 'eventos', 'actividades', 'logros', 'anuncios', 'general'];
 
 // @desc    Obtener todos los posts del blog
 // @route   GET /api/blog
@@ -22,17 +26,17 @@ export const getAllPosts = async (req, res) => {
     if (!req.user || req.user.role !== 'admin') {
       filters.status = 'publicado';
       filters.publishedAt = { $lte: new Date() };
-    } else if (status && status !== 'all') {
+    } else if (status && VALID_STATUSES.includes(status) && status !== 'all') {
       filters.status = status;
     }
     // si admin envía status=all, no se filtra por status
 
-    if (category) {
+    if (category && VALID_CATEGORIES.includes(category)) {
       filters.category = category;
     }
 
     if (tag) {
-      filters.tags = tag;
+      filters.tags = String(tag);
     }
 
     // Búsqueda por texto en título o contenido
@@ -50,15 +54,17 @@ export const getAllPosts = async (req, res) => {
     const limitNum = parseInt(limit);
     const skip = (parseInt(page) - 1) * limitNum;
 
+    const safeFilters = mongoose.sanitizeFilter(filters);
+
     // Obtener posts
-    const posts = await BlogPost.find(filters)
+    const posts = await BlogPost.find(safeFilters)
       .populate('author', 'name email avatar bio')
       .sort({ publishedAt: -1 })
       .limit(limitNum)
       .skip(skip);
 
     // Contar total para paginación
-    const total = await BlogPost.countDocuments(filters);
+    const total = await BlogPost.countDocuments(safeFilters);
 
     res.status(200).json({
       success: true,
@@ -233,7 +239,7 @@ export const updatePost = async (req, res) => {
     // Actualizar el post
     post = await BlogPost.findByIdAndUpdate(
       req.params.id,
-      updateData,
+      { $set: updateData },
       {
         new: true,
         runValidators: true,

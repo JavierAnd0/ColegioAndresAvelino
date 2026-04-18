@@ -50,7 +50,9 @@ const emptyForm = { name: '', cargo: 'Docente', jornada: 'manana', email: '', or
 // Genera contraseña segura de 12 caracteres
 const generatePassword = () => {
     const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
-    return Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    const randomValues = new Uint32Array(12);
+    crypto.getRandomValues(randomValues);
+    return Array.from(randomValues, (n) => chars[n % chars.length]).join('');
 };
 
 export default function AdminDocentesPage() {

@@ -71,7 +71,7 @@ export const updateTeacher = async (req, res) => {
             }
             updateData.photo = { url: req.file.path, publicId: req.file.filename };
         }
-        const teacher = await Teacher.findByIdAndUpdate(req.params.id, updateData, {
+        const teacher = await Teacher.findByIdAndUpdate(req.params.id, { $set: updateData }, {
             new: true,
             runValidators: true,
         });

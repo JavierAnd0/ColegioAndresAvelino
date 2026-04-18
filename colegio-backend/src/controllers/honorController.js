@@ -83,7 +83,7 @@ export const createHonorEntry = async (req, res) => {
 export const updateHonorEntry = async (req, res) => {
     try {
         const { grade, year, month, category, studentName, jornada, photo } = req.body;
-        const entry = await HonorEntry.findByIdAndUpdate(req.params.id, { grade, year, month, category, studentName, jornada, photo }, {
+        const entry = await HonorEntry.findByIdAndUpdate(req.params.id, { $set: { grade, year, month, category, studentName, jornada, photo } }, {
             new: true,
             runValidators: true,
         })

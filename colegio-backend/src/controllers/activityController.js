@@ -23,7 +23,7 @@ export const getActivities = async (req, res) => {
         const filter = { isActive: true, status: 'approved' };
 
         if (grade !== undefined) filter.targetGrades = parseInt(grade, 10);
-        if (type) filter.type = type;
+        if (type && ACTIVITY_TYPES.includes(type)) filter.type = type;
         if (week) filter.weekOf = new Date(week);
         if (search) {
             const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -148,7 +148,7 @@ export const updateActivity = async (req, res) => {
             updateData.fileUrl = req.file.path;
         }
 
-        const activity = await Activity.findByIdAndUpdate(req.params.id, updateData, {
+        const activity = await Activity.findByIdAndUpdate(req.params.id, { $set: updateData }, {
             new: true,
             runValidators: true,
         });
@@ -287,7 +287,7 @@ export const createRssSource = async (req, res) => {
 export const updateRssSource = async (req, res) => {
     try {
         const { name, url, defaultType, defaultGrades, isActive } = req.body;
-        const source = await RssSource.findByIdAndUpdate(req.params.id, { name, url, defaultType, defaultGrades, isActive }, {
+        const source = await RssSource.findByIdAndUpdate(req.params.id, { $set: { name, url, defaultType, defaultGrades, isActive } }, {
             new: true,
             runValidators: true,
         });

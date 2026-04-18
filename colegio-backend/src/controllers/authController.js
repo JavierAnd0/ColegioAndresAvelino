@@ -196,7 +196,7 @@ export const updateProfile = async (req, res) => {
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      updates,
+      { $set: updates },
       {
         new: true,
         runValidators: true,
@@ -360,7 +360,7 @@ export const updateUser = async (req, res) => {
       if (allowedFields.includes(key)) updates[key] = req.body[key];
     });
 
-    const updated = await User.findByIdAndUpdate(req.params.id, updates, {
+    const updated = await User.findByIdAndUpdate(req.params.id, { $set: updates }, {
       new: true,
       runValidators: true,
     }).select('-password');

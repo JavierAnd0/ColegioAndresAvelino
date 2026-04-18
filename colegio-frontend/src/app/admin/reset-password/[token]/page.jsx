@@ -13,7 +13,7 @@ import AlertMessage from '@/components/molecules/AlertMessage';
 export default function ResetPasswordPage() {
     const { token } = useParams();
     const router = useRouter();
-    const { login } = useAuth();
+    const { setSession } = useAuth();
     const [form, setForm] = useState({ password: '', confirm: '' });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -33,8 +33,7 @@ export default function ResetPasswordPage() {
             const data = await authService.resetPassword(token, form.password);
             // Auto-login después del reset
             if (data.token) {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
+                setSession(data);
             }
             router.push('/admin');
         } catch (err) {

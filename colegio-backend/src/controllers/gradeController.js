@@ -53,7 +53,7 @@ export const createGrade = async (req, res) => {
 export const updateGrade = async (req, res) => {
     try {
         const { name, order, jornada, isActive } = req.body;
-        const grade = await Grade.findByIdAndUpdate(req.params.id, { name, order, jornada, isActive }, {
+        const grade = await Grade.findByIdAndUpdate(req.params.id, { $set: { name, order, jornada, isActive } }, {
             new: true,
             runValidators: true,
         });

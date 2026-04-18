@@ -20,7 +20,7 @@ router.put('/', protect, authorize('admin'), async (req, res) => {
         const { image } = req.body;
         const doc = await HeroSettings.findByIdAndUpdate(
             'hero',
-            { image },
+            { $set: { image } },
             { new: true, upsert: true, setDefaultsOnInsert: true }
         );
         res.json({ success: true, data: doc });

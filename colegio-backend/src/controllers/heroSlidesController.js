@@ -23,8 +23,9 @@ export const getAllSlides = async (req, res) => {
 // POST /api/hero-slides  — admin
 export const createSlide = async (req, res) => {
     try {
+        const { image, title, subtitle, active } = req.body;
         const count = await HeroSlide.countDocuments();
-        const slide = await HeroSlide.create({ ...req.body, order: count });
+        const slide = await HeroSlide.create({ image, title, subtitle, active, order: count });
         res.status(201).json({ success: true, data: slide });
     } catch {
         res.status(500).json({ success: false, message: 'Error al crear slide del hero' });
@@ -53,7 +54,7 @@ export const updateSlide = async (req, res) => {
         const { image, title, subtitle, order, active } = req.body;
         const slide = await HeroSlide.findByIdAndUpdate(
             req.params.id,
-            { image, title, subtitle, order, active },
+            { $set: { image, title, subtitle, order, active } },
             { new: true, runValidators: true }
         );
         if (!slide) return res.status(404).json({ success: false, message: 'Slide no encontrado' });

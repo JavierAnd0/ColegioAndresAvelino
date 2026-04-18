@@ -22,12 +22,16 @@ export function AuthProvider({ children }) {
         setLoading(false);
     }, []);
 
-    const login = async (email, password) => {
-        const data = await authService.login(email, password);
+    const setSession = (data) => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         setToken(data.token);
         setUser(data.user);
+    };
+
+    const login = async (email, password) => {
+        const data = await authService.login(email, password);
+        setSession(data);
         return data;
     };
 
@@ -46,7 +50,7 @@ export function AuthProvider({ children }) {
     return (
         <AuthContext.Provider value={{
             user, token, loading,
-            login, logout,
+            login, logout, setSession,
             isAuthenticated, isAdmin, isSuperAdmin,
         }}>
             {children}

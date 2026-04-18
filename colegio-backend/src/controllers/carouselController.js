@@ -23,8 +23,9 @@ export const getAllSlides = async (req, res) => {
 // POST /api/carousel  — admin
 export const createSlide = async (req, res) => {
     try {
+        const { image, title, subtitle, linkUrl, linkLabel, active } = req.body;
         const count = await CarouselSlide.countDocuments();
-        const slide = await CarouselSlide.create({ ...req.body, order: count });
+        const slide = await CarouselSlide.create({ image, title, subtitle, linkUrl, linkLabel, active, order: count });
         res.status(201).json({ success: true, data: slide });
     } catch {
         res.status(500).json({ success: false, message: 'Error al crear slide' });
@@ -53,7 +54,7 @@ export const updateSlide = async (req, res) => {
         const { image, title, subtitle, linkUrl, linkLabel, order, active } = req.body;
         const slide = await CarouselSlide.findByIdAndUpdate(
             req.params.id,
-            { image, title, subtitle, linkUrl, linkLabel, order, active },
+            { $set: { image, title, subtitle, linkUrl, linkLabel, order, active } },
             { new: true, runValidators: true }
         );
         if (!slide) return res.status(404).json({ success: false, message: 'Slide no encontrado' });

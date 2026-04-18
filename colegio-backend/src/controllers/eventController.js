@@ -1,5 +1,8 @@
+import mongoose from 'mongoose';
 import Event from '../models/event.js';
 import { ROLE_LEVEL } from '../middleware/auth.js';
+
+const VALID_CATEGORIES = ['academico', 'deportivo', 'cultural', 'reunion', 'festivo', 'otro'];
 
 // @desc    Obtener todos los eventos
 // @route   GET /api/events
@@ -17,7 +20,7 @@ export const getAllEvents = async (req, res) => {
     // Construir filtros dinámicos
     const filters = {};
 
-    if (category) {
+    if (category && VALID_CATEGORIES.includes(category)) {
       filters.category = category;
     }
 
@@ -37,7 +40,7 @@ export const getAllEvents = async (req, res) => {
     }
 
     // Obtener eventos
-    const events = await Event.find(filters)
+    const events = await Event.find(mongoose.sanitizeFilter(filters))
       .populate('createdBy', 'name email')
       .sort({ startDate: 1 })
       .limit(parseInt(limit));
@@ -152,7 +155,7 @@ export const updateEvent = async (req, res) => {
     const { title, description, startDate, endDate, location, category, isAllDay, color, isPublic, participants } = req.body;
     event = await Event.findByIdAndUpdate(
       req.params.id,
-      { title, description, startDate, endDate, location, category, isAllDay, color, isPublic, participants },
+      { $set: { title, description, startDate, endDate, location, category, isAllDay, color, isPublic, participants } },
       {
         new: true,
         runValidators: true,
