@@ -52,7 +52,8 @@ export const createGrade = async (req, res) => {
 // @access  Private (admin)
 export const updateGrade = async (req, res) => {
     try {
-        const grade = await Grade.findByIdAndUpdate(req.params.id, req.body, {
+        const { name, order, jornada, isActive } = req.body;
+        const grade = await Grade.findByIdAndUpdate(req.params.id, { name, order, jornada, isActive }, {
             new: true,
             runValidators: true,
         });

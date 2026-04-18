@@ -26,7 +26,8 @@ export const getActivities = async (req, res) => {
         if (type) filter.type = type;
         if (week) filter.weekOf = new Date(week);
         if (search) {
-            const regex = new RegExp(search, 'i');
+            const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(escaped, 'i');
             filter.$or = [{ title: regex }, { description: regex }];
         }
 
@@ -138,7 +139,9 @@ export const createActivity = async (req, res) => {
 /** PUT /api/activities/:id */
 export const updateActivity = async (req, res) => {
     try {
-        const updateData = { ...req.body };
+        const { title, description, content, type, externalUrl, imageUrl, status, isActive, isFeatured, weekOf } = req.body;
+        const updateData = { title, description, content, type, externalUrl, imageUrl, status, isActive, isFeatured, weekOf };
+        updateData.targetGrades = parseTargetGrades(req.body.targetGrades || req.body['targetGrades[]']);
 
         // Si se subió un archivo nuevo
         if (req.file) {
@@ -283,7 +286,8 @@ export const createRssSource = async (req, res) => {
 /** PUT /api/activities/sources/:id */
 export const updateRssSource = async (req, res) => {
     try {
-        const source = await RssSource.findByIdAndUpdate(req.params.id, req.body, {
+        const { name, url, defaultType, defaultGrades, isActive } = req.body;
+        const source = await RssSource.findByIdAndUpdate(req.params.id, { name, url, defaultType, defaultGrades, isActive }, {
             new: true,
             runValidators: true,
         });

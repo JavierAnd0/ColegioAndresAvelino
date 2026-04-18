@@ -38,7 +38,7 @@ const seedSuperAdmin = async () => {
         console.log('------------------------------------');
         console.log(`   Nombre: ${superAdmin.name}`);
         console.log(`   Email:  ${superAdmin.email}`);
-        console.log(`   Pass:   ${password}`);
+        console.log('   Pass:   (ver variable SUPERADMIN_PASSWORD en .env)');
         console.log('------------------------------------');
         console.log('IMPORTANTE: Define SUPERADMIN_EMAIL y SUPERADMIN_PASSWORD en tu .env');
         console.log('            y cambia la contraseña después del primer login.');

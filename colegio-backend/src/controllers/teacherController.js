@@ -60,19 +60,18 @@ export const createTeacher = async (req, res) => {
 // @access  Private (admin)
 export const updateTeacher = async (req, res) => {
     try {
+        const { name, cargo, jornada, email, order, isActive } = req.body;
+        const updateData = { name, cargo, jornada, email, order, isActive };
+
         if (req.file) {
             // Borrar foto anterior de Cloudinary
             const existing = await Teacher.findById(req.params.id);
             if (existing?.photo?.publicId) {
                 try { await cloudinary.uploader.destroy(existing.photo.publicId); } catch {}
             }
-            req.body.photo = {
-                url: req.file.path,
-                publicId: req.file.filename,
-            };
+            updateData.photo = { url: req.file.path, publicId: req.file.filename };
         }
-
-        const teacher = await Teacher.findByIdAndUpdate(req.params.id, req.body, {
+        const teacher = await Teacher.findByIdAndUpdate(req.params.id, updateData, {
             new: true,
             runValidators: true,
         });

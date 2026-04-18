@@ -305,7 +305,7 @@ export default function BlogEditor({ onSubmit, initialData = {}, loading = false
                                             <Spinner size="md" />
                                         </div>
                                     )}
-                                    <img src={form.featuredImage.url} alt={form.featuredImage.alt || 'Preview'}
+                                    <img src={/^(blob:|https?:\/\/)/.test(form.featuredImage.url) ? form.featuredImage.url : ''} alt={form.featuredImage.alt || 'Preview'}
                                         className="w-full h-full object-cover" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent
                                         flex items-end justify-between p-4 gap-2">

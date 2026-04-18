@@ -40,7 +40,7 @@ const resetAdmin = async () => {
 
         console.log('------------------------------------');
         console.log(`   Email: ${email}`);
-        console.log(`   Pass:  ${password}`);
+        console.log('   Pass:  (ver variable SUPERADMIN_PASSWORD en .env)');
         console.log('------------------------------------');
         console.log('');
 

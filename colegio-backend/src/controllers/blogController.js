@@ -37,10 +37,12 @@ export const getAllPosts = async (req, res) => {
 
     // Búsqueda por texto en título o contenido
     if (search) {
+      const escaped = String(search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escaped, 'i');
       filters.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { excerpt: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } },
+        { title: regex },
+        { excerpt: regex },
+        { content: regex },
       ];
     }
 
@@ -214,21 +216,24 @@ export const updatePost = async (req, res) => {
       });
     }
 
+    const { title, excerpt, content, image, author, status, category, tags, featuredImage, isFeatured } = req.body;
+    const updateData = { title, excerpt, content, image, author, status, category, tags, featuredImage, isFeatured };
+
     // Si se cambia el título, regenerar el slug
-    if (req.body.title && req.body.title !== post.title) {
-      delete req.body.slug; // Dejar que el modelo lo regenere
+    if (title && title !== post.title) {
+      delete updateData.slug; // Dejar que el modelo lo regenere
     }
 
     // Si se publica el post por primera vez, establecer publishedAt
     // (findByIdAndUpdate no ejecuta pre('save'), hay que hacerlo manualmente)
-    if (req.body.status === 'publicado' && !post.publishedAt) {
-      req.body.publishedAt = new Date();
+    if (status === 'publicado' && !post.publishedAt) {
+      updateData.publishedAt = new Date();
     }
 
     // Actualizar el post
     post = await BlogPost.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       {
         new: true,
         runValidators: true,

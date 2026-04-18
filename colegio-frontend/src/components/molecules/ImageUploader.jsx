@@ -79,7 +79,7 @@ export default function ImageUploader({
                 {preview ? (
                     <>
                         <img
-                            src={preview}
+                            src={/^(blob:|https?:\/\/)/.test(preview) ? preview : ''}
                             alt="Preview"
                             className="w-full h-full object-cover"
                         />

@@ -50,9 +50,10 @@ export const reorderSlides = async (req, res) => {
 // PUT /api/carousel/:id  — admin
 export const updateSlide = async (req, res) => {
     try {
+        const { image, title, subtitle, linkUrl, linkLabel, order, active } = req.body;
         const slide = await CarouselSlide.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            { image, title, subtitle, linkUrl, linkLabel, order, active },
             { new: true, runValidators: true }
         );
         if (!slide) return res.status(404).json({ success: false, message: 'Slide no encontrado' });

@@ -67,7 +67,7 @@ export default function HeroImageUploader({ onUpload, currentImage = '' }) {
             >
                 {preview ? (
                     <>
-                        <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                        <img src={/^(blob:|https?:\/\/)/.test(preview) ? preview : ''} alt="Preview" className="w-full h-full object-cover" />
 
                         {/* Overlay gradient — muestra cómo se verá en el hero */}
                         {!loading && (

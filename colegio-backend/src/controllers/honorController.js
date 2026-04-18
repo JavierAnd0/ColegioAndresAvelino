@@ -82,7 +82,8 @@ export const createHonorEntry = async (req, res) => {
 // @access  Private (admin, editor)
 export const updateHonorEntry = async (req, res) => {
     try {
-        const entry = await HonorEntry.findByIdAndUpdate(req.params.id, req.body, {
+        const { grade, year, month, category, studentName, jornada, photo } = req.body;
+        const entry = await HonorEntry.findByIdAndUpdate(req.params.id, { grade, year, month, category, studentName, jornada, photo }, {
             new: true,
             runValidators: true,
         })

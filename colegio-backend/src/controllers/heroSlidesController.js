@@ -50,9 +50,10 @@ export const reorderSlides = async (req, res) => {
 // PUT /api/hero-slides/:id  — admin
 export const updateSlide = async (req, res) => {
     try {
+        const { image, title, subtitle, order, active } = req.body;
         const slide = await HeroSlide.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            { image, title, subtitle, order, active },
             { new: true, runValidators: true }
         );
         if (!slide) return res.status(404).json({ success: false, message: 'Slide no encontrado' });

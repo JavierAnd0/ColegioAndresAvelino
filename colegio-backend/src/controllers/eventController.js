@@ -148,13 +148,14 @@ export const updateEvent = async (req, res) => {
       });
     }
 
-    // Actualizar el evento
+    // Actualizar el evento — solo campos permitidos para evitar inyección
+    const { title, description, startDate, endDate, location, category, isAllDay, color, isPublic, participants } = req.body;
     event = await Event.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { title, description, startDate, endDate, location, category, isAllDay, color, isPublic, participants },
       {
-        new: true, // Devolver el documento actualizado
-        runValidators: true, // Ejecutar validaciones
+        new: true,
+        runValidators: true,
       }
     ).populate('createdBy', 'name email');
 

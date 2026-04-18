@@ -90,7 +90,7 @@ export const login = async (req, res) => {
     }
 
     // Buscar usuario por email (incluyendo password para comparar)
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: String(email) }).select('+password');
 
     if (!user) {
       return res.status(401).json({
