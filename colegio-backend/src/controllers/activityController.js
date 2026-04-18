@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/node';
+import mongoose from 'mongoose';
 import Activity, { getWeekMonday } from '../models/activity.js';
 import RssSource, { ACTIVITY_TYPES } from '../models/rssSource.js';
 import { fetchAllSources, validateFeedUrl } from '../services/rssFetcher.js';
@@ -35,9 +36,10 @@ export const getActivities = async (req, res) => {
         const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
         const skip = (pageNum - 1) * limitNum;
 
+        const safeFilter = mongoose.sanitizeFilter(filter);
         const [data, total] = await Promise.all([
-            Activity.find(filter).sort({ weekOf: -1, createdAt: -1 }).skip(skip).limit(limitNum),
-            Activity.countDocuments(filter),
+            Activity.find(safeFilter).sort({ weekOf: -1, createdAt: -1 }).skip(skip).limit(limitNum),
+            Activity.countDocuments(safeFilter),
         ]);
 
         res.json({

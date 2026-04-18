@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import Button from '@/components/atoms/Button';
 import Spinner from '@/components/atoms/Spinner';
 import api from '@/services/api';
+import { safeImageUrl } from '@/lib/safeImageUrl';
 import { LuImage, LuInfo, LuGraduationCap } from 'react-icons/lu';
 
 export default function HeroImageUploader({ onUpload, currentImage = '' }) {
@@ -67,7 +68,7 @@ export default function HeroImageUploader({ onUpload, currentImage = '' }) {
             >
                 {preview ? (
                     <>
-                        <img src={/^(blob:|https?:\/\/)/.test(preview) ? preview : ''} alt="Preview" className="w-full h-full object-cover" />
+                        <img src={safeImageUrl(preview)} alt="Preview" className="w-full h-full object-cover" />
 
                         {/* Overlay gradient — muestra cómo se verá en el hero */}
                         {!loading && (

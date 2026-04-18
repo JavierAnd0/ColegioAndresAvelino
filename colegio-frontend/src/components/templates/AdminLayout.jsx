@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import Button from '@/components/atoms/Button';
 import Spinner from '@/components/atoms/Spinner';
-import { LuLayoutDashboard, LuTrophy, LuGraduationCap, LuCalendar, LuBookOpen, LuFileText, LuUsers, LuGlobe, LuImages } from 'react-icons/lu';
+import { LuLayoutDashboard, LuTrophy, LuGraduationCap, LuCalendar, LuBookOpen, LuFileText, LuUsers, LuGlobe, LuImages, LuCircleUser } from 'react-icons/lu';
 
 const sidebarLinks = [
     { label: 'Dashboard',       href: '/admin',              Icon: LuLayoutDashboard },
@@ -16,6 +16,7 @@ const sidebarLinks = [
     { label: 'Blog',            href: '/admin/blog',         Icon: LuFileText },
     { label: 'Actividades',     href: '/admin/actividades',  Icon: LuBookOpen },
     { label: 'Docentes',        href: '/admin/docentes',     Icon: LuUsers },
+    { label: 'Mi Perfil',       href: '/admin/perfil',       Icon: LuCircleUser },
     { label: 'Ver sitio',       href: '/',                   Icon: LuGlobe },
 ];
 

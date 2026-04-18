@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import Button from '@/components/atoms/Button';
 import Spinner from '@/components/atoms/Spinner';
 import api from '@/services/api';
+import { safeImageUrl } from '@/lib/safeImageUrl';
 import { LuImage, LuInfo } from 'react-icons/lu';
 
 const CANVAS_W = 1000;
@@ -138,7 +139,7 @@ export default function CarouselImageUploader({ onUpload, currentImage = '', upl
                 {preview ? (
                     <>
                         <img
-                            src={/^(blob:|https?:\/\/)/.test(preview) ? preview : ''}
+                            src={safeImageUrl(preview)}
                             alt="Preview"
                             className="w-full h-full object-cover"
                         />

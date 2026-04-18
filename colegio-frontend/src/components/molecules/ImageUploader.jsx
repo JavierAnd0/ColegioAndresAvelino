@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import Button from '@/components/atoms/Button';
 import Spinner from '@/components/atoms/Spinner';
 import api from '@/services/api';
+import { safeImageUrl } from '@/lib/safeImageUrl';
 import { LuImage } from 'react-icons/lu';
 
 export default function ImageUploader({
@@ -79,7 +80,7 @@ export default function ImageUploader({
                 {preview ? (
                     <>
                         <img
-                            src={/^(blob:|https?:\/\/)/.test(preview) ? preview : ''}
+                            src={safeImageUrl(preview)}
                             alt="Preview"
                             className="w-full h-full object-cover"
                         />

@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import Button from '@/components/atoms/Button';
 import Label from '@/components/atoms/Typography/Label';
 import Spinner from '@/components/atoms/Spinner';
+import { safeImageUrl } from '@/lib/safeImageUrl';
 import { honorService } from '@/services/honorService';
 import { LuCamera } from 'react-icons/lu';
 
@@ -192,7 +193,7 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
                         {preview ? (
                             <>
                                 <img
-                                    src={/^(blob:|https?:\/\/)/.test(preview) ? preview : ''}
+                                    src={safeImageUrl(preview)}
                                     alt="Preview"
                                     className="w-full h-full object-cover"
                                 />
