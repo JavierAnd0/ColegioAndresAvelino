@@ -389,11 +389,6 @@ export default async function BlogPostPage({ params }) {
                                         className="w-full object-cover"
                                         style={{ maxHeight: '460px' }}
                                     />
-                                    {post.featuredImage.alt && (
-                                        <p className="text-center text-xs text-neutral-400 font-mono py-2.5 px-4">
-                                            {post.featuredImage.alt}
-                                        </p>
-                                    )}
                                 </div>
                             )}
 

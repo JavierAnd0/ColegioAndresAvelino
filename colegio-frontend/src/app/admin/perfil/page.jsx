@@ -342,9 +342,6 @@ export default function PerfilPage() {
                                 <Button type="submit" variant="primary" loading={saving}>
                                     Guardar cambios
                                 </Button>
-                                <Button type="button" variant="outline" onClick={handleProfileReset} disabled={saving}>
-                                    Reset
-                                </Button>
                             </div>
                         </form>
                     )}
