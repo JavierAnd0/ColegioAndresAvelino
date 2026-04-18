@@ -19,31 +19,27 @@ export const getAllPosts = async (req, res) => {
       page = 1 
     } = req.query;
 
-    // Construir filtros
-    const filters = {};
+    // Construir filtros del usuario (sanitizables)
+    const userFilters = {};
 
-    // Solo mostrar posts publicados al público (a menos que sea admin)
     if (!req.user || req.user.role !== 'admin') {
-      filters.status = 'publicado';
-      filters.publishedAt = { $lte: new Date() };
+      userFilters.status = 'publicado';
     } else if (status && VALID_STATUSES.includes(status) && status !== 'all') {
-      filters.status = status;
+      userFilters.status = status;
     }
-    // si admin envía status=all, no se filtra por status
 
     if (category && VALID_CATEGORIES.includes(category)) {
-      filters.category = category;
+      userFilters.category = category;
     }
 
     if (tag) {
-      filters.tags = String(tag);
+      userFilters.tags = String(tag);
     }
 
-    // Búsqueda por texto en título o contenido
     if (search) {
       const escaped = String(search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(escaped, 'i');
-      filters.$or = [
+      userFilters.$or = [
         { title: regex },
         { excerpt: regex },
         { content: regex },
@@ -54,7 +50,11 @@ export const getAllPosts = async (req, res) => {
     const limitNum = parseInt(limit);
     const skip = (parseInt(page) - 1) * limitNum;
 
-    const safeFilters = mongoose.sanitizeFilter(filters);
+    // Sanitizar solo los filtros del usuario, luego agregar operadores internos
+    const safeFilters = mongoose.sanitizeFilter(userFilters);
+    if (!req.user || req.user.role !== 'admin') {
+      safeFilters.publishedAt = { $lte: new Date() };
+    }
 
     // Obtener posts
     const posts = await BlogPost.find(safeFilters)
