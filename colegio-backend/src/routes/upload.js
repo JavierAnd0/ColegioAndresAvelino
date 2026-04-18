@@ -21,7 +21,7 @@ const router = express.Router();
 router.post(
     '/blog',
     protect,
-    authorize('admin', 'editor', 'author'),
+    authorize('admin'),
     uploadBlogImage.single('image'),
     uploadBlogImageController
 );
@@ -38,7 +38,7 @@ router.post(
 router.post(
     '/honor',
     protect,
-    authorize('admin', 'editor'),
+    authorize('admin'),
     uploadHonorImage.single('image'),
     async (req, res) => {
         try {
