@@ -21,8 +21,8 @@ router.get('/board/:year/:month', validateHonorMonth, getHonorBoard);
 router.get('/months', getAvailableMonths);
 
 // Admin / Editor
-router.post('/', protect, authorize('admin', 'editor'), validateCreateHonor, createHonorEntry);
-router.put('/:id', protect, authorize('admin', 'editor'), validateUpdateHonor, updateHonorEntry);
-router.delete('/:id', protect, authorize('admin', 'editor'), validateObjectId, deleteHonorEntry);
+router.post('/', protect, authorize('admin'), validateCreateHonor, createHonorEntry);
+router.put('/:id', protect, authorize('admin'), validateUpdateHonor, updateHonorEntry);
+router.delete('/:id', protect, authorize('admin'), validateObjectId, deleteHonorEntry);
 
 export default router;

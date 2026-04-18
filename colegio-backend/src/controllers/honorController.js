@@ -66,7 +66,7 @@ export const createHonorEntry = async (req, res) => {
         if (error.code === 11000) {
             return res.status(400).json({
                 success: false,
-                message: 'Ya existe una entrada para este grado, mes y categoría',
+                message: 'Ya existe una entrada para este grado, año, mes, categoría y jornada',
             });
         }
         if (error.name === 'ValidationError') {
@@ -98,7 +98,7 @@ export const updateHonorEntry = async (req, res) => {
         if (error.code === 11000) {
             return res.status(400).json({
                 success: false,
-                message: 'Ya existe una entrada para este grado, mes y categoría',
+                message: 'Ya existe una entrada para este grado, año, mes, categoría y jornada',
             });
         }
         if (error.name === 'CastError') {

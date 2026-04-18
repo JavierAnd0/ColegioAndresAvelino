@@ -9,8 +9,11 @@ export default withSentryConfig(nextConfig, {
   org: 'javier-andrade',
   project: 'javascript-nextjs',
 
-  // Sube source maps solo en build, sin logs innecesarios
-  silent: !process.env.CI,
+  // Token de autenticación para subir source maps (definir en .env o en el panel de deploy)
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Silenciar warnings cuando no hay token (entorno local / sin token configurado)
+  silent: !process.env.SENTRY_AUTH_TOKEN,
 
   // Source maps completos para mejor stack traces en Sentry
   widenClientFileUpload: true,

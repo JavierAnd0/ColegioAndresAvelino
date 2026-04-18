@@ -2,12 +2,18 @@ import Grade from '../models/grade.js';
 import HonorEntry from '../models/honorEntry.js';
 
 const DEFAULT_GRADES = [
-    { name: 'Preescolar', order: 0 },
-    { name: '1°', order: 1 },
-    { name: '2°', order: 2 },
-    { name: '3°', order: 3 },
-    { name: '4°', order: 4 },
-    { name: '5°', order: 5 },
+    { name: 'Preescolar', order: 0, jornada: 'manana' },
+    { name: '1°', order: 1, jornada: 'manana' },
+    { name: '2°', order: 2, jornada: 'manana' },
+    { name: '3°', order: 3, jornada: 'manana' },
+    { name: '4°', order: 4, jornada: 'manana' },
+    { name: '5°', order: 5, jornada: 'manana' },
+    { name: 'Preescolar', order: 0, jornada: 'tarde' },
+    { name: '1°', order: 1, jornada: 'tarde' },
+    { name: '2°', order: 2, jornada: 'tarde' },
+    { name: '3°', order: 3, jornada: 'tarde' },
+    { name: '4°', order: 4, jornada: 'tarde' },
+    { name: '5°', order: 5, jornada: 'tarde' },
 ];
 
 // @desc    Obtener todos los grados activos
