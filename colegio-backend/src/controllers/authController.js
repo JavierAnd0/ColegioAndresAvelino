@@ -40,21 +40,10 @@ export const register = async (req, res) => {
 
     const userExists = await User.findByEmail(email);
     if (userExists) {
-      // Un superadmin puede reemplazar una cuenta admin huérfana (ej: docente eliminado
-      // cuyo User no fue borrado) siempre que no sea superadmin ni su propia cuenta.
-      const canReplace =
-        req.user.role === 'superadmin' &&
-        userExists._id.toString() !== req.user.id &&
-        (ROLE_LEVEL[userExists.role] || 0) < ROLE_LEVEL['superadmin'];
-
-      if (!canReplace) {
-        return res.status(400).json({
-          success: false,
-          message: 'Ya existe un usuario con ese email.',
-        });
-      }
-
-      await User.findByIdAndDelete(userExists._id);
+      return res.status(400).json({
+        success: false,
+        message: 'Ya existe un usuario con ese email.',
+      });
     }
 
     const user = await User.create({ name, email, password, role: requestedRole });
@@ -359,6 +348,11 @@ export const updateUser = async (req, res) => {
     Object.keys(req.body).forEach(key => {
       if (allowedFields.includes(key)) updates[key] = req.body[key];
     });
+
+    // Al desactivar, anonimizar el email para que quede libre en la base de datos
+    if (updates.isActive === false && target.isActive === true) {
+      updates.email = `deleted_${target._id}@removed.local`;
+    }
 
     const updated = await User.findByIdAndUpdate(req.params.id, { $set: updates }, {
       new: true,
