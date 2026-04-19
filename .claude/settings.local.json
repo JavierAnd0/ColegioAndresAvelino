@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(curl -s http://localhost:4000/api/blog)",
+      "Bash(python3 -m json.tool)",
+      "Bash(node *)",
+      "Bash(cp /Users/javier/Downloads/favicon.ico /Users/javier/ColegioAndresAvelino/colegio-frontend/src/app/favicon.ico)",
+      "Bash(cp /Users/javier/Downloads/favicon-64x64.png /Users/javier/ColegioAndresAvelino/colegio-frontend/src/app/icon.png)",
+      "Bash(convert --version)",
+      "Bash(python3 -c \"from PIL import Image; print\\('Pillow OK'\\)\")",
+      "Bash(pip3 install *)",
+      "Bash(python3 -)"
+    ]
+  }
+}

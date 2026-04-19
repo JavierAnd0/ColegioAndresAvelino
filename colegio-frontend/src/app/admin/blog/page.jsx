@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useTransition, memo } from 'react';
+import NextImage from 'next/image';
 import AdminLayout from '@/components/templates/AdminLayout';
 import BlogEditor from '@/components/organisms/BlogEditor';
 import Heading from '@/components/atoms/Typography/Heading';
@@ -10,42 +11,93 @@ import AlertMessage from '@/components/molecules/AlertMessage';
 import Badge from '@/components/atoms/Badge';
 import { blogService } from '@/services/blogService';
 
+/* ── Constantes fuera del componente ─────────────────────────────────── */
 const statusTabs = [
-    { key: 'all', label: 'Todos' },
+    { key: 'all',       label: 'Todos'      },
     { key: 'publicado', label: 'Publicados' },
-    { key: 'borrador', label: 'Borradores' },
+    { key: 'borrador',  label: 'Borradores' },
     { key: 'archivado', label: 'Archivados' },
 ];
 
 const statusVariant = {
     publicado: 'success',
-    borrador: 'default',
+    borrador:  'default',
     archivado: 'warning',
 };
 
+/* ── SortIcon fuera del componente para evitar re-creación en cada render */
+const SortIcon = memo(({ field, sortField, sortDir }) => {
+    if (sortField !== field) return <span className="text-neutral-300 ml-1">↕</span>;
+    return <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>;
+});
+SortIcon.displayName = 'SortIcon';
+
+/* ── Thumbnail reutilizable ─────────────────────────────────────────── */
+const Thumbnail = memo(({ url, title, size = 10 }) => {
+    const cls = `w-${size} h-${size} rounded-lg object-cover flex-shrink-0`;
+    if (url) {
+        return (
+            <NextImage
+                src={url}
+                alt={title}
+                width={size * 4}
+                height={size * 4}
+                className={cls}
+            />
+        );
+    }
+    return (
+        <div className={`w-${size} h-${size} rounded-lg bg-neutral-100 flex-shrink-0 flex items-center justify-center`}>
+            <svg className="w-4 h-4 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+        </div>
+    );
+});
+Thumbnail.displayName = 'Thumbnail';
+
+/* ── Helpers ─────────────────────────────────────────────────────────── */
+const STATUS_LABELS = { publicado: 'publicado', borrador: 'movido a borrador', archivado: 'archivado' };
+
+function useDebounce(value, delay = 250) {
+    const [debounced, setDebounced] = useState(value);
+    useEffect(() => {
+        const t = setTimeout(() => setDebounced(value), delay);
+        return () => clearTimeout(t);
+    }, [value, delay]);
+    return debounced;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
 export default function AdminBlogPage() {
-    const [posts, setPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [showForm, setShowForm] = useState(false);
-    const [editing, setEditing] = useState(null);
-    const [savedPost, setSavedPost] = useState(null);
-    const [alert, setAlert] = useState(null);
-    const [deleting, setDeleting] = useState(null);
+    const [posts,          setPosts         ] = useState([]);
+    const [loading,        setLoading       ] = useState(true);
+    const [showForm,       setShowForm      ] = useState(false);
+    const [editing,        setEditing       ] = useState(null);
+    const [savedPost,      setSavedPost     ] = useState(null);
+    const [alert,          setAlert         ] = useState(null);
+    const [deleting,       setDeleting      ] = useState(null);
     const [changingStatus, setChangingStatus] = useState(null);
-    const [statusFilter, setStatusFilter] = useState('all');
+    const [statusFilter,   setStatusFilter  ] = useState('all');
 
     // DataTable state
-    const [search, setSearch] = useState('');
-    const [sortField, setSortField] = useState('publishedAt');
-    const [sortDir, setSortDir] = useState('desc');
-    const [page, setPage] = useState(1);
+    const [searchRaw,  setSearchRaw ] = useState('');
+    const [sortField,  setSortField ] = useState('publishedAt');
+    const [sortDir,    setSortDir   ] = useState('desc');
+    const [page,       setPage      ] = useState(1);
     const perPage = 10;
 
+    // Debounce búsqueda: no recalcula useMemo en cada tecla
+    const search = useDebounce(searchRaw, 250);
+
+    // useTransition: marca el filtrado como no urgente → UI responde al instante
+    const [, startTransition] = useTransition();
+
+    /* ── Fetch ────────────────────────────────────────────────────────── */
     const fetchPosts = useCallback(async () => {
         setLoading(true);
         try {
-            const params = { limit: 100, status: statusFilter };
-            const data = await blogService.getAll(params);
+            const data = await blogService.getAll({ limit: 100, status: statusFilter });
             setPosts(data.data || []);
             setPage(1);
         } catch {
@@ -57,10 +109,9 @@ export default function AdminBlogPage() {
 
     useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
-    // Búsqueda y ordenamiento
+    /* ── Filtrado y ordenamiento (useMemo sólo se recalcula con debounced) */
     const processed = useMemo(() => {
         let data = [...posts];
-
         if (search.trim()) {
             const q = search.toLowerCase();
             data = data.filter(p =>
@@ -68,7 +119,6 @@ export default function AdminBlogPage() {
                 (p.category || '').toLowerCase().includes(q)
             );
         }
-
         data.sort((a, b) => {
             let valA = a[sortField] ?? '';
             let valB = b[sortField] ?? '';
@@ -80,88 +130,104 @@ export default function AdminBlogPage() {
                 if (typeof valB === 'string') valB = valB.toLowerCase();
             }
             if (valA < valB) return sortDir === 'asc' ? -1 : 1;
-            if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+            if (valA > valB) return sortDir === 'asc' ?  1 : -1;
             return 0;
         });
-
         return data;
     }, [posts, search, sortField, sortDir]);
 
     const totalPages = Math.ceil(processed.length / perPage);
-    const paginated = processed.slice((page - 1) * perPage, page * perPage);
+    const paginated  = processed.slice((page - 1) * perPage, page * perPage);
 
-    const handleSort = (field) => {
-        if (sortField === field) {
-            setSortDir(d => d === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortField(field);
-            setSortDir('asc');
-        }
+    /* ── Handlers con useCallback ─────────────────────────────────────── */
+    const handleSort = useCallback((field) => {
+        startTransition(() => {
+            setSortField(prev => {
+                if (prev === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+                else { setSortDir('asc'); return field; }
+                return prev;
+            });
+            setPage(1);
+        });
+    }, [startTransition]);
+
+    const handleSearchChange = useCallback((e) => {
+        setSearchRaw(e.target.value);
         setPage(1);
-    };
+    }, []);
 
-    const SortIcon = ({ field }) => {
-        if (sortField !== field) return <span className="text-neutral-300 ml-1">↕</span>;
-        return <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>;
-    };
+    const handleTabChange = useCallback((key) => {
+        startTransition(() => {
+            setStatusFilter(key);
+            setSearchRaw('');
+        });
+    }, [startTransition]);
 
-    const handleCreate = async (formData) => {
-        try {
-            const res = await blogService.create(formData);
-            setSavedPost(res.data);
-            setAlert({ type: 'success', message: 'Post creado exitosamente.' });
-            fetchPosts();
-        } catch (err) {
-            throw err;
-        }
-    };
+    const handleCreate = useCallback(async (formData) => {
+        const res = await blogService.create(formData);
+        setSavedPost(res.data);
+        setAlert({ type: 'success', message: 'Post creado exitosamente.' });
+        fetchPosts();
+    }, [fetchPosts]);
 
-    const handleUpdate = async (formData) => {
-        try {
-            const res = await blogService.update(editing._id, formData);
-            setSavedPost(res.data);
-            setAlert({ type: 'success', message: 'Post actualizado.' });
-            fetchPosts();
-        } catch (err) {
-            throw err;
-        }
-    };
+    const handleUpdate = useCallback(async (formData) => {
+        const res = await blogService.update(editing._id, formData);
+        setSavedPost(res.data);
+        setAlert({ type: 'success', message: 'Post actualizado.' });
+        fetchPosts();
+    }, [editing, fetchPosts]);
 
-    const handleDelete = async (id) => {
+    const handleDelete = useCallback(async (id) => {
         if (!confirm('¿Eliminar este post permanentemente?')) return;
+        // Optimistic update: eliminar inmediatamente de la UI
+        setPosts(prev => prev.filter(p => p._id !== id));
         setDeleting(id);
         try {
             await blogService.delete(id);
             setAlert({ type: 'success', message: 'Post eliminado.' });
-            fetchPosts();
         } catch {
             setAlert({ type: 'error', message: 'Error al eliminar.' });
+            fetchPosts(); // revertir si falla
         } finally {
             setDeleting(null);
         }
-    };
+    }, [fetchPosts]);
 
-    const handleStatusChange = async (id, newStatus) => {
+    const handleStatusChange = useCallback(async (id, newStatus) => {
+        // Optimistic update: cambiar estado inmediatamente en la UI
+        setPosts(prev => prev.map(p => p._id === id ? { ...p, status: newStatus } : p));
         setChangingStatus(id);
         try {
             await blogService.update(id, { status: newStatus });
-            const labels = { publicado: 'publicado', borrador: 'movido a borrador', archivado: 'archivado' };
-            setAlert({ type: 'success', message: `Post ${labels[newStatus]}.` });
-            fetchPosts();
+            setAlert({ type: 'success', message: `Post ${STATUS_LABELS[newStatus]}.` });
         } catch (err) {
             setAlert({ type: 'error', message: err?.message || 'Error al cambiar estado.' });
+            fetchPosts(); // revertir si falla
         } finally {
             setChangingStatus(null);
         }
-    };
+    }, [fetchPosts]);
 
-    const handleEdit = (post) => {
+    const handleEdit = useCallback((post) => {
         setEditing(post);
         setSavedPost(null);
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    }, []);
 
+    const handleNewPost = useCallback(() => {
+        setSavedPost(null);
+        setEditing(null);
+        setShowForm(true);
+    }, []);
+
+    const handleCancelForm = useCallback(() => {
+        setEditing(null);
+        setShowForm(false);
+        setSavedPost(null);
+    }, []);
+
+    /* ── Render ───────────────────────────────────────────────────────── */
     return (
         <AdminLayout>
             <div className="flex flex-col gap-6">
@@ -175,7 +241,7 @@ export default function AdminBlogPage() {
                         </Paragraph>
                     </div>
                     {!showForm && (
-                        <Button variant="primary" onClick={() => { setSavedPost(null); setShowForm(true); }} className="self-start">
+                        <Button variant="primary" onClick={handleNewPost} className="self-start">
                             + Nuevo post
                         </Button>
                     )}
@@ -196,8 +262,7 @@ export default function AdminBlogPage() {
                             onSubmit={editing ? handleUpdate : handleCreate}
                             savedPost={savedPost}
                         />
-                        <Button variant="ghost" size="sm" className="mt-3"
-                            onClick={() => { setEditing(null); setShowForm(false); setSavedPost(null); }}>
+                        <Button variant="ghost" size="sm" className="mt-3" onClick={handleCancelForm}>
                             Cancelar
                         </Button>
                     </div>
@@ -206,12 +271,12 @@ export default function AdminBlogPage() {
                 {/* DataTable */}
                 <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
 
-                    {/* Pestañas de estado — móvil: pills compactos, desktop: tabs con underline */}
+                    {/* Pestañas de estado */}
                     <div className="flex items-center gap-1 p-3 border-b border-neutral-100 overflow-x-auto md:px-4 md:pt-3 md:pb-0 md:gap-1">
                         {statusTabs.map((tab) => (
                             <button
                                 key={tab.key}
-                                onClick={() => { setStatusFilter(tab.key); setSearch(''); }}
+                                onClick={() => handleTabChange(tab.key)}
                                 className={`
                                     px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer whitespace-nowrap rounded-md
                                     md:px-3 md:py-2 md:text-sm md:rounded-none md:border-b-2 md:-mb-px
@@ -231,8 +296,8 @@ export default function AdminBlogPage() {
                         <input
                             type="text"
                             placeholder="Buscar por título o categoría..."
-                            value={search}
-                            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                            value={searchRaw}
+                            onChange={handleSearchChange}
                             className="w-full sm:max-w-sm px-3 py-2 border border-neutral-200 rounded-lg text-sm
                                 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
                         />
@@ -248,21 +313,9 @@ export default function AdminBlogPage() {
                             </div>
                         ) : paginated.map((post) => (
                             <div key={post._id} className="p-4 flex gap-3">
-                                {/* Thumbnail */}
-                                {post.featuredImage?.url ? (
-                                    <img src={post.featuredImage.url} alt={post.title}
-                                        className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
-                                ) : (
-                                    <div className="w-14 h-14 rounded-lg bg-neutral-100 flex-shrink-0 flex items-center justify-center">
-                                        <svg className="w-5 h-5 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                    </div>
-                                )}
+                                <Thumbnail url={post.featuredImage?.url} title={post.title} size={14} />
 
-                                {/* Contenido */}
                                 <div className="flex-1 min-w-0">
-                                    {/* Meta: estado + categoría + fecha */}
                                     <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                                         <span className={`inline-flex px-1.5 py-0.5 rounded text-[0.65rem] font-bold
                                             ${post.status === 'publicado' ? 'bg-green-100 text-green-700'
@@ -284,7 +337,6 @@ export default function AdminBlogPage() {
                                         {post.title}
                                     </p>
 
-                                    {/* Acciones */}
                                     <div className="flex items-center gap-2 mt-2.5">
                                         <select
                                             value={post.status}
@@ -335,19 +387,19 @@ export default function AdminBlogPage() {
                                 <tr>
                                     <th className="px-4 py-3 text-left font-medium text-neutral-600 cursor-pointer select-none"
                                         onClick={() => handleSort('title')}>
-                                        Título <SortIcon field="title" />
+                                        Título <SortIcon field="title" sortField={sortField} sortDir={sortDir} />
                                     </th>
                                     <th className="px-4 py-3 text-left font-medium text-neutral-600 cursor-pointer select-none"
                                         onClick={() => handleSort('category')}>
-                                        Categoría <SortIcon field="category" />
+                                        Categoría <SortIcon field="category" sortField={sortField} sortDir={sortDir} />
                                     </th>
                                     <th className="px-4 py-3 text-left font-medium text-neutral-600 cursor-pointer select-none"
                                         onClick={() => handleSort('status')}>
-                                        Estado <SortIcon field="status" />
+                                        Estado <SortIcon field="status" sortField={sortField} sortDir={sortDir} />
                                     </th>
                                     <th className="px-4 py-3 text-left font-medium text-neutral-600 cursor-pointer select-none"
                                         onClick={() => handleSort('publishedAt')}>
-                                        Fecha <SortIcon field="publishedAt" />
+                                        Fecha <SortIcon field="publishedAt" sortField={sortField} sortDir={sortDir} />
                                     </th>
                                     <th className="px-4 py-3 text-right font-medium text-neutral-600">
                                         Acciones
@@ -371,16 +423,7 @@ export default function AdminBlogPage() {
                                     <tr key={post._id} className="hover:bg-neutral-50 transition-colors">
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-3">
-                                                {post.featuredImage?.url ? (
-                                                    <img src={post.featuredImage.url} alt={post.title}
-                                                        className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
-                                                ) : (
-                                                    <div className="w-10 h-10 rounded-lg bg-neutral-100 flex-shrink-0 flex items-center justify-center">
-                                                        <svg className="w-4 h-4 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                        </svg>
-                                                    </div>
-                                                )}
+                                                <Thumbnail url={post.featuredImage?.url} title={post.title} size={10} />
                                                 <p className="font-medium text-neutral-900 truncate max-w-xs">{post.title}</p>
                                             </div>
                                         </td>

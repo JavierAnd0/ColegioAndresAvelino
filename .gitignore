@@ -16,7 +16,7 @@ node_modules/
 Thumbs.db
 
 # Claude
-.claude/
+.claude/ 
 .agents/
 CLAUDE.md
 skills-lock.json
