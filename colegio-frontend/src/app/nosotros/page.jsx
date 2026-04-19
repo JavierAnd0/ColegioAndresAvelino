@@ -103,9 +103,9 @@ export default function NosotrosPage() {
                         {/* Stats */}
                         <div className="grid grid-cols-3 gap-6 mt-12 pt-12 border-t border-white/10">
                             {[
-                                { Icon: LuUsers, value: '+500', label: 'Estudiantes activos' },
-                                { Icon: LuGraduationCap, value: '+40', label: 'Docentes calificados' },
-                                { Icon: LuAward, value: '25+', label: 'Años de trayectoria' },
+                                { Icon: LuUsers, value: '+200', label: 'Estudiantes activos' },
+                                { Icon: LuGraduationCap, value: '+10', label: 'Docentes calificados' },
+                                { Icon: LuAward, value: '+40', label: 'Años de trayectoria' },
                             ].map((s) => (
                                 <div key={s.label} className="flex flex-col gap-2">
                                     <s.Icon className="w-5 h-5 text-brand-400" />
@@ -146,7 +146,7 @@ export default function NosotrosPage() {
                             </div>
                             <h3 className="font-display text-2xl font-bold text-neutral-900 mb-4">Misión</h3>
                             <p className="text-neutral-500 leading-relaxed">
-                                Formar ciudadanos íntegros, críticos y competentes mediante una educación de calidad que desarrolle sus dimensiones cognitiva, social, ética y espiritual, para que contribuyan positivamente a la transformación de su entorno.
+                                Formar ciudadanos íntegros, críticos y competentes mediante una educación de calidad que desarrolle sus dimensiones cognitiva, social, ética y espiritual, para que contribuyan positivamente a la transformación del entorno en la comunidad del municipio de rivera.
                             </p>
                         </div>
 

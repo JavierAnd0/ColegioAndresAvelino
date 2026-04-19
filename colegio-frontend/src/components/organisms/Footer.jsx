@@ -3,15 +3,15 @@ import { LuMapPin, LuPhone, LuMail, LuHeart } from 'react-icons/lu';
 
 const footerLinks = {
     'Institución': [
-        { label: 'Nosotros',        href: '/nosotros' },
+        { label: 'Nosotros', href: '/nosotros' },
         { label: 'Cuadro de Honor', href: '/cuadro-honor' },
-        { label: 'Calendario',      href: '/calendario' },
-        { label: 'Blog',            href: '/blog' },
-        { label: 'Contacto',        href: '/contacto' },
+        { label: 'Calendario', href: '/calendario' },
+        { label: 'Blog', href: '/blog' },
+        { label: 'Contacto', href: '/contacto' },
     ],
     'Legal': [
-        { label: 'Términos',    href: '/terminos' },
-        { label: 'Privacidad',  href: '/privacidad' },
+        { label: 'Términos', href: '/terminos' },
+        { label: 'Privacidad', href: '/privacidad' },
     ],
 };
 
@@ -35,7 +35,7 @@ export default function Footer() {
                             <div className="h-9 w-9 bg-brand-600 rounded-xl flex items-center justify-center shadow-sm">
                                 <span className="font-display text-white font-bold">C</span>
                             </div>
-                            <span className="font-display font-bold text-lg tracking-tight">Nombre del Colegio</span>
+                            <span className="font-display font-bold text-lg tracking-tight">Colegio Andrés Avelino Longas</span>
                         </div>
                         <p className="text-sm text-neutral-400 leading-relaxed max-w-xs">
                             Formando líderes del mañana con valores, conocimiento y compromiso social.
@@ -43,15 +43,15 @@ export default function Footer() {
                         <div className="flex flex-col gap-2">
                             <span className="text-sm text-neutral-400 flex items-center gap-2">
                                 <LuMapPin className="w-3.5 h-3.5 flex-shrink-0 text-brand-400" />
-                                Dirección del colegio
+                                KR 8 # 5-51, HUILA, RIVERA.
                             </span>
                             <span className="text-sm text-neutral-400 flex items-center gap-2">
                                 <LuPhone className="w-3.5 h-3.5 flex-shrink-0 text-brand-400" />
-                                Teléfono de contacto
+                                -
                             </span>
                             <span className="text-sm text-neutral-400 flex items-center gap-2">
                                 <LuMail className="w-3.5 h-3.5 flex-shrink-0 text-brand-400" />
-                                correo@colegio.edu.co
+                                -
                             </span>
                         </div>
                     </div>
@@ -80,7 +80,7 @@ export default function Footer() {
                 {/* Copyright */}
                 <div className="border-t border-neutral-800 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
                     <p className="text-sm text-neutral-500">
-                        © {year} Nombre del Colegio. Todos los derechos reservados.
+                        © {year} Andres Avelino Longas. Todos los derechos reservados.
                     </p>
                     <p className="text-sm text-neutral-500 flex items-center gap-1.5">
                         Hecho con <LuHeart className="w-3.5 h-3.5 text-brand-500 animate-pulse" /> para nuestra comunidad educativa
