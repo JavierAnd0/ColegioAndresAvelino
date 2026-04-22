@@ -10,6 +10,7 @@ import { eventService } from '@/services/eventService';
 import { activityService } from '@/services/activityService';
 import { teacherService } from '@/services/teacherService';
 import { honorService, gradeService } from '@/services/honorService';
+import { periodService } from '@/services/periodService';
 import { carouselService } from '@/services/carouselService';
 import { heroService } from '@/services/heroService';
 import {
@@ -120,14 +121,14 @@ export default function AdminDashboard() {
         try {
             const [
                 allPosts, upcomingEvents, pendingActs,
-                teachersRes, honorMonths, gradesRes,
+                teachersRes, periodsRes, gradesRes,
                 carouselRes, heroRes,
             ] = await Promise.allSettled([
                 blogService.getAll({ limit: 100 }),
                 eventService.getAll({ limit: 300 }),
                 activityService.getPending(),
                 teacherService.getAllAdmin(),
-                honorService.getAvailableMonths(),
+                periodService.getAll(),
                 gradeService.getAll(),
                 carouselService.getAdmin(),
                 heroService.get(),
@@ -138,7 +139,7 @@ export default function AdminDashboard() {
             const pending = pendingActs.value?.data     || [];
             const teachers = teachersRes.value?.data?.data
                           ?? teachersRes.value?.data    ?? [];
-            const months   = honorMonths.value?.data    || [];
+            const months   = periodsRes.value?.data      || [];
             const grades   = gradesRes.value?.data      || [];
             const slides   = carouselRes.value?.data    || [];
             const hero     = heroRes.value?.data        || null;
@@ -290,7 +291,7 @@ export default function AdminDashboard() {
                         icon={LuTrophy}
                         label="Cuadro de honor"
                         value={months.length}
-                        sub="Meses registrados"
+                        sub="Periodos registrados"
                         colorClass="text-yellow-600" bgClass="bg-yellow-50"
                         href="/admin/cuadro-honor"
                     />

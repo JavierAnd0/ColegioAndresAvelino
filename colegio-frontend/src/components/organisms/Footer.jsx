@@ -31,11 +31,12 @@ export default function Footer() {
 
                     {/* Info del colegio */}
                     <div className="flex flex-col gap-5">
-                        <div className="flex items-center gap-2.5">
-                            <div className="h-9 w-9 bg-brand-600 rounded-xl flex items-center justify-center shadow-sm">
-                                <span className="font-display text-white font-bold">C</span>
-                            </div>
-                            <span className="font-display font-bold text-lg tracking-tight">Colegio Andrés Avelino Longas</span>
+                        <div className="flex items-center">
+                            <img 
+                                src="/logo.png" 
+                                alt="Logo Institución Educativa Misael Pastrana Borrero" 
+                                className="h-12 w-auto object-contain bg-white rounded-md p-1"
+                            />
                         </div>
                         <p className="text-sm text-neutral-400 leading-relaxed max-w-xs">
                             Formando líderes del mañana con valores, conocimiento y compromiso social.

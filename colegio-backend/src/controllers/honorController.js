@@ -1,63 +1,44 @@
+import mongoose from 'mongoose';
 import HonorEntry from '../models/honorEntry.js';
 import { cloudinary } from '../config/cloudinary.js';
 
-// @desc    Obtener cuadro de honor de un mes
-// @route   GET /api/honor/board/:year/:month
+// @desc    Obtener cuadro de honor de un periodo
+// @route   GET /api/honor/board/:periodId
 // @access  Public
 export const getHonorBoard = async (req, res) => {
     try {
-        const { year, month } = req.params;
-        const entries = await HonorEntry.find({
-            year: parseInt(year),
-            month: parseInt(month),
-        })
-            .populate('grade', 'name order')
-            .populate('createdBy', 'name')
-            .sort({ 'grade.order': 1 });
+        const { periodId } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(periodId)) {
+            return res.status(400).json({ success: false, message: 'ID de periodo no válido' });
+        }
 
-        // Ordenar por grade.order después del populate
+        const entries = await HonorEntry.find({ period: periodId })
+            .populate('grade', 'name order')
+            .populate('period', 'name year')
+            .populate('createdBy', 'name');
+
         entries.sort((a, b) => (a.grade?.order || 0) - (b.grade?.order || 0));
 
         res.json({
             success: true,
             count: entries.length,
-            year: parseInt(year),
-            month: parseInt(month),
             data: entries,
         });
-    } catch (error) {
+    } catch {
         res.status(500).json({ success: false, message: 'Error al obtener el cuadro de honor' });
-    }
-};
-
-// @desc    Obtener meses disponibles con entries
-// @route   GET /api/honor/months
-// @access  Public
-export const getAvailableMonths = async (req, res) => {
-    try {
-        const months = await HonorEntry.aggregate([
-            { $group: { _id: { year: '$year', month: '$month' } } },
-            { $sort: { '_id.year': -1, '_id.month': -1 } },
-        ]);
-
-        res.json({
-            success: true,
-            data: months.map(m => ({ year: m._id.year, month: m._id.month })),
-        });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Error al obtener los meses disponibles' });
     }
 };
 
 // @desc    Crear entrada en el cuadro de honor
 // @route   POST /api/honor
-// @access  Private (admin, editor)
+// @access  Private (admin)
 export const createHonorEntry = async (req, res) => {
     try {
         req.body.createdBy = req.user.id;
         const entry = await HonorEntry.create(req.body);
         const populated = await entry.populate([
             { path: 'grade', select: 'name order' },
+            { path: 'period', select: 'name year' },
             { path: 'createdBy', select: 'name' },
         ]);
 
@@ -66,7 +47,7 @@ export const createHonorEntry = async (req, res) => {
         if (error.code === 11000) {
             return res.status(400).json({
                 success: false,
-                message: 'Ya existe una entrada para este grado, año, mes, categoría y jornada',
+                message: 'Ya existe una entrada para este grado, periodo, posición y jornada',
             });
         }
         if (error.name === 'ValidationError') {
@@ -79,15 +60,17 @@ export const createHonorEntry = async (req, res) => {
 
 // @desc    Actualizar entrada del cuadro de honor
 // @route   PUT /api/honor/:id
-// @access  Private (admin, editor)
+// @access  Private (admin)
 export const updateHonorEntry = async (req, res) => {
     try {
-        const { grade, year, month, category, studentName, jornada, photo } = req.body;
-        const entry = await HonorEntry.findByIdAndUpdate(req.params.id, { $set: { grade, year, month, category, studentName, jornada, photo } }, {
-            new: true,
-            runValidators: true,
-        })
+        const { grade, period, position, studentName, jornada, photo } = req.body;
+        const entry = await HonorEntry.findByIdAndUpdate(
+            req.params.id,
+            { $set: { grade, period, position, studentName, jornada, photo } },
+            { new: true, runValidators: true }
+        )
             .populate('grade', 'name order')
+            .populate('period', 'name year')
             .populate('createdBy', 'name');
 
         if (!entry) {
@@ -99,7 +82,7 @@ export const updateHonorEntry = async (req, res) => {
         if (error.code === 11000) {
             return res.status(400).json({
                 success: false,
-                message: 'Ya existe una entrada para este grado, año, mes, categoría y jornada',
+                message: 'Ya existe una entrada para este grado, periodo, posición y jornada',
             });
         }
         if (error.name === 'CastError') {
@@ -111,7 +94,7 @@ export const updateHonorEntry = async (req, res) => {
 
 // @desc    Eliminar entrada del cuadro de honor
 // @route   DELETE /api/honor/:id
-// @access  Private (admin, editor)
+// @access  Private (admin)
 export const deleteHonorEntry = async (req, res) => {
     try {
         const entry = await HonorEntry.findById(req.params.id);
@@ -119,7 +102,6 @@ export const deleteHonorEntry = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Entrada no encontrada' });
         }
 
-        // Borrar foto de Cloudinary si existe
         if (entry.photo?.publicId) {
             try {
                 await cloudinary.uploader.destroy(entry.photo.publicId);

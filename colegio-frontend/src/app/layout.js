@@ -32,8 +32,8 @@ export const metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description:
-    'Sitio web oficial de la Institución Educativa. Actividades, noticias, eventos y recursos educativos para nuestra comunidad en Rivera, Huila.',
-  keywords: ['institución educativa', 'colegio', 'Rivera', 'Huila', 'Colombia', 'educación', 'escuela'],
+    'Sitio web oficial de la Institución Educativa Andrés Avelino Longas. Actividades, noticias, eventos y recursos educativos para nuestra comunidad en Rivera, Huila.',
+  keywords: ['institución educativa Andrés Avelino Longas', 'colegio', 'Rivera', 'Huila', 'Colombia', 'educación', 'escuela'],
   authors: [{ name: SITE_NAME }],
   creator: SITE_NAME,
   publisher: SITE_NAME,
@@ -44,12 +44,12 @@ export const metadata = {
     siteName: SITE_NAME,
     title: `${SITE_NAME} | Rivera, Huila`,
     description:
-      'Sitio web oficial de la Institución Educativa. Actividades, noticias y recursos para nuestra comunidad.',
+      'Sitio web oficial de la Institución Educativa Andrés Avelino Longas. Actividades, noticias y recursos para nuestra comunidad.',
   },
   twitter: {
     card: 'summary_large_image',
     title: `${SITE_NAME} | Rivera, Huila`,
-    description: 'Sitio web oficial de la Institución Educativa en Rivera, Huila.',
+    description: 'Sitio web oficial de la Institución Educativa Andrés Avelino Longas en Rivera, Huila.',
   },
   robots: {
     index: true,

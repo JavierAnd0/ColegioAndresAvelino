@@ -6,17 +6,17 @@ import { heroSlidesService } from '@/services/heroSlidesService';
 import { LuBookOpen, LuClipboardList, LuMonitor, LuChevronLeft, LuChevronRight } from 'react-icons/lu';
 
 const quickLinks = [
-    { label: 'Ingreso Académico',    Icon: LuBookOpen,      href: '/admisiones' },
+    { label: 'Ingreso Académico', Icon: LuBookOpen, href: '/admisiones' },
     { label: 'Manual de Convivencia', Icon: LuClipboardList, href: '/manual-convivencia' },
-    { label: 'Plataforma de Notas',  Icon: LuMonitor,       href: '/notas' },
+    { label: 'Plataforma de Notas', Icon: LuMonitor, href: '/notas' },
 ];
 
 export default function HeroSection({
     subtitle = 'Una institución educativa comprometida con la excelencia, los valores y el desarrollo integral de cada estudiante.',
 }) {
-    const [slides, setSlides]   = useState([]);
+    const [slides, setSlides] = useState([]);
     const [current, setCurrent] = useState(0);
-    const [paused, setPaused]   = useState(false);
+    const [paused, setPaused] = useState(false);
     const timerRef = useRef(null);
 
     useEffect(() => {
@@ -92,12 +92,19 @@ export default function HeroSection({
                     <div className="max-w-lg flex flex-col gap-8">
 
                         <div className="animate-fade-in-up flex flex-col gap-5">
-                            <h1 className="font-display font-black leading-[1.02] tracking-tight"
-                                style={{ fontSize: 'clamp(2.8rem, 6vw, 5.5rem)' }}>
-                                <span className="text-white">Andres Avelino </span>
-                                <span className="gradient-text">Longas</span>
-                            </h1>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-col gap-1">
+                                <h2 className="font-display font-bold text-white/80 tracking-widest uppercase mb-1"
+                                    style={{ fontSize: 'clamp(0.85rem, 1.5vw, 1.1rem)' }}>
+                                    Misael Pastrana Borrero
+                                    <span className="block mt-1 text-brand-400">Sede</span>
+                                </h2>
+                                <h1 className="font-display font-black leading-[1.02] tracking-tight flex flex-col"
+                                    style={{ fontSize: 'clamp(2.5rem, 6vw, 5.5rem)' }}>
+                                    <span className="text-white">Andrés Avelino</span>
+                                    <span className="gradient-text">Longas</span>
+                                </h1>
+                            </div>
+                            <div className="flex items-center gap-2 mt-2">
                                 <div className="h-[3px] w-14 bg-brand-500 rounded-full" />
                                 <div className="h-[3px] w-7  bg-yellow-400 rounded-full" />
                                 <div className="h-[3px] w-3.5 bg-brand-800 rounded-full" />

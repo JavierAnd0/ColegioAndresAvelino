@@ -348,23 +348,18 @@ export const validateEventQuery = [
 // VALIDACIONES DE CUADRO DE HONOR
 // =============================================
 
-const honorCategories = ['academico', 'valores', 'reciclaje'];
-
 const jornadas = ['manana', 'tarde'];
 
 export const validateCreateHonor = [
   body('grade')
     .notEmpty().withMessage('El grado es obligatorio')
     .isMongoId().withMessage('ID de grado no válido'),
-  body('year')
-    .notEmpty().withMessage('El año es obligatorio')
-    .isInt({ min: 2000, max: 2100 }).withMessage('El año debe estar entre 2000 y 2100'),
-  body('month')
-    .notEmpty().withMessage('El mes es obligatorio')
-    .isInt({ min: 1, max: 12 }).withMessage('El mes debe estar entre 1 y 12'),
-  body('category')
-    .notEmpty().withMessage('La categoría es obligatoria')
-    .isIn(honorCategories).withMessage(`Categoría no válida. Debe ser: ${honorCategories.join(', ')}`),
+  body('period')
+    .notEmpty().withMessage('El periodo es obligatorio')
+    .isMongoId().withMessage('ID de periodo no válido'),
+  body('position')
+    .notEmpty().withMessage('La posición es obligatoria')
+    .isInt({ min: 1, max: 3 }).withMessage('La posición debe ser 1, 2 o 3'),
   body('studentName')
     .trim()
     .notEmpty().withMessage('El nombre del estudiante es obligatorio')
@@ -387,15 +382,12 @@ export const validateUpdateHonor = [
   body('grade')
     .optional()
     .isMongoId().withMessage('ID de grado no válido'),
-  body('year')
+  body('period')
     .optional()
-    .isInt({ min: 2000, max: 2100 }).withMessage('El año debe estar entre 2000 y 2100'),
-  body('month')
+    .isMongoId().withMessage('ID de periodo no válido'),
+  body('position')
     .optional()
-    .isInt({ min: 1, max: 12 }).withMessage('El mes debe estar entre 1 y 12'),
-  body('category')
-    .optional()
-    .isIn(honorCategories).withMessage(`Categoría no válida. Debe ser: ${honorCategories.join(', ')}`),
+    .isInt({ min: 1, max: 3 }).withMessage('La posición debe ser 1, 2 o 3'),
   body('studentName')
     .optional()
     .trim()
@@ -409,14 +401,6 @@ export const validateUpdateHonor = [
   body('photo.publicId')
     .optional({ values: 'falsy' })
     .isString().withMessage('El publicId debe ser texto'),
-  runValidation,
-];
-
-export const validateHonorMonth = [
-  param('year')
-    .isInt({ min: 2000, max: 2100 }).withMessage('El año debe ser un número entre 2000 y 2100'),
-  param('month')
-    .isInt({ min: 1, max: 12 }).withMessage('El mes debe ser un número entre 1 y 12'),
   runValidation,
 ];
 

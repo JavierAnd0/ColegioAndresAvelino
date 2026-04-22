@@ -7,24 +7,17 @@ const honorEntrySchema = new mongoose.Schema(
             ref: 'Grade',
             required: [true, 'El grado es obligatorio'],
         },
-        year: {
-            type: Number,
-            required: [true, 'El año es obligatorio'],
-            min: [2000, 'El año debe ser posterior a 2000'],
-            max: [2100, 'El año debe ser anterior a 2100'],
+        period: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Period',
+            required: [true, 'El periodo es obligatorio'],
         },
-        month: {
+        position: {
             type: Number,
-            required: [true, 'El mes es obligatorio'],
-            min: [1, 'El mes debe estar entre 1 y 12'],
-            max: [12, 'El mes debe estar entre 1 y 12'],
-        },
-        category: {
-            type: String,
-            required: [true, 'La categoría es obligatoria'],
+            required: [true, 'La posición es obligatoria'],
             enum: {
-                values: ['academico', 'valores', 'reciclaje'],
-                message: '{VALUE} no es una categoría válida',
+                values: [1, 2, 3],
+                message: 'La posición debe ser 1, 2 o 3',
             },
         },
         studentName: {
@@ -54,13 +47,13 @@ const honorEntrySchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// 1 estudiante por grado + mes + categoría + jornada
+// 1 estudiante por grado + periodo + posición + jornada
 honorEntrySchema.index(
-    { grade: 1, year: 1, month: 1, category: 1, jornada: 1 },
+    { grade: 1, period: 1, position: 1, jornada: 1 },
     { unique: true }
 );
 
-honorEntrySchema.index({ year: 1, month: 1 });
+honorEntrySchema.index({ period: 1 });
 
 const HonorEntry = mongoose.model('HonorEntry', honorEntrySchema);
 export default HonorEntry;

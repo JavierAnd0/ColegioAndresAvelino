@@ -1,8 +1,7 @@
 import api from './api';
 
 export const honorService = {
-    getBoard: (year, month) => api.get(`/honor/board/${year}/${month}`).then(r => r.data),
-    getAvailableMonths: () => api.get('/honor/months').then(r => r.data),
+    getBoard: (periodId) => api.get(`/honor/board/${periodId}`).then(r => r.data),
     create: (data) => api.post('/honor', data).then(r => r.data),
     update: (id, data) => api.put(`/honor/${id}`, data).then(r => r.data),
     delete: (id) => api.delete(`/honor/${id}`).then(r => r.data),

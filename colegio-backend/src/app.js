@@ -10,6 +10,7 @@ import blogRoutes from './routes/blog.js';
 import authRoutes from './routes/auth.js';
 import uploadRoutes from './routes/upload.js';
 import honorRoutes from './routes/honor.js';
+import periodRoutes from './routes/periods.js';
 import gradeRoutes from './routes/grades.js';
 import activityRoutes from './routes/activities.js';
 import teacherRoutes from './routes/teachers.js';
@@ -44,7 +45,7 @@ app.use(cors({
     callback(new Error('Origen no permitido por CORS'));
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
@@ -78,6 +79,7 @@ app.use('/api/blog', blogRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/honor', honorRoutes);
+app.use('/api/periods', periodRoutes);
 app.use('/api/grades', gradeRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/teachers', teacherRoutes);

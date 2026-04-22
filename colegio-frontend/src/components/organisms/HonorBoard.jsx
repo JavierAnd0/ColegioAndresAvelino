@@ -1,61 +1,62 @@
 'use client';
 import { useRef, useEffect, useMemo, useState } from 'react';
-import { LuTrophy, LuBookOpen, LuStar, LuLeaf, LuUser } from 'react-icons/lu';
+import { LuTrophy, LuUser } from 'react-icons/lu';
 
-const CATS = ['academico', 'valores', 'reciclaje'];
-
-const CAT = {
-    academico: {
-        label: 'Mejor Académico', short: 'Académico',
-        Icon: LuBookOpen,
-        accent: '#3b82f6',
-        cardBg: 'linear-gradient(145deg, #060d1f 0%, #0c1e40 50%, #0a1830 100%)',
-        ring1: 'rgba(59,130,246,0.55)', ring2: 'rgba(59,130,246,0.2)',
-        glow: '0 0 50px rgba(59,130,246,0.2)',
-        badgeBg: 'rgba(59,130,246,0.12)', badgeText: '#93c5fd', badgeBorder: 'rgba(59,130,246,0.3)',
-        shine: 'rgba(59,130,246,0.08)',
-        headerAccent: '#3b82f6',
+const POS = {
+    1: {
+        label: 'Primer Puesto',
+        accent: '#fbbf24',
+        cardBg: 'linear-gradient(145deg, #1a1200 0%, #2e2000 50%, #221800 100%)',
+        ring1: 'rgba(251,191,36,0.55)', ring2: 'rgba(251,191,36,0.2)',
+        glow: '0 0 50px rgba(251,191,36,0.25)',
+        badgeBg: 'rgba(251,191,36,0.12)', badgeText: '#fde68a', badgeBorder: 'rgba(251,191,36,0.3)',
+        shine: 'rgba(251,191,36,0.08)',
+        podiumH: 80,
+        podiumGrad: 'linear-gradient(180deg, #d97706 0%, #92400e 100%)',
+        podiumText: '#fde68a',
+        medal: '🥇',
     },
-    valores: {
-        label: 'Mejor en Valores', short: 'Valores',
-        Icon: LuStar,
-        accent: '#eab308',
-        cardBg: 'linear-gradient(145deg, #1a1000 0%, #2e1f00 50%, #221700 100%)',
-        ring1: 'rgba(234,179,8,0.55)', ring2: 'rgba(234,179,8,0.2)',
-        glow: '0 0 50px rgba(234,179,8,0.2)',
-        badgeBg: 'rgba(234,179,8,0.12)', badgeText: '#fde68a', badgeBorder: 'rgba(234,179,8,0.3)',
-        shine: 'rgba(234,179,8,0.08)',
-        headerAccent: '#eab308',
+    2: {
+        label: 'Segundo Puesto',
+        accent: '#9ca3af',
+        cardBg: 'linear-gradient(145deg, #0f0f0f 0%, #1c1c1c 50%, #141414 100%)',
+        ring1: 'rgba(156,163,175,0.55)', ring2: 'rgba(156,163,175,0.2)',
+        glow: '0 0 50px rgba(156,163,175,0.2)',
+        badgeBg: 'rgba(156,163,175,0.12)', badgeText: '#d1d5db', badgeBorder: 'rgba(156,163,175,0.3)',
+        shine: 'rgba(156,163,175,0.06)',
+        podiumH: 56,
+        podiumGrad: 'linear-gradient(180deg, #6b7280 0%, #374151 100%)',
+        podiumText: '#e5e7eb',
+        medal: '🥈',
     },
-    reciclaje: {
-        label: 'Mejor en Reciclaje', short: 'Reciclaje',
-        Icon: LuLeaf,
-        accent: '#22c55e',
-        cardBg: 'linear-gradient(145deg, #001208 0%, #00230e 50%, #001a0a 100%)',
-        ring1: 'rgba(34,197,94,0.55)', ring2: 'rgba(34,197,94,0.2)',
-        glow: '0 0 50px rgba(34,197,94,0.2)',
-        badgeBg: 'rgba(34,197,94,0.12)', badgeText: '#86efac', badgeBorder: 'rgba(34,197,94,0.3)',
-        shine: 'rgba(34,197,94,0.08)',
-        headerAccent: '#22c55e',
+    3: {
+        label: 'Tercer Puesto',
+        accent: '#cd7c3a',
+        cardBg: 'linear-gradient(145deg, #120800 0%, #1f1000 50%, #170c00 100%)',
+        ring1: 'rgba(180,83,9,0.55)', ring2: 'rgba(180,83,9,0.2)',
+        glow: '0 0 50px rgba(180,83,9,0.2)',
+        badgeBg: 'rgba(180,83,9,0.12)', badgeText: '#fbbf87', badgeBorder: 'rgba(180,83,9,0.3)',
+        shine: 'rgba(180,83,9,0.06)',
+        podiumH: 40,
+        podiumGrad: 'linear-gradient(180deg, #92400e 0%, #6b2f0a 100%)',
+        podiumText: '#fbbf87',
+        medal: '🥉',
     },
 };
 
 /* ── Tarjeta de estudiante ── */
-// Usa refs para hover: cero re-renders, transiciones 100% CSS nativo
-function StudentCard({ entry, category, visible, delay }) {
-    const cfg      = CAT[category];
-    const Icon     = cfg.Icon;
+function StudentCard({ entry, position, visible, delay, compact = false }) {
+    const cfg = POS[position];
     const hasPhoto = !!entry?.photo?.url;
-
-    const rootRef  = useRef(null);
+    const rootRef = useRef(null);
     const shineRef = useRef(null);
     const photoRef = useRef(null);
 
     const onEnter = () => {
         const el = rootRef.current;
         if (!el) return;
-        el.style.transform  = 'translateY(-4px) scale(1.02)';
-        el.style.boxShadow  = `0 20px 60px rgba(0,0,0,0.5), ${cfg.glow}`;
+        el.style.transform = 'translateY(-4px) scale(1.02)';
+        el.style.boxShadow = `0 20px 60px rgba(0,0,0,0.5), ${cfg.glow}`;
         el.style.borderColor = cfg.ring1;
         if (shineRef.current) shineRef.current.style.opacity = '1';
         if (photoRef.current) photoRef.current.style.boxShadow =
@@ -65,19 +66,23 @@ function StudentCard({ entry, category, visible, delay }) {
     const onLeave = () => {
         const el = rootRef.current;
         if (!el) return;
-        el.style.transform   = 'translateY(0) scale(1)';
-        el.style.boxShadow   = '0 8px 32px rgba(0,0,0,0.4)';
+        el.style.transform = 'translateY(0) scale(1)';
+        el.style.boxShadow = '0 8px 32px rgba(0,0,0,0.4)';
         el.style.borderColor = 'rgba(255,255,255,0.06)';
         if (shineRef.current) shineRef.current.style.opacity = '0';
         if (photoRef.current) photoRef.current.style.boxShadow = `0 0 0 2px ${cfg.ring2}`;
     };
+
+    const photoSize = compact ? 'w-20 h-20' : position === 1 ? 'w-32 h-32' : 'w-28 h-28';
+    const iconSize = compact ? 'w-10 h-10' : position === 1 ? 'w-14 h-14' : 'w-12 h-12';
+    const padding = compact ? 'p-4' : 'p-6';
 
     return (
         <div
             ref={rootRef}
             onMouseEnter={onEnter}
             onMouseLeave={onLeave}
-            className="relative flex flex-col items-center gap-5 p-7 rounded-3xl overflow-hidden cursor-default select-none"
+            className={`relative flex flex-col items-center gap-4 ${padding} rounded-3xl overflow-hidden cursor-default select-none w-full`}
             style={{
                 background: cfg.cardBg,
                 boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
@@ -89,33 +94,28 @@ function StudentCard({ entry, category, visible, delay }) {
             }}
         >
             {/* Shine on hover */}
-            <div ref={shineRef}
-                className="absolute inset-0 pointer-events-none"
+            <div ref={shineRef} className="absolute inset-0 pointer-events-none"
                 style={{
                     background: `radial-gradient(ellipse at 50% -10%, ${cfg.shine} 0%, transparent 65%)`,
-                    opacity: 0,
-                    transition: 'opacity 0.35s ease',
+                    opacity: 0, transition: 'opacity 0.35s ease',
                 }} />
 
             {/* Bottom bar */}
             <div className="absolute bottom-0 left-0 right-0 h-px"
                 style={{ background: `linear-gradient(90deg, transparent, ${cfg.accent}70, transparent)` }} />
 
-            {/* Category badge */}
+            {/* Position badge */}
             <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[0.6rem] font-mono font-bold uppercase tracking-widest z-10 flex-shrink-0"
                 style={{ background: cfg.badgeBg, color: cfg.badgeText, border: `1px solid ${cfg.badgeBorder}` }}>
-                <Icon className="w-3 h-3" />
-                {cfg.short}
+                <span>{cfg.medal}</span>
+                {cfg.label}
             </div>
 
             {/* Photo */}
             <div className="relative z-10 flex-shrink-0">
                 <div ref={photoRef}
-                    className="w-32 h-32 rounded-full overflow-hidden"
-                    style={{
-                        boxShadow: `0 0 0 2px ${cfg.ring2}`,
-                        transition: 'box-shadow 0.35s ease',
-                    }}>
+                    className={`${photoSize} rounded-full overflow-hidden`}
+                    style={{ boxShadow: `0 0 0 2px ${cfg.ring2}`, transition: 'box-shadow 0.35s ease' }}>
                     {hasPhoto ? (
                         <img src={entry.photo.url} alt={entry.studentName}
                             className="w-full h-full object-cover"
@@ -125,13 +125,13 @@ function StudentCard({ entry, category, visible, delay }) {
                     ) : (
                         <div className="w-full h-full flex items-center justify-center"
                             style={{ background: `linear-gradient(135deg, ${cfg.accent}18, ${cfg.accent}06)` }}>
-                            <LuUser className="w-14 h-14" style={{ color: `${cfg.accent}50` }} />
+                            <LuUser className={`${iconSize}`} style={{ color: `${cfg.accent}50` }} />
                         </div>
                     )}
                 </div>
-                <div className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full border-2 flex items-center justify-center"
-                    style={{ background: cfg.accent, borderColor: 'rgba(0,0,0,0.6)' }}>
-                    <Icon className="w-3 h-3 text-black" />
+                <div className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-black"
+                    style={{ background: cfg.accent, borderColor: 'rgba(0,0,0,0.6)', color: '#000' }}>
+                    {position}
                 </div>
             </div>
 
@@ -153,6 +153,29 @@ function StudentCard({ entry, category, visible, delay }) {
     );
 }
 
+/* ── Slot del podio (carta + bloque) ── */
+function PodiumSlot({ entry, position, visible, delay }) {
+    const cfg = POS[position];
+    return (
+        <div className="flex flex-col items-stretch" style={{ flex: 1, maxWidth: position === 1 ? '230px' : '190px' }}>
+            <StudentCard entry={entry} position={position} visible={visible} delay={delay} />
+            <div
+                className="w-full rounded-t-xl flex items-end justify-center pb-3"
+                style={{
+                    height: `${cfg.podiumH}px`,
+                    background: cfg.podiumGrad,
+                    opacity: visible ? 1 : 0,
+                    transition: `opacity 0.6s ease ${delay + 100}ms`,
+                }}
+            >
+                <span className="font-black text-3xl leading-none" style={{ color: cfg.podiumText }}>
+                    {position}
+                </span>
+            </div>
+        </div>
+    );
+}
+
 /* ── Sección de grado con scroll-trigger ── */
 function GradeSection({ gradeGroup, index }) {
     const ref = useRef(null);
@@ -161,22 +184,24 @@ function GradeSection({ gradeGroup, index }) {
     useEffect(() => {
         const obs = new IntersectionObserver(
             ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
-            { threshold: 0.08 }
+            { threshold: 0.06 }
         );
         const el = ref.current;
         if (el) obs.observe(el);
         return () => obs.disconnect();
     }, []);
 
+    const base = index * 40;
+
     return (
         <div ref={ref}>
             {/* Grade header */}
-            <div className="flex items-center gap-4 mb-7"
+            <div className="flex items-center gap-4 mb-8"
                 style={{
                     opacity: visible ? 1 : 0,
                     transform: visible ? 'translateY(0)' : 'translateY(16px)',
                     transition: 'opacity 0.5s ease, transform 0.5s ease',
-                    transitionDelay: `${index * 40}ms`,
+                    transitionDelay: `${base}ms`,
                 }}>
                 <div className="h-px flex-1"
                     style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12))' }} />
@@ -194,15 +219,23 @@ function GradeSection({ gradeGroup, index }) {
                     style={{ background: 'linear-gradient(90deg, rgba(255,255,255,0.12), transparent)' }} />
             </div>
 
-            {/* Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-14">
-                {CATS.map((cat, catIdx) => (
+            {/* Desktop: Podio — 2do izquierda, 1ro centro elevado, 3ro derecha */}
+            <div className="hidden sm:flex items-end justify-center gap-3 mb-14">
+                <PodiumSlot position={2} entry={gradeGroup.entries[2]} visible={visible} delay={base + 120} />
+                <PodiumSlot position={1} entry={gradeGroup.entries[1]} visible={visible} delay={base + 0} />
+                <PodiumSlot position={3} entry={gradeGroup.entries[3]} visible={visible} delay={base + 240} />
+            </div>
+
+            {/* Mobile: apilados verticalmente, 1ro arriba */}
+            <div className="flex flex-col gap-4 sm:hidden mb-14">
+                {[1, 2, 3].map((pos, i) => (
                     <StudentCard
-                        key={cat}
-                        entry={gradeGroup.entries[cat]}
-                        category={cat}
+                        key={pos}
+                        entry={gradeGroup.entries[pos]}
+                        position={pos}
                         visible={visible}
-                        delay={(index * 40) + (catIdx * 120)}
+                        delay={base + i * 120}
+                        compact
                     />
                 ))}
             </div>
@@ -216,18 +249,21 @@ function LoadingSkeleton() {
         <div className="flex flex-col gap-10">
             {[1, 2, 3].map(i => (
                 <div key={i}>
-                    <div className="flex items-center gap-4 mb-7">
+                    <div className="flex items-center gap-4 mb-8">
                         <div className="h-px flex-1 bg-white/5 rounded" />
                         <div className="h-9 w-48 bg-white/5 rounded-2xl animate-pulse" />
                         <div className="h-px flex-1 bg-white/5 rounded" />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                        {[1, 2, 3].map(j => (
-                            <div key={j} className="flex flex-col items-center gap-5 p-7 rounded-3xl animate-pulse"
-                                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                                <div className="h-6 w-24 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }} />
-                                <div className="w-32 h-32 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }} />
-                                <div className="h-4 w-28 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                    <div className="hidden sm:flex items-end justify-center gap-3">
+                        {[56, 80, 40].map((h, j) => (
+                            <div key={j} className="flex flex-col" style={{ flex: 1, maxWidth: j === 1 ? '230px' : '190px' }}>
+                                <div className="animate-pulse rounded-3xl p-6 flex flex-col items-center gap-4"
+                                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                    <div className="h-6 w-28 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                                    <div className={`${j === 1 ? 'w-32 h-32' : 'w-28 h-28'} rounded-full`} style={{ background: 'rgba(255,255,255,0.06)' }} />
+                                    <div className="h-4 w-28 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                                </div>
+                                <div className="animate-pulse rounded-t-xl" style={{ height: `${h}px`, background: 'rgba(255,255,255,0.04)' }} />
                             </div>
                         ))}
                     </div>
@@ -251,7 +287,7 @@ function EmptyState() {
             </div>
             <div className="text-center">
                 <p className="font-display font-bold text-white/70 text-xl">Sin cuadro de honor</p>
-                <p className="text-white/30 text-sm mt-2 font-mono">No hay registros para este período.</p>
+                <p className="text-white/30 text-sm mt-2 font-mono">No hay registros para este periodo.</p>
             </div>
         </div>
     );
@@ -271,7 +307,7 @@ export default function HonorBoard({ entries = [], loading = false }) {
                     entries: {},
                 };
             }
-            byGrade[gradeId].entries[entry.category] = entry;
+            byGrade[gradeId].entries[entry.position] = entry;
         });
         return Object.values(byGrade).sort((a, b) => a.order - b.order);
     }, [entries]);

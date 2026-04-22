@@ -38,6 +38,14 @@ export default function Navbar() {
         return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
+    const handleHomeClick = (e) => {
+        if (pathname === '/') {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setIsOpen(false);
+        }
+    };
+
     return (
         <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300
             ${scrolled
@@ -48,13 +56,12 @@ export default function Navbar() {
             <nav className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
 
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-                    <div className="relative h-9 w-9 bg-brand-600 rounded-xl flex items-center justify-center shadow-sm group-hover:bg-brand-700 transition-all duration-200 group-hover:scale-105">
-                        <LuGraduationCap className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-display font-bold text-neutral-900 text-lg hidden sm:block tracking-tight">
-                        Colegio
-                    </span>
+                <Link href="/" onClick={handleHomeClick} className="flex items-center flex-shrink-0 group">
+                    <img 
+                        src="/logo.png" 
+                        alt="Logo Institución Educativa Misael Pastrana Borrero" 
+                        className="h-10 sm:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-105 origin-left"
+                    />
                 </Link>
 
                 {/* Links Desktop */}
@@ -65,6 +72,7 @@ export default function Navbar() {
                             <li key={link.href}>
                                 <Link
                                     href={link.href}
+                                    onClick={link.href === '/' ? handleHomeClick : undefined}
                                     className={`relative px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200
                                         ${active
                                             ? 'text-brand-700 bg-brand-50'
@@ -117,7 +125,10 @@ export default function Navbar() {
                             <Link
                                 key={link.href}
                                 href={link.href}
-                                onClick={() => setIsOpen(false)}
+                                onClick={(e) => {
+                                    if (link.href === '/') handleHomeClick(e);
+                                    else setIsOpen(false);
+                                }}
                                 className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
                                     ${active
                                         ? 'bg-brand-600 text-white shadow-sm'

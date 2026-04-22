@@ -2,14 +2,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import MainLayout from '@/components/templates/MainLayout';
 import HonorBoard from '@/components/organisms/HonorBoard';
-import MonthSelector from '@/components/molecules/MonthSelector';
-import { honorService, gradeService } from '@/services/honorService';
-import { LuSun, LuMoon, LuTrophy, LuChevronLeft, LuChevronRight } from 'react-icons/lu';
-
-const MONTHS = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-];
+import { honorService } from '@/services/honorService';
+import { periodService } from '@/services/periodService';
+import { LuSun, LuMoon, LuTrophy, LuChevronDown } from 'react-icons/lu';
 
 /* ── Partículas de fondo ── */
 function Stars() {
@@ -41,52 +36,49 @@ function Stars() {
 }
 
 export default function CuadroHonorPage() {
-    const now = new Date();
-    const [year, setYear]       = useState(now.getFullYear());
-    const [month, setMonth]     = useState(now.getMonth() + 1);
-    const [entries, setEntries] = useState([]);
-    const [grades, setGrades]   = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [jornada, setJornada] = useState('manana');
+    const [periods, setPeriods]   = useState([]);
+    const [periodId, setPeriodId] = useState('');
+    const [entries, setEntries]   = useState([]);
+    const [loading, setLoading]   = useState(true);
+    const [jornada, setJornada]   = useState('manana');
 
-    const fetchData = async (y, m) => {
-        setLoading(true);
-        try {
-            const [boardData, gradeData] = await Promise.all([
-                honorService.getBoard(y, m),
-                gradeService.getAll(),
-            ]);
-            setEntries(boardData.data || []);
-            setGrades(gradeData.data || []);
-        } catch {
-            setEntries([]); setGrades([]);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Cargar periodos y grados al inicio
+    useEffect(() => {
+        const init = async () => {
+            try {
+                const periodsData = await periodService.getAll();
+                const list = periodsData.data || [];
+                setPeriods(list);
+                const active = list.find(p => p.isActive) || list[0];
+                if (active) setPeriodId(active._id);
+            } catch {
+                setPeriods([]);
+            }
+        };
+        init();
+    }, []);
 
-    useEffect(() => { fetchData(year, month); }, [year, month]);
+    // Cargar entradas cuando cambia el periodo
+    useEffect(() => {
+        if (!periodId) { setLoading(false); return; }
+        const fetch = async () => {
+            setLoading(true);
+            try {
+                const boardData = await honorService.getBoard(periodId);
+                setEntries(boardData.data || []);
+            } catch {
+                setEntries([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetch();
+    }, [periodId]);
 
-    const handleMonthChange = (y, m) => { setYear(y); setMonth(m); };
-
-    const prevMonth = () => {
-        if (month === 1) handleMonthChange(year - 1, 12);
-        else handleMonthChange(year, month - 1);
-    };
-    const nextMonth = () => {
-        if (month === 12) handleMonthChange(year + 1, 1);
-        else handleMonthChange(year, month + 1);
-    };
-
-    const jornadaGradeIds = new Set(
-        grades.filter(g => (g.jornada || 'manana') === jornada).map(g => g._id)
-    );
-    const filteredEntries = entries.filter(e => {
-        const gradeId = e.grade?._id || e.grade;
-        return jornadaGradeIds.has(gradeId);
-    });
+    const filteredEntries = entries.filter(e => e.jornada === jornada);
 
     const totalHonored = filteredEntries.length;
+    const activePeriod = periods.find(p => p._id === periodId);
 
     return (
         <MainLayout>
@@ -95,7 +87,6 @@ export default function CuadroHonorPage() {
 
                 <Stars />
 
-                {/* Blobs */}
                 <div className="absolute -top-40 left-1/4 w-[600px] h-[600px] rounded-full pointer-events-none"
                     style={{ background: 'radial-gradient(circle, rgba(234,179,8,0.07), transparent 70%)' }} />
                 <div className="absolute top-20 -right-20 w-80 h-80 rounded-full pointer-events-none"
@@ -124,7 +115,7 @@ export default function CuadroHonorPage() {
                     {/* Label */}
                     <span className="block text-xs font-mono font-bold uppercase tracking-[0.25em] mb-4"
                         style={{ color: 'rgba(234,179,8,0.7)' }}>
-                        Reconocimientos mensuales · {year}
+                        {activePeriod ? `${activePeriod.name} · ${activePeriod.year}` : 'Reconocimientos por periodo'}
                     </span>
 
                     {/* Título */}
@@ -146,7 +137,7 @@ export default function CuadroHonorPage() {
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-2"
                             style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
                             <span className="font-black text-white text-lg leading-none">{totalHonored}</span>
-                            <span className="text-white/40 text-xs font-mono">estudiantes honrados este mes</span>
+                            <span className="text-white/40 text-xs font-mono">estudiantes honrados este periodo</span>
                         </div>
                     )}
                 </div>
@@ -181,29 +172,32 @@ export default function CuadroHonorPage() {
                         ))}
                     </div>
 
-                    {/* Navegación de mes */}
-                    <div className="flex items-center gap-3">
-                        <button onClick={prevMonth}
-                            className="w-9 h-9 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 flex items-center justify-center transition-colors cursor-pointer shadow-sm">
-                            <LuChevronLeft className="w-4 h-4 text-neutral-500" />
-                        </button>
-                        <div className="px-5 py-2 rounded-xl bg-white border border-neutral-200 shadow-sm min-w-[160px] text-center">
-                            <span className="font-display font-bold text-neutral-900 text-sm">
-                                {MONTHS[month - 1]} {year}
-                            </span>
+                    {/* Selector de periodo */}
+                    {periods.length > 0 && (
+                        <div className="relative">
+                            <select
+                                value={periodId}
+                                onChange={e => setPeriodId(e.target.value)}
+                                className="appearance-none pl-4 pr-10 py-2 rounded-xl bg-white border border-neutral-200 shadow-sm text-sm font-semibold text-neutral-900 cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                            >
+                                {periods.map(p => (
+                                    <option key={p._id} value={p._id}>
+                                        {p.name} {p.year}{p.isActive ? ' ✓' : ''}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                                <LuChevronDown className="w-4 h-4 text-neutral-500" />
+                            </div>
                         </div>
-                        <button onClick={nextMonth}
-                            className="w-9 h-9 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 flex items-center justify-center transition-colors cursor-pointer shadow-sm">
-                            <LuChevronRight className="w-4 h-4 text-neutral-500" />
-                        </button>
-                    </div>
+                    )}
                 </div>
             </section>
 
             {/* ══════════════════════════════════════════════════════ BOARD */}
             <section style={{ background: 'linear-gradient(180deg, #060c15 0%, #040a12 100%)', minHeight: '60vh' }}>
                 <div className="max-w-6xl mx-auto px-4 py-16">
-                    <HonorBoard entries={filteredEntries} loading={loading} year={year} month={month} />
+                    <HonorBoard entries={filteredEntries} loading={loading} />
                 </div>
             </section>
 
