@@ -7,19 +7,16 @@ import { Analytics } from '@vercel/analytics/next';
 const dmSans = DM_Sans({
   subsets: ['latin'],
   variable: '--font-dm-sans',
-  weight: ['300', '400', '500', '600', '700'],
 });
 
 const syne = Syne({
   subsets: ['latin'],
   variable: '--font-syne',
-  weight: ['400', '500', '600', '700', '800'],
 });
 
 const martianMono = Martian_Mono({
   subsets: ['latin'],
   variable: '--font-martian',
-  weight: ['400', '500', '700'],
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://colegio.edu.co';
