@@ -665,7 +665,7 @@ function ActionButtons({ initialData, loading, handleSubmit, savedPost }) {
                 </>
             )}
 
-            {previewSlug && isPublished && (
+            {initialData._id && previewSlug && isPublished && (
                 <a
                     href={`/blog/${previewSlug}`}
                     target="_blank"

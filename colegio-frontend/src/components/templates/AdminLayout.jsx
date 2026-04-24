@@ -127,11 +127,7 @@ export default function AdminLayout({ children }) {
             {/* ── Mobile top header ── */}
             <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-neutral-200 h-14 flex items-center justify-between px-4">
                 <Link href="/" className="flex items-center gap-2">
-                    <div className="h-7 w-7 bg-neutral-900 rounded-lg flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                    </div>
+                    <img src="/logo.png" alt="Logo" className="h-7 w-7 object-contain rounded" />
                     <span className="font-bold text-neutral-900 text-sm">Admin</span>
                 </Link>
 
@@ -197,9 +193,7 @@ export default function AdminLayout({ children }) {
             <aside className="hidden md:flex flex-col w-60 bg-white border-r border-neutral-200 fixed h-full">
                 <div className="h-16 flex items-center px-5 border-b border-neutral-100 flex-shrink-0">
                     <Link href="/" className="flex items-center gap-2">
-                        <div className="h-7 w-7 bg-neutral-900 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-xs">C</span>
-                        </div>
+                        <img src="/logo.png" alt="Logo" className="h-7 w-7 object-contain rounded" />
                         <span className="font-bold text-neutral-900">Admin</span>
                     </Link>
                 </div>
