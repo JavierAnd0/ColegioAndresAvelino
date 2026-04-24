@@ -1,11 +1,13 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import Button from '@/components/atoms/Button';
 import Label from '@/components/atoms/Typography/Label';
 import Spinner from '@/components/atoms/Spinner';
 import { safeImageUrl } from '@/lib/safeImageUrl';
 import { honorService } from '@/services/honorService';
-import { LuCamera } from 'react-icons/lu';
+import { LuCamera, LuX } from 'react-icons/lu';
+import Cropper from 'react-easy-crop';
+import getCroppedImg, { urlToFile } from '@/lib/cropImage';
 
 const POSITIONS = [
     { value: 1, label: 'Primer Puesto', medal: '🥇' },
@@ -26,7 +28,19 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
     const [uploadError, setUploadError] = useState('');
     const [preview, setPreview] = useState(initialData.photo?.url || '');
     const [dragOver, setDragOver] = useState(false);
+    
+    // Estados para el recorte
+    const [tempImage, setTempImage] = useState(null);
+    const [cropModalOpen, setCropModalOpen] = useState(false);
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+    
     const fileRef = useRef(null);
+
+    const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
+        setCroppedAreaPixels(croppedAreaPixels);
+    }, []);
 
     const handleChange = (field, value) => {
         setForm(prev => ({ ...prev, [field]: value }));
@@ -44,24 +58,44 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
             return;
         }
         const localPreview = URL.createObjectURL(file);
-        setPreview(localPreview);
+        setTempImage(localPreview);
+        setCropModalOpen(true);
         setUploadError('');
-        setUploading(true);
+    };
+
+    const handleCropSave = async () => {
+        if (!tempImage || !croppedAreaPixels) return;
+        
         try {
+            setUploading(true);
+            const croppedImageBlobUrl = await getCroppedImg(tempImage, croppedAreaPixels);
+            const croppedFile = await urlToFile(croppedImageBlobUrl, 'cropped_image.jpg', 'image/jpeg');
+            
+            // Usar la vista previa recortada localmente por ahora
+            setPreview(croppedImageBlobUrl);
+            setCropModalOpen(false);
+            
             const formData = new FormData();
-            formData.append('image', file);
+            formData.append('image', croppedFile);
+            
             const result = await honorService.uploadPhoto(formData);
             setForm(prev => ({
                 ...prev,
                 photo: { url: result.data.url, publicId: result.data.publicId },
             }));
             setPreview(result.data.url);
-        } catch {
-            setUploadError('Error al subir la foto. Verifica tu conexión.');
-            setPreview('');
+        } catch (error) {
+            setUploadError('Error al procesar/subir la foto recortada.');
         } finally {
             setUploading(false);
+            setTempImage(null);
         }
+    };
+    
+    const handleCropCancel = () => {
+        setCropModalOpen(false);
+        setTempImage(null);
+        if (fileRef.current) fileRef.current.value = '';
     };
 
     const handleFileChange = (e) => {
@@ -284,6 +318,59 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
             <Button type="submit" variant="primary" loading={loading} disabled={uploading}>
                 {initialData._id ? 'Actualizar' : 'Crear estudiante'}
             </Button>
+
+            {/* Modal de recorte de imagen */}
+            {cropModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col">
+                        <div className="p-4 border-b border-neutral-100 flex justify-between items-center">
+                            <h3 className="font-display font-bold text-neutral-900">Ajustar foto</h3>
+                            <button type="button" onClick={handleCropCancel} className="text-neutral-400 hover:text-neutral-600 transition-colors">
+                                <LuX className="w-5 h-5" />
+                            </button>
+                        </div>
+                        
+                        <div className="relative w-full h-72 bg-neutral-900">
+                            <Cropper
+                                image={tempImage}
+                                crop={crop}
+                                zoom={zoom}
+                                aspect={1}
+                                cropShape="round"
+                                showGrid={false}
+                                onCropChange={setCrop}
+                                onCropComplete={onCropComplete}
+                                onZoomChange={setZoom}
+                            />
+                        </div>
+                        
+                        <div className="p-4 flex flex-col gap-4">
+                            <div>
+                                <Label className="text-xs mb-2">Acercar / Alejar</Label>
+                                <input
+                                    type="range"
+                                    value={zoom}
+                                    min={1}
+                                    max={3}
+                                    step={0.1}
+                                    aria-labelledby="Zoom"
+                                    onChange={(e) => setZoom(Number(e.target.value))}
+                                    className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-brand-600"
+                                />
+                            </div>
+                            
+                            <div className="flex gap-3 justify-end pt-2 border-t border-neutral-100">
+                                <Button type="button" variant="ghost" onClick={handleCropCancel} disabled={uploading}>
+                                    Cancelar
+                                </Button>
+                                <Button type="button" variant="primary" onClick={handleCropSave} loading={uploading}>
+                                    Recortar y Guardar
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </form>
     );
 }
