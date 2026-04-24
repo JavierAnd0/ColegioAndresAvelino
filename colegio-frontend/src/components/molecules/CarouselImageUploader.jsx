@@ -1,10 +1,11 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import Button from '@/components/atoms/Button';
 import Spinner from '@/components/atoms/Spinner';
 import api from '@/services/api';
 import { safeImageUrl } from '@/lib/safeImageUrl';
-import { LuImage, LuInfo } from 'react-icons/lu';
+import { LuImage, LuInfo, LuClipboard } from 'react-icons/lu';
+import usePasteImage from '@/hooks/usePasteImage';
 
 const CANVAS_W = 1000;
 const CANVAS_H = 500;
@@ -69,33 +70,22 @@ export default function CarouselImageUploader({ onUpload, currentImage = '', upl
     const [error, setError]     = useState('');
     const inputRef = useRef(null);
 
-    const handleFileChange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
+    const handleFileUpload = useCallback(async (file) => {
         if (file.size > 12 * 1024 * 1024) {
             setError('La imagen no puede superar 12 MB.');
             return;
         }
-
-        // Preview local inmediato (imagen original)
         const localUrl = URL.createObjectURL(file);
         setPreview(localUrl);
         setError('');
         setLoading(true);
-
         try {
-            // Procesar en canvas → JPEG 1920×800
             const processed = await processImage(file);
-
-            // Subir al servidor
             const formData = new FormData();
             formData.append('image', processed);
             const response = await api.post(uploadEndpoint, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
-
-            // Preview con la imagen ya procesada desde Cloudinary
             setPreview(response.data.data.url);
             onUpload?.(response.data.data);
         } catch {
@@ -104,6 +94,15 @@ export default function CarouselImageUploader({ onUpload, currentImage = '', upl
         } finally {
             setLoading(false);
         }
+    }, [currentImage, onUpload, uploadEndpoint]);
+
+    usePasteImage(useCallback((file) => {
+        if (!loading) handleFileUpload(file);
+    }, [loading, handleFileUpload]));
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (file) await handleFileUpload(file);
     };
 
     const handleRemove = () => {
@@ -156,7 +155,9 @@ export default function CarouselImageUploader({ onUpload, currentImage = '', upl
                         <p className="text-sm text-neutral-500 text-center px-4">
                             Haz clic para subir una imagen
                         </p>
-                        <p className="text-xs text-neutral-400">Relación ideal 2:1 · horizontal</p>
+                        <p className="text-xs text-neutral-400 flex items-center gap-1">
+                            <LuClipboard className="w-3 h-3" /> Pega con Ctrl+V · Relación ideal 2:1
+                        </p>
                     </>
                 )}
             </div>

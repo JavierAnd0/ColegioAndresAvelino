@@ -1,10 +1,11 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Button from '@/components/atoms/Button';
 import Spinner from '@/components/atoms/Spinner';
 import api from '@/services/api';
 import { safeImageUrl } from '@/lib/safeImageUrl';
-import { LuImage } from 'react-icons/lu';
+import { LuImage, LuClipboard } from 'react-icons/lu';
+import usePasteImage from '@/hooks/usePasteImage';
 
 export default function ImageUploader({
     onUpload,
@@ -16,7 +17,17 @@ export default function ImageUploader({
     const [preview, setPreview] = useState(currentImage);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [pasteHint, setPasteHint] = useState(false);
     const inputRef = useRef(null);
+
+    // Hint flash on focus/hover
+    const showPasteHint = useCallback(() => setPasteHint(true), []);
+    const hidePasteHint = useCallback(() => setPasteHint(false), []);
+
+    // Paste from clipboard
+    usePasteImage(useCallback((file) => {
+        if (!loading) handleFileUpload(file);
+    }, [loading]), true);
 
     useEffect(() => {
         setPreview(currentImage);
@@ -25,7 +36,10 @@ export default function ImageUploader({
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+        await handleFileUpload(file);
+    };
 
+    const handleFileUpload = async (file) => {
         // Validar tamaño (5MB)
         if (file.size > 5 * 1024 * 1024) {
             setError('La imagen no puede superar 5MB.');
@@ -67,6 +81,10 @@ export default function ImageUploader({
             {/* Área de preview */}
             <div
                 onClick={() => !loading && inputRef.current?.click()}
+                onMouseEnter={showPasteHint}
+                onMouseLeave={hidePasteHint}
+                onFocus={showPasteHint}
+                onBlur={hidePasteHint}
                 className={`
           relative w-full h-48 rounded-xl border-2 border-dashed
           flex flex-col items-center justify-center gap-2
@@ -96,10 +114,19 @@ export default function ImageUploader({
                         <p className="text-sm text-neutral-500 text-center px-4">
                             Click para subir imagen
                         </p>
-                        <p className="text-xs text-neutral-400">
-                            JPG, PNG, WebP · Máx 5MB
+                        <p className="text-xs text-neutral-400 flex items-center gap-1">
+                            <LuClipboard className="w-3 h-3" /> Pega con Ctrl+V · JPG, PNG, WebP · Máx 5MB
                         </p>
                     </>
+                )}
+
+                {/* Paste hint overlay */}
+                {!preview && pasteHint && (
+                    <div className="absolute inset-0 bg-neutral-900/5 flex items-center justify-center rounded-xl pointer-events-none">
+                        <span className="text-xs font-semibold text-neutral-500 bg-white/80 px-3 py-1.5 rounded-full shadow-sm">
+                            Ctrl+V para pegar imagen
+                        </span>
+                    </div>
                 )}
             </div>
 

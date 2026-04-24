@@ -5,9 +5,10 @@ import Label from '@/components/atoms/Typography/Label';
 import Spinner from '@/components/atoms/Spinner';
 import { safeImageUrl } from '@/lib/safeImageUrl';
 import { honorService } from '@/services/honorService';
-import { LuCamera, LuX } from 'react-icons/lu';
+import { LuCamera, LuX, LuClipboard } from 'react-icons/lu';
 import Cropper from 'react-easy-crop';
 import getCroppedImg, { urlToFile } from '@/lib/cropImage';
+import usePasteImage from '@/hooks/usePasteImage';
 
 const POSITIONS = [
     { value: 1, label: 'Primer Puesto', medal: '🥇' },
@@ -41,6 +42,11 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
     const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
         setCroppedAreaPixels(croppedAreaPixels);
     }, []);
+
+    // Paste from clipboard — disabled when crop modal is open
+    usePasteImage(useCallback((file) => {
+        processFile(file);
+    }, []), !cropModalOpen);
 
     const handleChange = (field, value) => {
         setForm(prev => ({ ...prev, [field]: value }));
@@ -284,9 +290,11 @@ export default function HonorEntryForm({ onSubmit, initialData = {}, grades = []
                             <>
                                 <LuCamera className="w-8 h-8 text-neutral-400" />
                                 <p className="text-sm text-neutral-500 text-center px-4">
-                                    Click o arrastra para subir foto
+                                    Click, arrastra o pega (Ctrl+V)
                                 </p>
-                                <p className="text-xs text-neutral-400">JPG, PNG, WebP · Máx 3MB</p>
+                                <p className="text-xs text-neutral-400 flex items-center gap-1">
+                                    <LuClipboard className="w-3 h-3" /> JPG, PNG, WebP · Máx 3MB
+                                </p>
                             </>
                         )}
                     </div>

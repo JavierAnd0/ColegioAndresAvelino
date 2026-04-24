@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import AdminLayout from '@/components/templates/AdminLayout';
 import Button from '@/components/atoms/Button';
 import FormField from '@/components/molecules/FormField';
@@ -11,6 +11,7 @@ import api from '@/services/api';
 import { safeImageUrl } from '@/lib/safeImageUrl';
 import Link from 'next/link';
 import { LuEye, LuEyeOff, LuCamera, LuCheck } from 'react-icons/lu';
+import usePasteImage from '@/hooks/usePasteImage';
 
 const ROLE_LABELS = {
     superadmin: 'Super Admin',
@@ -65,8 +66,7 @@ export default function PerfilPage() {
     }, []);
 
     // ── Avatar upload ────────────────────────────────────────────────────────
-    const handleAvatarChange = async (e) => {
-        const file = e.target.files?.[0];
+    const handleAvatarFile = useCallback(async (file) => {
         if (!file) return;
         setAvatarUploading(true);
         try {
@@ -79,9 +79,21 @@ export default function PerfilPage() {
             setAlert({ type: 'error', message: 'Error al subir la imagen.' });
         } finally {
             setAvatarUploading(false);
+        }
+    }, []);
+
+    const handleAvatarChange = async (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            await handleAvatarFile(file);
             e.target.value = '';
         }
     };
+
+    // Paste avatar from clipboard (only on the account tab)
+    usePasteImage(useCallback((file) => {
+        if (!avatarUploading && activeTab === 'account') handleAvatarFile(file);
+    }, [avatarUploading, activeTab, handleAvatarFile]));
 
     // ── Profile form ─────────────────────────────────────────────────────────
     const handleProfileChange = (e) => {

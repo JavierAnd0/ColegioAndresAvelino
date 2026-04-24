@@ -1,10 +1,11 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import Button from '@/components/atoms/Button';
 import Spinner from '@/components/atoms/Spinner';
 import api from '@/services/api';
 import { safeImageUrl } from '@/lib/safeImageUrl';
-import { LuImage, LuInfo, LuGraduationCap } from 'react-icons/lu';
+import { LuImage, LuInfo, LuGraduationCap, LuClipboard } from 'react-icons/lu';
+import usePasteImage from '@/hooks/usePasteImage';
 
 export default function HeroImageUploader({ onUpload, currentImage = '' }) {
     const [preview, setPreview] = useState(currentImage);
@@ -12,19 +13,14 @@ export default function HeroImageUploader({ onUpload, currentImage = '' }) {
     const [error, setError]     = useState('');
     const inputRef = useRef(null);
 
-    const handleFileChange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
+    const handleFileUpload = useCallback(async (file) => {
         if (file.size > 15 * 1024 * 1024) {
             setError('La imagen no puede superar 15 MB.');
             return;
         }
-
         setPreview(URL.createObjectURL(file));
         setError('');
         setLoading(true);
-
         try {
             const formData = new FormData();
             formData.append('image', file);
@@ -39,6 +35,15 @@ export default function HeroImageUploader({ onUpload, currentImage = '' }) {
         } finally {
             setLoading(false);
         }
+    }, [currentImage, onUpload]);
+
+    usePasteImage(useCallback((file) => {
+        if (!loading) handleFileUpload(file);
+    }, [loading, handleFileUpload]));
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (file) await handleFileUpload(file);
     };
 
     const handleRemove = () => {
@@ -46,6 +51,7 @@ export default function HeroImageUploader({ onUpload, currentImage = '' }) {
         onUpload?.(null);
         if (inputRef.current) inputRef.current.value = '';
     };
+
 
     return (
         <div className="flex flex-col gap-3">
@@ -89,7 +95,9 @@ export default function HeroImageUploader({ onUpload, currentImage = '' }) {
                     <div className="w-full h-full flex flex-col items-center justify-center gap-2 py-8">
                         <LuImage className="w-8 h-8 text-neutral-400" />
                         <p className="text-sm text-neutral-500">Haz clic para subir la imagen de fondo del hero</p>
-                        <p className="text-xs text-neutral-400">Horizontal · alta resolución</p>
+                        <p className="text-xs text-neutral-400 flex items-center gap-1">
+                            <LuClipboard className="w-3 h-3" /> Pega con Ctrl+V · horizontal · alta resolución
+                        </p>
                     </div>
                 )}
             </div>
