@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Vercel build output (generado por ncc)
+api/
+
 # Environment variables
 .env
 .env.local
