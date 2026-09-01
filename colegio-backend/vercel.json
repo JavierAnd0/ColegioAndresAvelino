@@ -8,7 +8,10 @@
   ],
   "functions": {
     "api/index.js": {
-      "includeFiles": "node_modules/cloudinary/**"
+      "includeFiles": [
+        "node_modules/cloudinary/**",
+        "node_modules/lodash/**"
+      ]
     }
   }
 }
