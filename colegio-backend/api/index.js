@@ -1,17 +1,22 @@
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-
-// Forzar que Vercel NFT trace cloudinary y sus dependencias internas
-// NFT solo puede seguir require() estáticos, no los require() dinámicos
-// internos de cloudinary. Al hacer require() aquí, NFT incluye todos los archivos.
+// Entry point CommonJS para Vercel Serverless
+// require() permite que el bundler NFT de Vercel trace todos los archivos internos de cloudinary
 require('cloudinary');
 
-import connectDB from '../src/config/database.js';
-import app from '../src/app.js';
+let appPromise;
 
-// Conectar a MongoDB en el arranque serverless
-connectDB().catch((err) => {
-  console.error('Error inicial conectando a MongoDB:', err.message);
-});
+function getApp() {
+  if (!appPromise) {
+    appPromise = (async () => {
+      const { default: connectDB } = await import('../src/config/database.js');
+      const { default: app } = await import('../src/app.js');
+      await connectDB();
+      return app;
+    })();
+  }
+  return appPromise;
+}
 
-export default app;
+module.exports = async (req, res) => {
+  const app = await getApp();
+  return app(req, res);
+};
