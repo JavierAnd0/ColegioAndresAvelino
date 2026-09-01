@@ -41,7 +41,9 @@ const connectDB = async () => {
   } catch (error) {
     Sentry.captureException(error);
     console.error('❌ Error conectando a MongoDB:', error.message);
-    if (process.env.NODE_ENV !== 'production') {
+    // En Vercel (serverless) nunca cortar el proceso: dejar que el caller
+    // capture el error y responda. Fuera de Vercel (dev local), fallar rápido.
+    if (!process.env.VERCEL) {
       process.exit(1);
     }
     throw error;

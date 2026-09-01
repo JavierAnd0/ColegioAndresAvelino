@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "buildCommand": "npx -y @vercel/ncc build src/vercel.js -o api -e @sentry/profiling-node -m && mkdir -p public",
-  "outputDirectory": "public",
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/api/index.js"
+    { "source": "/(.*)", "destination": "/api/index" }
+  ],
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "node_modules/{cloudinary,lodash}/**",
+      "maxDuration": 30
     }
-  ]
+  }
 }
