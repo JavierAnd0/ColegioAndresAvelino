@@ -1,11 +1,9 @@
-import app from '../src/app.js';
 import connectDB from '../src/config/database.js';
+import app from '../src/app.js';
 
-export default async function handler(req, res) {
-  try {
-    await connectDB();
-  } catch (error) {
-    console.error('Error al conectar con MongoDB en Vercel:', error);
-  }
-  return app(req, res);
-}
+// Conectar a MongoDB en el arranque serverless
+connectDB().catch((err) => {
+  console.error('Error inicial conectando a MongoDB:', err.message);
+});
+
+export default app;
